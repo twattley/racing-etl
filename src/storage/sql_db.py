@@ -8,7 +8,10 @@ from src.utils.logging_config import I
 
 
 def storage_connection():
-    return sqlalchemy.create_engine(os.environ["CONN_STR"])
+    if os.environ.get("ENV") == "development":
+        return sqlalchemy.create_engine(os.environ["CONN_STR"])
+    else:
+        return sqlalchemy.create_engine(os.environ["REMOTE_CONN_STR"])
 
 
 def store_data(
