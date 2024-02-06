@@ -1,0 +1,10 @@
+numpy 
+selenium 
+pytz 
+pandas 
+sqlalchemy
+psycopg2-binary
+black
+isort
+flake8
+pytest

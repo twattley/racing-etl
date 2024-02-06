@@ -1,0 +1,6 @@
+numpy 
+selenium 
+pytz 
+pandas 
+sqlalchemy
+psycopg2-binary
