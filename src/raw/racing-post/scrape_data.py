@@ -461,8 +461,7 @@ if __name__ == "__main__":
             performance_data = scrape_data(driver, result)
             store_data(performance_data, "performance_data", "rp_raw")
         except Exception as e:
-            with open(f"{result}.txt", "w") as error_file:
-                error_file.write(traceback.format_exc())
+            print(e)
             continue
     driver.quit()
     
