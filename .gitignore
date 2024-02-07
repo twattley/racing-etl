@@ -1,9 +1,2 @@
-*
-!src/
-!scripts/
-!test/
-!requirements.txt
-!requirements-dev.txt
-!README.md
-!.gitignore
+.env
 
