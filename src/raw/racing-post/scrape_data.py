@@ -1,4 +1,5 @@
 import hashlib
+import os
 import random
 import re
 from datetime import datetime
@@ -117,7 +118,8 @@ UK_IRE_COURSES = [
 def get_results_links():
     fetched_data = fetch_data("SELECT * FROM rp_raw.missing_links")
     links = fetched_data["link"].unique()
-    return [url for url in links if any(course in url for course in UK_IRE_COURSES)]
+    filtered_links = [url for url in links if any(course in url for course in UK_IRE_COURSES)]
+    return fetched_data[~fetched_data["link"].isin(filtered_links)]
 
 
 def get_entity_data_from_link(entity_link):
@@ -453,21 +455,28 @@ def scrape_data(driver, result):
 
 
 if __name__ == "__main__":
-    filtered_links = get_results_links()
-    random.shuffle(filtered_links)
-    driver = get_driver()  
-    for result in filtered_links:
-        try:
-            if not is_driver_session_valid(driver):
-                driver.quit() 
-                driver = get_driver()  
-            driver.get(result)  
-            performance_data = scrape_data(driver, result)  
-            store_data(performance_data, "performance_data", "rp_raw")  
-        except Exception as e:
-            E(f"Encountered an error: {e}. Attempting to continue with the next link.")
-            traceback.print_exc()
-            time.sleep(random.randint(360, 600))
-            continue  
+    filepath = os.path.join(os.getcwd(), "src/raw/racing-post/scrape_dates_log.txt")
+    with open(filepath, "r") as log_file:
+        processed_dates = list({line.strip() for line in log_file.readlines()})
+    
+    filtered_links_df = get_results_links()
+    driver = get_driver()
+    for result in filtered_links_df.sample(frac=1).itertuples():
+        result_date_str = result.date.strftime("%Y-%m-%d")
+        if result_date_str not in processed_dates:
+            try:
+                if not is_driver_session_valid(driver):
+                    driver.quit()
+                    driver = get_driver()
+                driver.get(result.link)
+                performance_data = scrape_data(driver, result.link)
+                store_data(performance_data, "performance_data", "rp_raw")
+                with open(filepath, "a") as log_file:  
+                    log_file.write(f"{result.date}\n")  
+            except Exception as e:
+                E(f"Encountered an error: {e}. Attempting to continue with the next link.")
+                traceback.print_exc()
+                time.sleep(random.randint(360, 600))
+                continue
     driver.quit()
     
