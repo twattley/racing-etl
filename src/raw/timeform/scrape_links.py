@@ -31,23 +31,27 @@ if __name__ == "__main__":
     I("Scrape_links.py execution started.")
     driver = get_headless_driver(timeform=True)
     while True:
-        dates = fetch_data("SELECT * FROM tf_raw.missing_dates")
-        if dates.empty:
-            I("No missing dates found. Ending the script.")
-            break
-        dates_list = dates["date"].tolist()
-        random.shuffle(dates_list)
-        date = dates_list[0].strftime("%Y-%m-%d")
-        url = f"{TF_RESULTS_URL}{str(date)}"
-        I(f"Generated URL for scraping: {url}")
-        driver.get(url)
-        time.sleep(4)
-        I("Page load complete. Proceeding to scrape links.")
-        days_results_links = get_results_links(driver)
-        I(f"Found {len(days_results_links)} valid links for date {date}.")
-        days_results_links_df = pd.DataFrame(
-            {"date": [date] * len(days_results_links), "link": days_results_links}
-        )
-        time.sleep(random.randint(2, 4))
-        I(f"Inserting {len(days_results_links)} links into the database.")
-        store_data(days_results_links_df, 'days_results_links', 'tf_raw')
+        try:
+            dates = fetch_data("SELECT * FROM tf_raw.missing_dates")
+            if dates.empty:
+                I("No missing dates found. Ending the script.")
+                break
+            dates_list = dates["date"].tolist()
+            random.shuffle(dates_list)
+            date = dates_list[0].strftime("%Y-%m-%d")
+            url = f"{TF_RESULTS_URL}{str(date)}"
+            I(f"Generated URL for scraping: {url}")
+            driver.get(url)
+            time.sleep(4)
+            I("Page load complete. Proceeding to scrape links.")
+            days_results_links = get_results_links(driver)
+            I(f"Found {len(days_results_links)} valid links for date {date}.")
+            days_results_links_df = pd.DataFrame(
+                {"date": [date] * len(days_results_links), "link": days_results_links}
+            )
+            time.sleep(random.randint(2, 4))
+            I(f"Inserting {len(days_results_links)} links into the database.")
+            store_data(days_results_links_df, 'days_results_links', 'tf_raw')
+        except Exception as e:
+            I(f"An error occurred: {e}. Continuing to next date.")
+            continue
