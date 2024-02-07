@@ -1,460 +1,255 @@
-import hashlib
-import random
-import re
-from datetime import datetime
-
-from src.raw.webdriver_base import get_driver
-from src.storage.sql_db import fetch_data, store_data
-
 import numpy as np
-import pandas as pd
-import pytz
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from src.utils.logging_config import I, E
+from selenium.webdriver.support import expected_conditions as EC
+from datetime import datetime
+import pytz
+import re
+import json
+import hashlib
+import re
+
+import os
+import shutil
+import subprocess
+import time
+
+import betfairlightweight
+import pandas as pd
+import requests
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+
+from src.utils.logging_config import LOGGER
 
 
 
-UK_IRE_COURSES = [
-    "aintree",
-    "ascot",
-    "ayr",
-    "ballinrobe",
-    "bangor-on-dee",
-    "bath",
-    "bellewstown",
-    "beverley",
-    "brighton",
-    "carlisle",
-    "cartmel",
-    "catterick",
-    "chelmsford-aw",
-    "cheltenham",
-    "chepstow",
-    "chester",
-    "clonmel",
-    "cork",
-    "curragh",
-    "doncaster",
-    "down-royal",
-    "downpatrick",
-    "dundalk-aw",
-    "epsom",
-    "exeter",
-    "fairyhouse",
-    "fakenham",
-    "ffos-las",
-    "fontwell",
-    "galway",
-    "goodwood",
-    "gowran-park",
-    "hamilton",
-    "haydock",
-    "hereford",
-    "hexham",
-    "huntingdon",
-    "kelso",
-    "kempton",
-    "kempton-aw",
-    "kilbeggan",
-    "killarney",
-    "laytown",
-    "leicester",
-    "leopardstown",
-    "limerick",
-    "lingfield",
-    "lingfield-aw",
-    "listowel",
-    "ludlow",
-    "market-rasen",
-    "musselburgh",
-    "naas",
-    "navan",
-    "newbury",
-    "newcastle",
-    "newcastle-aw",
-    "newmarket",
-    "newmarket-july",
-    "newton-abbot",
-    "nottingham",
-    "perth",
-    "plumpton",
-    "pontefract",
-    "punchestown",
-    "redcar",
-    "ripon",
-    "roscommon",
-    "salisbury",
-    "sandown",
-    "sedgefield",
-    "sligo",
-    "southwell",
-    "southwell-aw",
-    "stratford",
-    "taunton",
-    "thirsk",
-    "thurles",
-    "tipperary",
-    "towcester",
-    "tramore",
-    "uttoxeter",
-    "warwick",
-    "wetherby",
-    "wexford",
-    "wincanton",
-    "windsor",
-    "wolverhampton-aw",
-    "worcester",
-    "yarmouth",
-    "york",
-]
-
-
-
-def get_results_links():
-    fetched_data = fetch_data("SELECT * FROM rp_raw.days_results_links")
-    links = fetched_data["link"].unique()
-    return [url for url in links if any(course in url for course in UK_IRE_COURSES)]
-
-
-def get_entity_data_from_link(entity_link):
-    entity_id, entity_name = entity_link.split("/")[-2:]
-    entity_name = " ".join(i.title() for i in entity_name.split("-"))
-    return entity_id, entity_name
-
-
-def return_element_text_from_css(driver, element_id):
-    return driver.find_element(By.CSS_SELECTOR, element_id).text.strip()
-
-
-def get_raw_winning_time(driver):
-    race_info = " ".join(
-        element.text.strip()
-        for element in driver.find_elements(By.CSS_SELECTOR, ".rp-raceInfo")
-    ).splitlines()[0]
-    match = re.search(r"winning time: (.*?) total sp:", race_info, re.IGNORECASE)
-
-    return match[1] if match else np.NaN
-
-
-def get_number_of_runners(driver):
-    race_info = " ".join(
-        element.text.strip()
-        for element in driver.find_elements(By.CSS_SELECTOR, ".rp-raceInfo")
-    ).splitlines()[0]
-    match = re.search(r"(.*?) winning time:", race_info, re.IGNORECASE)
-    if match:
-        return match[1].lower().split("ran")[0].strip()
-
-
-def get_prize_money(driver):
-    prize_money_container = driver.find_element(
-        By.CSS_SELECTOR, "div[data-test-selector='text-prizeMoney']"
+def get_element_text_by_selector(row, css_selector):
+    elements = row.find_elements(By.CSS_SELECTOR, css_selector)
+    return next(
+        (element.text.strip() for element in elements if element.text.strip()),
+        None,
     )
-    prize_money_text = prize_money_container.text
 
-    places_and_money = re.split(
-        r"\s*(?:1st|2nd|3rd|4th|5th|6th|7th|8th|9th|10th)\s*", prize_money_text
+def return_element_from_css_selector(table_row, css_selector, multiple_elements=False):
+    try:
+        element = table_row.find_element(By.CSS_SELECTOR, css_selector)
+        if multiple_elements:
+            element = element[0]
+        return element.text
+    except Exception:
+        print(f"Element not found for css selector: {css_selector}")
+        return None
+
+
+def find_element_text_by_selector(
+    row, selector, default="Information not found for this row"
+):
+    elements = row.find_elements(By.CSS_SELECTOR, selector)
+    return elements[0].text if elements else default
+
+
+def find_element_text_by_selector_strip(
+    row, selector, chars_to_strip, default="Information not found for this row"
+):
+    elements = row.find_elements(By.CSS_SELECTOR, selector)
+    return elements[0].text.strip(chars_to_strip) if elements else default
+
+
+def title_except_brackets(text):
+    text = text.title()
+
+    def uppercase_match(match):
+        return match.group(0).upper()
+
+    return re.sub(r"\([^)]*\)", uppercase_match, text)
+
+
+def get_main_race_comment(driver):
+
+    premium_comment_elements = driver.find_elements(
+        By.CSS_SELECTOR, "td[title='Premium Race Comment']"
     )
-    places_and_money = list(filter(None, places_and_money))
-    currency_mapping = {"€": "EURO", "£": "POUNDS"}
+    for premium_comment_element in premium_comment_elements:
+        first_paragraph_elements = premium_comment_element.find_elements(
+            By.TAG_NAME, "p"
+        )
+        if first_paragraph_elements:
+            return first_paragraph_elements[0].text.strip()
+    return "No Comment Found"
 
-    # Split at the decimal point and keep only the part before it, then remove commas and convert to int
-    numbers = [
-        int(p.split(".")[0].replace(",", "").replace("€", "").replace("£", ""))
-        for p in places_and_money
+
+def get_race_details_from_link(link):
+    *_, course, race_date, race_time, course_id, race = link.split("/")
+    return {
+        "course": course,
+        "race_date": race_date,
+        "race_time": race_time,
+        "race_timestamp": datetime.strptime(
+            f"{race_date} {race_time}", "%Y-%m-%d %H%M"
+        ),
+        "course_id": course_id,
+        "race": race,
+        "race_id": hashlib.sha256(
+            f"{course_id}_{race_date}_{race_time}_{race}".encode()
+        ).hexdigest(),
+    }
+
+
+def get_race_details_from_page(driver):
+    titles = [
+        # (variable name, title attribute of the span element)
+        ("distance", "Distance expressed in miles, furlongs and yards"),
+        ("going", "Race going"),
+        ("prize", "Prize money to winner"),
+        ("hcap_range", "BHA rating range"),
+        ("age_range", "Horse age range"),
+        ("race_type", "The type of race"),
     ]
+    elements = driver.find_elements(By.CSS_SELECTOR, "span.rp-header-text")
 
-    total = sum(numbers)
-    rounded_total_in_thousands = round(total, -3) // 1000
-    first_place_number = numbers[
-        0
-    ]  # Already converted to int, no need to process again
-    first_place_rounded_in_thousands = round(first_place_number, -3) // 1000
-    currency_symbol = places_and_money[0][0]
-    currency_name = currency_mapping.get(currency_symbol, currency_symbol)
-    return rounded_total_in_thousands, first_place_rounded_in_thousands, currency_name
+    values = {var: None for var, _ in titles}
+    for var, tf_title in titles:
+        for element in elements:
+            if element.get_attribute("title") == tf_title:
+                values[var] = element.text
+                break
+
+    values["main_race_comment"] = get_main_race_comment(driver)
+
+    return values
 
 
-def get_performance_data(driver):
+def get_entity_info_from_row(row, selector, index):
+    elements = row.find_elements(By.CSS_SELECTOR, selector)
+    if elements:
+        element = elements[0]
+        entity_name = element.text
+        if "Sire" in selector or "Dam" in selector:
+            entity_name = title_except_brackets(entity_name)
+        entity_id = element.get_attribute("href").split("/")[index]
+        return entity_name, entity_id
 
-    horse_data = []
 
-    order = []
+def get_horse_name(row):
+    all_links = row.find_elements(By.TAG_NAME, "a")
+    for link in all_links:
+        horse_links = row.find_elements(By.CSS_SELECTOR, "a.rp-horse")
+        all_hrefs = link.get_attribute("href")
+        if "horse-form" in all_hrefs:
+            tf_horse_id = all_hrefs.split("/")[-1]
+            tf_horse_name_link = all_hrefs.split("/")[-2]
+        for horse_link in horse_links:
+            horse_name = horse_link.text
+            if horse_name.strip():
+                tf_horse_name = title_except_brackets(
+                    re.sub(r"^\d+\.\s+", "", horse_link.text)
+                )
+        for link in all_links:
+            href = link.get_attribute("href")
+            if "sire" in href and "dam_sire" not in href:
+                tf_sire_name_link = href.split("/")[-3]
+                tf_clean_sire_name = tf_sire_name_link.replace("-", " ").title().strip()
 
-    rows = driver.find_elements(
-        By.CSS_SELECTOR, "tr.rp-horseTable__mainRow[data-test-selector='table-row']"
-    )
-    for index, row in enumerate(rows):
-        horse_position = row.find_element(
-            By.CSS_SELECTOR,
-            "span.rp-horseTable__pos__number[data-test-selector='text-horsePosition']",
-        ).text.strip()
+        return tf_horse_name, tf_horse_id, tf_horse_name_link, tf_clean_sire_name
 
-        if "(" in horse_position:
-            draw = horse_position.split("(")[1].replace(")", "").strip()
-            horse_position = horse_position.split("(")[0].strip()
-        else:
-            draw = np.NaN
 
-        jockey_element = row.find_element(By.CSS_SELECTOR, "a[href*='/profile/jockey']")
-        jockey_link = jockey_element.get_attribute("href")
-        jockey_id, jockey_name = get_entity_data_from_link(jockey_link)
+def get_performance_data(driver, race_details_link, race_details_page):
+    table_rows = driver.find_elements(By.CLASS_NAME, "rp-table-row")
 
-        owner_element = row.find_element(By.CSS_SELECTOR, "a[href*='/profile/owner']")
-        owner_link = owner_element.get_attribute("href")
-        owner_id, owner_name = get_entity_data_from_link(owner_link)
-
-        sup_elements = jockey_element.find_elements(
-            By.XPATH, "./following-sibling::sup"
+    data = []
+    for row in table_rows:
+        performance_data = {}
+        performance_data["tf_rating"] = return_element_from_css_selector(
+            row, "div.rp-circle.rp-rating.res-rating"
         )
-        if sup_elements:
-            jockey_claim = sup_elements[0].get_attribute("textContent").strip()
-        else:
-            jockey_claim = np.NaN
-
-        trainer_element = row.find_element(
-            By.CSS_SELECTOR, "a[href*='/profile/trainer']"
+        performance_data["tf_speed_figure"] = return_element_from_css_selector(
+            row, "td.al-center.rp-tfig"
         )
-        trainer_link = trainer_element.get_attribute("href")
-        trainer_id, trainer_name = get_entity_data_from_link(trainer_link)
-
-        horse_element = row.find_element(By.CSS_SELECTOR, "a[href*='/profile/horse']")
-        horse_link = horse_element.get_attribute("href")
-        horse_id, horse_name = get_entity_data_from_link(horse_link)
-
-        weight_st_element = row.find_element(
-            By.CSS_SELECTOR, "span[data-test-selector='horse-weight-st']"
-        )
-        weight_lb_element = row.find_element(
-            By.CSS_SELECTOR, "span[data-test-selector='horse-weight-lb']"
-        )
-        horse_weight = f"{weight_st_element.text}-{weight_lb_element.text}"
-
-        or_value = row.find_element(
-            By.CSS_SELECTOR, "td.rp-horseTable__spanNarrow[data-ending='OR']"
-        ).text.strip()
-        ts_value = row.find_element(
-            By.CSS_SELECTOR, "td.rp-horseTable__spanNarrow[data-ending='TS']"
-        ).text.strip()
-        rpr_value = row.find_element(
-            By.CSS_SELECTOR, "td.rp-horseTable__spanNarrow[data-ending='RPR']"
-        ).text.strip()
-
-        horse_price = row.find_element(
-            By.CSS_SELECTOR, "span.rp-horseTable__horse__price"
-        ).text.strip()
-
-        extra_weights_elements = row.find_elements(
-            By.CSS_SELECTOR,
-            "span.rp-horseTable__extraData img[data-test-selector='img-extraWeights']",
-        )
-        if extra_weights_elements:
-            extra_weight = (
-                extra_weights_elements[0]
-                .find_element(By.XPATH, "following-sibling::span")
-                .text.strip()
-            )
-        else:
-            extra_weight = np.NaN
-
-        headgear_elements = row.find_elements(
-            By.CSS_SELECTOR, "span.rp-horseTable__headGear"
-        )
-        if headgear_elements:
-            headgear = headgear_elements[0].text.strip().replace("\n", "")
-        else:
-            headgear = np.NaN
-
-        horse_data.append(
-            {
-                "horse_id": horse_id,
-                "horse_name": horse_name,
-                "jockey_id": jockey_id,
-                "jockey_name": jockey_name,
-                "jockey_claim": jockey_claim,
-                "trainer_id": trainer_id,
-                "trainer_name": trainer_name,
-                "owner_id": owner_id,
-                "owner_name": owner_name,
-                "horse_weight": horse_weight,
-                "or_value": or_value,
-                "finishing_position": horse_position,
-                "draw": draw,
-                "ts_value": ts_value,
-                "rpr_value": rpr_value,
-                "horse_price": horse_price,
-                "extra_weight": extra_weight,
-                "headgear": headgear,
-            }
-        )
-
-        order.append((index, horse_name))
-
-    return horse_data, order
-
-
-def get_comment_data(driver, order, horse_data):
-    sorted_horses = sorted(order, key=lambda x: x[0])
-    sorted_horse_data = sorted(
-        horse_data,
-        key=lambda x: next(
-            i for i, name in enumerate(sorted_horses) if name[1] == x["horse_name"]
-        ),
-    )
-    comment_rows = driver.find_elements(
-        By.CSS_SELECTOR,
-        "tr.rp-horseTable__commentRow[data-test-selector='text-comments']",
-    )
-
-    if len(sorted_horse_data) != len(comment_rows):
-        I("Error: The number of horses does not match the number of comment rows.")
-        return horse_data
-
-    for horse_data, comment_row in zip(sorted_horse_data, comment_rows):
-        comment_text = comment_row.find_element(By.TAG_NAME, "td").text.strip()
-        horse_data["comment"] = comment_text
-
-    return sorted_horse_data
-
-
-def get_pedigree_data(driver, order, horse_data):
-    sorted_horses = sorted(order, key=lambda x: x[0])
-    sorted_horse_data = sorted(
-        horse_data,
-        key=lambda x: next(
-            i for i, name in enumerate(sorted_horses) if name[1] == x["horse_name"]
-        ),
-    )
-    pedigree_rows = WebDriverWait(driver, 10).until(
-        EC.presence_of_all_elements_located(
-            (
-                By.CSS_SELECTOR,
-                "tr.rp-horseTable__pedigreeRow[data-test-selector='block-pedigreeInfoFullResults']",
+        performance_data["draw"] = return_element_from_css_selector(row, "span.rp-draw")
+        performance_data["trainer_name"], performance_data["trainer_id"] = (
+            get_entity_info_from_row(
+                row, "td.rp-jockeytrainer-hide > a[title='Trainer']", -1
             )
         )
-    )
+        performance_data["jockey_name"], performance_data["jockey_id"] = (
+            get_entity_info_from_row(
+                row, "td.rp-jockeytrainer-hide > a[title='Jockey']", -1
+            )
+        )
+        performance_data["sire_name"], performance_data["sire_id"] = (
+            get_entity_info_from_row(row, "span[title='Sire'] > a", -2)
+        )
+        performance_data["dam_name"], performance_data["dam_id"] = (
+            get_entity_info_from_row(row, "span[title='Dam'] > a", -2)
+        )
+        performance_data["finishing_position"] = get_element_text_by_selector(
+            row, 'span.rp-entry-number[title="Finishing Position"]'
+        )
+        (
+            performance_data["horse_name"],
+            performance_data["horse_id"],
+            performance_data["horse_name_link"],
+            performance_data["sire_name_link"],
+        ) = get_horse_name(row)
+        performance_data["horse_age"] = find_element_text_by_selector(
+            row,
+            "td.al-center.rp-body-text.rp-ageequip-hide[title='Horse age']",
+            "Horse Age information not found for this row",
+        )
+        equipment = [
+            element.text
+            for element in row.find_elements(
+                By.CSS_SELECTOR, "td.al-center.rp-body-text.rp-ageequip-hide > span"
+            )
+        ]
+        performance_data["equipment"] = equipment[0] if equipment else None
+        performance_data["official_rating"] = find_element_text_by_selector_strip(
+            row,
+            "td.al-center.rp-body-text.rp-ageequip-hide[title='Official rating given to this horse']",
+            "()",
+            "Official rating information not found for this row",
+        )
+        performance_data["fractional_price"] = find_element_text_by_selector(
+            row, ".price-fractional", "Price information not found for this row"
+        )
+        performance_data["betfair_win_sp"] = find_element_text_by_selector(
+            row,
+            "td.al-center.rp-result-sp.rp-result-bsp-hide[title='Betfair Win SP']",
+            "Betfair Win SP information not found for this row",
+        )
+        performance_data["betfair_place_sp"] = find_element_text_by_selector_strip(
+            row,
+            "td.al-center.rp-result-sp.rp-result-bsp-hide[title='Betfair Place SP']",
+            "()",
+            "Betfair Place SP information not found for this row",
+        )
+        performance_data["in_play_prices"] = find_element_text_by_selector(
+            row,
+            "td.al-center.rp-body-text.rp-ipprices[title='The hi/lo Betfair In-Play prices with a payout of more than GBP100']",
+            "Betfair In-Play prices information not found for this row",
+        )
+        performance_data["tf_comment"] = find_element_text_by_selector(
+            row, "tr.rp-entry-comment.rp-comments.rp-body-text"
+        )
 
-    if len(sorted_horse_data) != len(pedigree_rows):
-        E("Number of horses does not match the number of pedigree rows.")
-        return horse_data
+        performance_data.update(race_details_link)
+        performance_data.update(race_details_page)
 
-    pedigrees = []
-    for row in pedigree_rows:
-        pedigree = {}
-        profile_links = row.find_elements(By.CSS_SELECTOR, "td > a.ui-profileLink")
-        pedigree_hrefs = [link.get_attribute("href") for link in profile_links]
-        for i, v in enumerate(pedigree_hrefs):
-            if i == 0:
-                pedigree["sire_id"], pedigree["sire"] = get_entity_data_from_link(v)
-            elif i == 1:
-                pedigree["dam_id"], pedigree["dam"] = get_entity_data_from_link(v)
-            elif i == 2:
-                (
-                    pedigree["dams_sire_id"],
-                    pedigree["dams_sire"],
-                ) = get_entity_data_from_link(v)
-            else:
-                E(f"Error: Unknown pedigree link index: {i}")
-        pedigrees.append(pedigree)
+        data.append(performance_data)
 
-    for horse_data, pedigrees in zip(sorted_horse_data, pedigrees):
-        horse_data["sire"] = pedigrees["sire"]
-        horse_data["sire_id"] = pedigrees["sire_id"]
-        horse_data["dam"] = pedigrees["dam"]
-        horse_data["dam_id"] = pedigrees["dam_id"]
-        horse_data["dams_sire"] = pedigrees["dams_sire"]
-        horse_data["dams_sire_id"] = pedigrees["dams_sire_id"]
-
-    return sorted_horse_data
-
-
-def get_course_country_data(driver):
-    course_name = return_element_text_from_css(driver, "a.rp-raceTimeCourseName__name")
-    matches = re.findall(r"\((.*?)\)", course_name)
-    if len(matches) == 2:
-        surface, country = matches
-    elif len(matches) == 1 and matches[0] == "AW":
-        surface = "AW"
-        country = "UK"
-    else:
-        surface = "Turf"
-        country = "UK"
-
-    return surface, country, course_name
-
-
-def scrape_data(driver, result):
-    created_at = datetime.now(pytz.timezone("Europe/London")).strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
-    *_, course_id, course, race_date, race_id = result.split("/")
-    driver.get(result)
-    surface, country, course_name = get_course_country_data(driver)
-    race_time = return_element_text_from_css(
-        driver,
-        "span.rp-raceTimeCourseName__time[data-test-selector='text-raceTime']",
-    )
-    race_title = return_element_text_from_css(driver, "h2.rp-raceTimeCourseName__title")
-    conditions = return_element_text_from_css(
-        driver, "span.rp-raceTimeCourseName_ratingBandAndAgesAllowed"
-    )
-    distance = return_element_text_from_css(
-        driver, "span.rp-raceTimeCourseName_distance"
-    )
-    going = return_element_text_from_css(driver, "span.rp-raceTimeCourseName_condition")
-    winning_time = get_raw_winning_time(driver)
-    number_of_runners = get_number_of_runners(driver)
-    total_prize_money, first_place_prize_money, currency = get_prize_money(driver)
-    performance_data, order = get_performance_data(driver)
-    performance_data = get_comment_data(driver, order, performance_data)
-    performance_data = get_pedigree_data(driver, order, performance_data)
-
-    I("Procesed html data. Now creating dataframes.")
-
-    race_timestamp = datetime.strptime(f"{race_date} {race_time}", "%Y-%m-%d %H:%M")
-    performance_data = pd.DataFrame(performance_data).assign(
-        race_date=race_date,
-        race_title=race_title,
-        race_time=race_time,
-        race_timestamp=race_timestamp,
-        conditions=conditions,
-        distance=distance,
-        going=going,
-        winning_time=winning_time,
-        number_of_runners=number_of_runners,
-        total_prize_money=total_prize_money,
-        first_place_prize_money=first_place_prize_money,
-        currency=currency,
-        course_id=course_id,
-        course_name=course_name,
-        course=course,
-        debug_link=result,
-        race_id=race_id,
-        country=country,
-        surface=surface,
-        created_at=created_at,
-        unique_id=lambda x: x.apply(
-            lambda y: hashlib.sha512(
-                f"{y['horse_id']}-{y['sire_id']}-{y['dam_id']}-{y['race_id']}-{y['course_id']}-{y['jockey_id']}-{y['owner_id']}".encode()
-            ).hexdigest(),
-            axis=1,
-        ),
-    )
-
-    performance_data = performance_data.apply(
-        lambda x: x.str.strip() if x.dtype == "object" else x
-    )
-
-    return performance_data
+    return pd.DataFrame(data)
 
 
 if __name__ == "__main__":
-    filtered_links = get_results_links()
-    random.shuffle(filtered_links)
-    driver = get_driver()
-    for result in filtered_links:
-        driver.get(result)
-        performance_data = scrape_data(driver, result)
-        store_data(performance_data, "performance_data", "rp_raw")
+    I("Scrape_links.py execution started.")
+    driver = get_headless_driver(timeform=True)
+    links = get_links()
+    for link in links:
+        driver.get(link)
+        race_details_link = get_race_details_from_link(link)
+        race_details_page = get_race_details_from_page(driver)
+        data = get_performance_data(driver, race_details_link, race_details_page)
+        store_data(data, "timeform")
