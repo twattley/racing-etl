@@ -3,8 +3,9 @@ import random
 import re
 from datetime import datetime
 import traceback
+import time
 
-from src.raw.webdriver_base import get_driver
+from src.raw.webdriver_base import get_driver, is_driver_session_valid
 from src.storage.sql_db import fetch_data, store_data
 
 import numpy as np
@@ -454,14 +455,19 @@ def scrape_data(driver, result):
 if __name__ == "__main__":
     filtered_links = get_results_links()
     random.shuffle(filtered_links)
-    driver = get_driver()
+    driver = get_driver()  
     for result in filtered_links:
         try:
-            driver.get(result)
-            performance_data = scrape_data(driver, result)
-            store_data(performance_data, "performance_data", "rp_raw")
+            if not is_driver_session_valid(driver):
+                driver.quit() 
+                driver = get_driver()  
+            driver.get(result)  
+            performance_data = scrape_data(driver, result)  
+            store_data(performance_data, "performance_data", "rp_raw")  
         except Exception as e:
-            print(e)
-            continue
+            E(f"Encountered an error: {e}. Attempting to continue with the next link.")
+            traceback.print_exc()
+            time.sleep(random.randint(360, 600))
+            continue  
     driver.quit()
     

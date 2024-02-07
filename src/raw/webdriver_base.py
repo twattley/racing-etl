@@ -38,13 +38,6 @@ class WebDriverBuilder:
 
         return webdriver.Chrome(service=service, options=options)
 
-    @staticmethod
-    def is_driver_session_valid(driver):
-        try:
-            _ = driver.current_url
-            return True
-        except WebDriverException:
-            return False
 
     @staticmethod
     def _get_random_user_agent():
@@ -107,4 +100,11 @@ def get_driver(timeform=False):
     if timeform:
         login_to_timeform(driver)
     return driver
+
+def is_driver_session_valid(driver):
+    try:
+        _ = driver.current_url
+        return True
+    except WebDriverException:
+        return False
 
