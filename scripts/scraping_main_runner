@@ -12,12 +12,10 @@ echo "Python version: $(python --version)"
 case $1 in
     "tf_scrape_links")
         echo "Running tf_scrape_links"
-        export ENV="development"
         python $RACING_ETL_FOLDER/src/raw/timeform/scrape_links.py
         ;;
     "tf_scrape_data")
         echo "Running tf_scrape_data"
-        export ENV="development"
         python $RACING_ETL_FOLDER/src.raw.timeform.scrape_data.py
         ;;
     "rp_scrape_links")
