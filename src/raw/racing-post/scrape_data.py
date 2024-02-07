@@ -2,6 +2,7 @@ import hashlib
 import random
 import re
 from datetime import datetime
+import traceback
 
 from src.raw.webdriver_base import get_driver
 from src.storage.sql_db import fetch_data, store_data
@@ -113,7 +114,7 @@ UK_IRE_COURSES = [
 
 
 def get_results_links():
-    fetched_data = fetch_data("SELECT * FROM rp_raw.days_results_links")
+    fetched_data = fetch_data("SELECT * FROM rp_raw.missing_links")
     links = fetched_data["link"].unique()
     return [url for url in links if any(course in url for course in UK_IRE_COURSES)]
 
@@ -455,6 +456,13 @@ if __name__ == "__main__":
     random.shuffle(filtered_links)
     driver = get_driver()
     for result in filtered_links:
-        driver.get(result)
-        performance_data = scrape_data(driver, result)
-        store_data(performance_data, "performance_data", "rp_raw")
+        try:
+            driver.get(result)
+            performance_data = scrape_data(driver, result)
+            store_data(performance_data, "performance_data", "rp_raw")
+        except Exception as e:
+            with open(f"{result}.txt", "w") as error_file:
+                error_file.write(traceback.format_exc())
+            continue
+    driver.quit()
+    
