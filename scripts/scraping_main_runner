@@ -12,19 +12,25 @@ echo "Python version: $(python --version)"
 case $1 in
     "tf_scrape_links")
         echo "Running tf_scrape_links"
-        python $RACING_ETL_FOLDER/src/raw/timeform/scrape_links.py
+        python3 $RACING_ETL_FOLDER/src/raw/syncronizer.py tf_scrape_links &
+        sleep 10
+        python3 $RACING_ETL_FOLDER/src/raw/timeform/scrape_links.py
         ;;
     "tf_scrape_data")
         echo "Running tf_scrape_data"
-        python $RACING_ETL_FOLDER/src.raw.timeform.scrape_data.py
+        python3 $RACING_ETL_FOLDER/src/raw/syncronizer.py tf_scrape_data &
+        sleep 10
+        python3 $RACING_ETL_FOLDER/src/raw/timeform/scrape_data.py
         ;;
     "rp_scrape_links")
         echo "Running rp_scrape_links"
-        python $RACING_ETL_FOLDER/src/raw/racing-post/scrape_links.py
+        python3 $RACING_ETL_FOLDER/src/raw/racing-post/scrape_links.py
         ;;
     "rp_scrape_data")
         echo "Running rp_scrape_data"
-        python $RACING_ETL_FOLDER/src/raw/racing-post/scrape_data.py
+        python3 $RACING_ETL_FOLDER/src/raw/syncronizer.py rp_scrape_data &
+        sleep 10
+        python3 $RACING_ETL_FOLDER/src/raw/racing-post/scrape_data.py
         ;;
     *)
         echo "Invalid command"

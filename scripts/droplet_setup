@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Update and install necessary packages
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y git python3 python3-pip python3-venv unzip
+
+# Download Chrome
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+sudo dpkg -i google-chrome-stable_current_amd64.deb
+sudo apt --fix-broken install -y
+
+# Download and install ChromeDriver
+wget https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/121.0.6167.85/linux64/chromedriver-linux64.zip
+unzip chromedriver-linux64.zip
+
+# Assuming the unzip command extracts to the current directory
+
+sudo chmod +x /root/chromedriver-linux64/chromedriver
+
+# Set CHROMEDRIVER_PATH environment variable
+echo 'export CHROMEDRIVER_PATH=/root/chromedriver-linux64/chromedriver' >> ~/.bashrc
+echo 'export RACING_ETL_FOLDER=/root/racing-etl' >> ~/.bashrc
+echo 'export RACING_ETL_ENV=/root/venvs/scraper/bin/activate' >> ~/.bashrc
+
+# Reload .bashrc to apply changes immediately to the current session
+source ~/.bashrc
+
+# Create a Python virtual environment for the scraper
+mkdir -p venvs
+python3 -m venv /root/venvs/scraper
+
+# Activate the virtual environment and install Python packages
+source /root/venvs/scraper/bin/activate
+pip install selenium numpy pytz pandas sqlalchemy psycopg2-binary
+
+# Deactivate the virtual environment
+deactivate
+
+echo "Setup completed successfully."
+
+ssh-keygen -t rsa
+echo "Add the following SSH key to your GitHub account: "
+cat ~/.ssh/id_rsa.pub
+echo "https://github.com/settings/ssh/new"
+
