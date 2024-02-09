@@ -18,7 +18,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from src.utils.logging_config import I, E
 
 
-
 UK_IRE_COURSES = [
     "aintree",
     "ascot",
@@ -114,10 +113,11 @@ UK_IRE_COURSES = [
 ]
 
 
-
 def get_results_links(data):
     links = data["link"].unique()
-    filtered_links = [url for url in links if any(course in url for course in UK_IRE_COURSES)]
+    filtered_links = [
+        url for url in links if any(course in url for course in UK_IRE_COURSES)
+    ]
     return data[~data["link"].isin(filtered_links)]
 
 
@@ -454,10 +454,12 @@ def scrape_data(driver, result):
 
 
 if __name__ == "__main__":
-    driver = get_driver()
-    for _ in range(1000000000):
-        processed_dates = pd.read_csv(os.path.join(os.getcwd(), 'src/raw/racing-post/rp_scrape_data.csv'))
-        I(f'Number of missing links: {len(processed_dates)}')
+    driver = get_driver(timeform=True)
+    for _ in range(1):
+        processed_dates = pd.read_csv(
+            os.path.join(os.getcwd(), "src/raw/racing-post/rp_scrape_data.csv")
+        )
+        I(f"Number of missing links: {len(processed_dates)}")
         if processed_dates.empty:
             I("No missing links found. Ending the script.")
             break
@@ -469,9 +471,9 @@ if __name__ == "__main__":
             link = filtered_links_df.link.iloc[0]
             driver.get(link)
             performance_data = scrape_data(driver, link)
-            store_data(performance_data, "performance_data", "rp_raw")
+            # store_data(performance_data, "performance_data", "rp_raw")
+            performance_data.to_csv("~/Desktop/test.csv", index=False)
         except Exception as e:
             E(f"Encountered an error: {e}. Attempting to continue with the next link.")
             traceback.print_exc()
             time.sleep(random.randint(360, 600))
-    

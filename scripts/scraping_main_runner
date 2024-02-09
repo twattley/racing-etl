@@ -1,4 +1,3 @@
-#!/usr/bin/env zsh
 export LOG_LEVEL="INFO"
 echo "Changing directory to $RACING_ETL_FOLDER"
 echo "Changing directory to $RACING_ETL_ENV"
@@ -8,6 +7,7 @@ source ~/.zshrc
 echo "Sourcing environment from $RACING_ETL_ENV"
 source $RACING_ETL_ENV
 echo "Python version: $(python --version)" 
+export PYTHONPATH=$(pwd) 
 
 case $1 in
     "tf_scrape_links")

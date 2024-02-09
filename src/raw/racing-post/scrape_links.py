@@ -41,7 +41,7 @@ if __name__ == "__main__":
             )
             time.sleep(random.randint(2, 4))
             I(f"Inserting {len(days_results_links)} links into the database.")
-            store_data(days_results_links_df, 'days_results_links', 'rp_raw')
+            store_data(days_results_links_df, "days_results_links", "rp_raw")
         except Exception as e:
             I(f"An error occurred: {e}. Continuing to next date.")
             continue

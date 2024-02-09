@@ -38,7 +38,6 @@ class WebDriverBuilder:
 
         return webdriver.Chrome(service=service, options=options)
 
-
     @staticmethod
     def _get_random_user_agent():
         user_agents = [
@@ -66,13 +65,14 @@ class WebDriverBuilder:
         return random.choice(user_agents)
 
     @classmethod
-    def create_with_random_user_agent(cls, headless_mode=True):
+    def create_with_random_user_agent(cls, headless_mode=False):
+        I(f"Creating a new WebDriver with headless mode set to {headless_mode}")
         return cls(headless_mode=headless_mode)
-
 
 
 def login_to_timeform(driver):
     # sourcery skip: extract-duplicate-method
+    I("Logging in to Timeform")
     hr_login_page = "https://www.timeform.com/horse-racing/account/sign-in?returnUrl=%2Fhorse-racing"
     time.sleep(5)
     driver.get(hr_login_page)
@@ -89,17 +89,20 @@ def login_to_timeform(driver):
     time.sleep(3)
     I("Log in to Timeform success")
 
-def get_headless_driver(timeform=False):
-    driver = WebDriverBuilder.create_with_random_user_agent(headless_mode=True).driver
-    if timeform:
-        login_to_timeform(driver)
     return driver
 
+
+def get_headless_driver(timeform=False):
+    I(f"Creating a new headless WebDriver for Timeform: {timeform}")
+    driver = WebDriverBuilder.create_with_random_user_agent(headless_mode=True).driver
+    return login_to_timeform(driver) if timeform else driver
+
+
 def get_driver(timeform=False):
+    I(f"Creating a new WebDriver for Timeform: {timeform}")
     driver = WebDriverBuilder.create_with_random_user_agent().driver
-    if timeform:
-        login_to_timeform(driver)
-    return driver
+    return login_to_timeform(driver) if timeform else driver
+
 
 def is_driver_session_valid(driver):
     try:
@@ -107,4 +110,3 @@ def is_driver_session_valid(driver):
         return True
     except WebDriverException:
         return False
-

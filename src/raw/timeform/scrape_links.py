@@ -11,18 +11,22 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
-
 def get_pages_results_links(driver):
-    elements = driver.find_elements(By.CSS_SELECTOR, 'a.results-title[href*="/horse-racing/result/"]')
-    return [element.get_attribute('href') for element in elements]
+    elements = driver.find_elements(
+        By.CSS_SELECTOR, 'a.results-title[href*="/horse-racing/result/"]'
+    )
+    return [element.get_attribute("href") for element in elements]
+
 
 def get_results_links(driver):
     pages_links = get_pages_results_links(driver)
-    buttons = driver.find_elements(By.CSS_SELECTOR, 'button.w-course-region-tabs-button')
+    buttons = driver.find_elements(
+        By.CSS_SELECTOR, "button.w-course-region-tabs-button"
+    )
     for button in buttons:
         WebDriverWait(driver, 20).until(EC.element_to_be_clickable(button))
         button.click()
-        time.sleep(10) 
+        time.sleep(10)
         pages_links.extend(get_pages_results_links(driver))
 
     return list(set(pages_links))
@@ -33,8 +37,10 @@ if __name__ == "__main__":
     driver = get_headless_driver()
     for _ in range(1000000000):
         try:
-            dates = pd.read_csv(os.path.join(os.getcwd(), 'src/raw/timeform/tf_scrape_links.csv'))
-            I(f'Number of missing dates: {len(dates)}')
+            dates = pd.read_csv(
+                os.path.join(os.getcwd(), "src/raw/timeform/tf_scrape_links.csv")
+            )
+            I(f"Number of missing dates: {len(dates)}")
             if dates.empty:
                 I("No missing dates found. Ending the script.")
                 break
@@ -53,7 +59,7 @@ if __name__ == "__main__":
             )
             time.sleep(random.randint(2, 4))
             I(f"Inserting {len(days_results_links)} links into the database.")
-            store_data(days_results_links_df, 'days_results_links', 'tf_raw')
+            store_data(days_results_links_df, "days_results_links", "tf_raw")
         except Exception as e:
             E(f"An error occurred: {e}. Continuing to next date.")
             continue

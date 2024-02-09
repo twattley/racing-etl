@@ -1,12 +1,119 @@
 import hashlib
+import os
+import random
 import re
 import time
 from datetime import datetime
-
+import traceback
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 from selenium.webdriver.common.by import By
-from src.raw.webdriver_base import get_headless_driver
+from src.raw.webdriver_base import (
+    get_driver,
+    get_headless_driver,
+    is_driver_session_valid,
+)
 from src.storage.sql_db import fetch_data, store_data
+from src.utils.logging_config import I, E
+from src.raw.syncronizer import sync
+
+UK_IRE_COURSES = {
+    "aintree",
+    "ascot",
+    "ayr",
+    "ballinrobe",
+    "bangor-on-dee",
+    "bath",
+    "bellewstown",
+    "beverley",
+    "brighton",
+    "carlisle",
+    "cartmel",
+    "catterick-bridge",
+    "chelmsford-city",
+    "cheltenham",
+    "chepstow",
+    "chester",
+    "clonmel",
+    "cork",
+    "curragh",
+    "doncaster",
+    "down-royal",
+    "downpatrick",
+    "dundalk",
+    "epsom-downs",
+    "exeter",
+    "fairyhouse",
+    "fakenham",
+    "ffos-las",
+    "fontwell-park",
+    "galway",
+    "goodwood",
+    "gowran-park",
+    "hamilton-park",
+    "haydock-park",
+    "hereford",
+    "hexham",
+    "huntingdon",
+    "kelso",
+    "kempton-park",
+    "kilbeggan",
+    "killarney",
+    "laytown",
+    "leicester",
+    "leopardstown",
+    "limerick",
+    "lingfield-park",
+    "listowel",
+    "ludlow",
+    "market-rasen",
+    "musselburgh",
+    "naas",
+    "newbury",
+    "newcastle",
+    "newmarket",
+    "newton-abbot",
+    "nottingham",
+    "perth",
+    "plumpton",
+    "pontefract",
+    "punchestown",
+    "redcar",
+    "ripon",
+    "roscommon",
+    "salisbury",
+    "sandown",
+    "sandown-park",
+    "sedgefield",
+    "sligo",
+    "southwell",
+    "stratford-on-avon",
+    "taunton",
+    "thirsk",
+    "thurles",
+    "tipperary",
+    "towcester",
+    "tramore",
+    "uttoxeter",
+    "warwick",
+    "wetherby",
+    "wexford",
+    "wincanton",
+    "windsor",
+    "wolverhampton",
+    "worcester",
+    "yarmouth",
+    "york",
+}
+
+
+def get_results_links(data):
+    links = data["link"].unique()
+    correct_links = [
+        url for url in links if any(course in url for course in UK_IRE_COURSES)
+    ]
+    return data[data["link"].isin(correct_links)]
 
 
 def get_element_text_by_selector(row, css_selector):
@@ -111,6 +218,7 @@ def get_entity_info_from_row(row, selector, index):
     if elements:
         element = elements[0]
         entity_name = element.text
+        print(entity_name)
         if "Sire" in selector or "Dam" in selector:
             entity_name = title_except_brackets(entity_name)
         entity_id = element.get_attribute("href").split("/")[index]
@@ -140,7 +248,7 @@ def get_horse_name(row):
         return tf_horse_name, tf_horse_id, tf_horse_name_link, tf_clean_sire_name
 
 
-def get_performance_data(driver, race_details_link, race_details_page):
+def get_performance_data(driver, race_details_link, race_details_page, link):
     table_rows = driver.find_elements(By.CLASS_NAME, "rp-table-row")
 
     data = []
@@ -158,6 +266,7 @@ def get_performance_data(driver, race_details_link, race_details_page):
                 row, "td.rp-jockeytrainer-hide > a[title='Trainer']", -1
             )
         )
+        print(performance_data["trainer_name"])
         performance_data["jockey_name"], performance_data["jockey_id"] = (
             get_entity_info_from_row(
                 row, "td.rp-jockeytrainer-hide > a[title='Jockey']", -1
@@ -222,48 +331,64 @@ def get_performance_data(driver, race_details_link, race_details_page):
         performance_data.update(race_details_link)
         performance_data.update(race_details_page)
 
+        performance_data["debug_link"] = link
+        performance_data["created_at"] = datetime.now()
+
         data.append(performance_data)
 
     return pd.DataFrame(data)
 
 
-if __name__ == "__main__":
-    I("Scrape_links.py execution started.")
-    driver = get_headless_driver(timeform=True)
-    links = get_links()
-    for link in links:
-        driver.get(link)
-        race_details_link = get_race_details_from_link(link)
-        race_details_page = get_race_details_from_page(driver)
-        data = get_performance_data(driver, race_details_link, race_details_page)
-        store_data(data, "timeform")
+def scrape_data(driver, link):
+    race_details_link = get_race_details_from_link(link)
+    race_details_page = get_race_details_from_page(driver)
+    return get_performance_data(driver, race_details_link, race_details_page, link)
 
 
-if __name__ == "__main__":
-    I("Scrape_links.py execution started.")
-    driver = get_headless_driver(timeform=True)
-    while True:
+def read_data():
+    return pd.read_csv(
+        os.path.join(os.getcwd(), "src/raw/timeform/tf_scrape_links.csv")
+    )
+
+
+def process_timeform_scraping():
+    driver = get_driver(timeform=True)
+    df = pd.DataFrame()
+    processed_dates = read_data()
+
+    for i, v in enumerate(range(1000000000)):
+        I(f'Current size of the dataframe: {len(df)}')
+        I(f"Number of missing links: {len(processed_dates)}")
+        if processed_dates.empty:
+            I("No missing links found. Ending the script.")
+            break
+        filtered_links_df = get_results_links(processed_dates).sample(frac=1)
+        link = filtered_links_df.link.iloc[0]
+        I(f"Scraping link: {link}")
+
         try:
-            dates = fetch_data("SELECT * FROM tf_raw.missing_dates")
-            if dates.empty:
-                I("No missing dates found. Ending the script.")
-                break
-            dates_list = dates["date"].tolist()
-            random.shuffle(dates_list)
-            date = dates_list[0].strftime("%Y-%m-%d")
-            url = f"{TF_RESULTS_URL}{str(date)}"
-            I(f"Generated URL for scraping: {url}")
-            driver.get(url)
-            time.sleep(4)
-            I("Page load complete. Proceeding to scrape links.")
-            days_results_links = get_results_links(driver)
-            I(f"Found {len(days_results_links)} valid links for date {date}.")
-            days_results_links_df = pd.DataFrame(
-                {"date": [date] * len(days_results_links), "link": days_results_links}
-            )
-            time.sleep(random.randint(2, 4))
-            I(f"Inserting {len(days_results_links)} links into the database.")
-            store_data(days_results_links_df, "days_results_links", "tf_raw")
+            if not is_driver_session_valid(driver):
+                driver.quit()
+                driver = get_driver(timeform=True)
+                time.sleep(random.randint(360, 600))
+            link = filtered_links_df.link.iloc[0]
+            driver.get(link)
+            performance_data = scrape_data(driver, link)
+            performance_data.to_csv("~/Desktop/test.csv", index=False)
+            df = pd.concat([df, performance_data])
+
+            if i % 10 == 0:
+                store_data(df, "performance_data", "tf_raw")
+                sync("tf_scrape_data")
+                df = pd.DataFrame()
+                processed_dates = read_data()
+
+            time.sleep(random.randint(4, 7))
         except Exception as e:
-            E(f"An error occurred: {e}. Continuing to next date.")
-            continue
+            E(f"Encountered an error: {e}. Attempting to continue with the next link.")
+            traceback.print_exc()
+            time.sleep(random.randint(360, 600))
+
+
+if __name__ == "__main__":
+    process_timeform_scraping()
