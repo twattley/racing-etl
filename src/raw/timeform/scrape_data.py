@@ -345,7 +345,7 @@ def scrape_data(driver, link):
 
 def read_data():
     return pd.read_csv(
-        os.path.join(os.getcwd(), "src/raw/timeform/tf_scrape_links.csv")
+        os.path.join(os.getcwd(), "src/raw/timeform/tf_scrape_data.csv")
     )
 
 

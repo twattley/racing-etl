@@ -1,7 +1,7 @@
 import os
 import time
 from src.storage.sql_db import fetch_data
-
+from src.utils.logging_config import I, E
 
 class Syncronizer:
     def __init__(self, job_name):
@@ -36,10 +36,13 @@ class Syncronizer:
         )
 
     def save_data(self):
+        I(f"Saving: {len(self.data)} records")
         self.data.to_csv(self.log_file, index=False)
+        I(f"Saved {self.job_name} data to {self.log_file}")
 
     def sync(self):
         self.pull_data()
+        I(f"Syncing {self.job_name} data length of dataset pulled: {len(self.data)}")
         self.save_data()
         return self.data
 
