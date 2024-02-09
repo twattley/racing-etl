@@ -67,13 +67,11 @@ def process_scraping_data(task):
         I(f"Number of missing links: {len(filtered_links_df)}")
         link = sampled_link.link.iloc[0]
         I(f"Scraping link: {link}")
-
         try:
             if not is_driver_session_valid(driver):
                 driver.quit()
                 driver = get_driver(task.driver)
                 time.sleep(random.randint(360, 600))
-            link = filtered_links_df.link.iloc[0]
             driver.get(link)
             time.sleep(4)
             performance_data = task.scraping_function(driver, link)
@@ -86,10 +84,14 @@ def process_scraping_data(task):
                 processed_dates = pd.read_csv(task.filepath)
 
             time.sleep(random.randint(4, 7))
+        except KeyboardInterrupt:
+            I("Keyboard interrupt detected. Exiting the script.")
+            break
         except Exception as e:
             E(f"Encountered an error: {e}. Attempting to continue with the next link.")
             traceback.print_exc()
             time.sleep(random.randint(10, 20))
+            continue
 
 
 def process_scraping_result_links(task):
@@ -115,6 +117,9 @@ def process_scraping_result_links(task):
             )
             I(f"Inserting {len(days_results_links)} links into the database.")
             store_data(days_results_links_df, task.destination_table, task.schema)
+        except KeyboardInterrupt:
+            I("Keyboard interrupt detected. Exiting the script.")
+            break
         except Exception as e:
             I(f"An error occurred: {e}. Continuing to next date.")
             continue

@@ -24,8 +24,6 @@ case $1 in
         ;;
     "rp_scrape_data")
         echo "Running rp_scrape_data"
-        python3 $RACING_ETL_FOLDER/src/raw/syncronizer.py rp_scrape_data &
-        sleep 10
         python3 $RACING_ETL_FOLDER/src/raw/racing-post/scrape_data.py
         ;;
     *)
