@@ -374,7 +374,7 @@ def process_timeform_scraping():
             performance_data = scrape_data(driver, link)
             df = pd.concat([df, performance_data])
 
-            if i % 50 == 0:
+            if i % 10 == 0:
                 store_data(df, "performance_data", "tf_raw")
                 sync("tf_scrape_data")
                 df = pd.DataFrame()
