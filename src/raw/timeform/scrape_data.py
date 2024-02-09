@@ -218,7 +218,6 @@ def get_entity_info_from_row(row, selector, index):
     if elements:
         element = elements[0]
         entity_name = element.text
-        print(entity_name)
         if "Sire" in selector or "Dam" in selector:
             entity_name = title_except_brackets(entity_name)
         entity_id = element.get_attribute("href").split("/")[index]
@@ -266,7 +265,6 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
                 row, "td.rp-jockeytrainer-hide > a[title='Trainer']", -1
             )
         )
-        print(performance_data["trainer_name"])
         performance_data["jockey_name"], performance_data["jockey_id"] = (
             get_entity_info_from_row(
                 row, "td.rp-jockeytrainer-hide > a[title='Jockey']", -1
@@ -374,10 +372,9 @@ def process_timeform_scraping():
             link = filtered_links_df.link.iloc[0]
             driver.get(link)
             performance_data = scrape_data(driver, link)
-            performance_data.to_csv("~/Desktop/test.csv", index=False)
             df = pd.concat([df, performance_data])
 
-            if i % 10 == 0:
+            if i % 50 == 0:
                 store_data(df, "performance_data", "tf_raw")
                 sync("tf_scrape_data")
                 df = pd.DataFrame()
