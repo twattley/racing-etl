@@ -1,7 +1,7 @@
 import os
 import random
 import time
-from src.raw import TF_RESULTS_URL
+from src.raw import TF_RESULTS_URL, LinkScrapingTask, run_scraping_task
 import pandas as pd
 from selenium.webdriver.common.by import By
 from src.raw.webdriver_base import get_headless_driver
@@ -32,34 +32,16 @@ def get_results_links(driver):
     return list(set(pages_links))
 
 
+def process_tf_scrape_links():
+    task = LinkScrapingTask(
+        driver=get_headless_driver(),
+        schema="tf_raw",
+        source_table="missing_dates",
+        destination_table="days_results_links",
+        link_filter_function=get_results_links,
+    )
+    run_scraping_task(task)
+
+
 if __name__ == "__main__":
-    I("Scrape_links.py execution started.")
-    driver = get_headless_driver()
-    for _ in range(1000000000):
-        try:
-            dates = pd.read_csv(
-                os.path.join(os.getcwd(), "src/raw/timeform/tf_scrape_links.csv")
-            )
-            I(f"Number of missing dates: {len(dates)}")
-            if dates.empty:
-                I("No missing dates found. Ending the script.")
-                break
-            dates_list = dates["date"].tolist()
-            random.shuffle(dates_list)
-            date = dates_list[0]
-            url = f"{TF_RESULTS_URL}{str(date)}"
-            I(f"Generated URL for scraping: {url}")
-            driver.get(url)
-            time.sleep(4)
-            I("Page load complete. Proceeding to scrape links.")
-            days_results_links = get_results_links(driver)
-            I(f"Found {len(days_results_links)} valid links for date {date}.")
-            days_results_links_df = pd.DataFrame(
-                {"date": [date] * len(days_results_links), "link": days_results_links}
-            )
-            time.sleep(random.randint(2, 4))
-            I(f"Inserting {len(days_results_links)} links into the database.")
-            store_data(days_results_links_df, "days_results_links", "tf_raw")
-        except Exception as e:
-            E(f"An error occurred: {e}. Continuing to next date.")
-            continue
+    process_tf_scrape_links()

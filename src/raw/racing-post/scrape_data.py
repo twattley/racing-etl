@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import hashlib
 import os
 import random
@@ -6,8 +7,9 @@ from datetime import datetime
 import traceback
 import time
 
-from src.raw.webdriver_base import get_driver, is_driver_session_valid
+from src.raw.webdriver_base import WebDriverBuilder, get_driver, get_headless_driver, is_driver_session_valid
 from src.storage.sql_db import fetch_data, store_data
+from src.raw.syncronizer import sync
 
 import numpy as np
 import pandas as pd
@@ -16,6 +18,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from src.utils.logging_config import I, E
+from src.raw import DataScrapingTask, run_scraping_task
 
 
 UK_IRE_COURSES = [
@@ -115,10 +118,10 @@ UK_IRE_COURSES = [
 
 def get_results_links(data):
     links = data["link"].unique()
-    filtered_links = [
+    correct_links = [
         url for url in links if any(course in url for course in UK_IRE_COURSES)
     ]
-    return data[~data["link"].isin(filtered_links)]
+    return data[data["link"].isin(correct_links)]
 
 
 def get_entity_data_from_link(entity_link):
@@ -453,27 +456,17 @@ def scrape_data(driver, result):
     return performance_data
 
 
+def process_rp_scrape_data():
+    task = DataScrapingTask(
+        driver=get_headless_driver(),
+        filepath=os.path.join(os.getcwd(), "src/raw/racing-post/rp_scrape_data.csv"),
+        schema="rp_raw",
+        table="performance_data",
+        job_name="rp_scrape_data",
+        scraping_function=scrape_data,
+        link_filter_function=get_results_links,
+    )
+    run_scraping_task(task)
+
 if __name__ == "__main__":
-    driver = get_driver(timeform=True)
-    for _ in range(1):
-        processed_dates = pd.read_csv(
-            os.path.join(os.getcwd(), "src/raw/racing-post/rp_scrape_data.csv")
-        )
-        I(f"Number of missing links: {len(processed_dates)}")
-        if processed_dates.empty:
-            I("No missing links found. Ending the script.")
-            break
-        filtered_links_df = get_results_links(processed_dates).sample(frac=1)
-        try:
-            if not is_driver_session_valid(driver):
-                driver.quit()
-                driver = get_driver()
-            link = filtered_links_df.link.iloc[0]
-            driver.get(link)
-            performance_data = scrape_data(driver, link)
-            # store_data(performance_data, "performance_data", "rp_raw")
-            performance_data.to_csv("~/Desktop/test.csv", index=False)
-        except Exception as e:
-            E(f"Encountered an error: {e}. Attempting to continue with the next link.")
-            traceback.print_exc()
-            time.sleep(random.randint(360, 600))
+    process_rp_scrape_data()

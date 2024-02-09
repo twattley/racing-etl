@@ -17,6 +17,7 @@ from src.raw.webdriver_base import (
 from src.storage.sql_db import fetch_data, store_data
 from src.utils.logging_config import I, E
 from src.raw.syncronizer import sync
+from src.raw import DataScrapingTask, run_scraping_task
 
 UK_IRE_COURSES = {
     "aintree",
@@ -343,49 +344,17 @@ def scrape_data(driver, link):
     return get_performance_data(driver, race_details_link, race_details_page, link)
 
 
-def read_data():
-    return pd.read_csv(
-        os.path.join(os.getcwd(), "src/raw/timeform/tf_scrape_data.csv")
+def process_tf_scrape_data():
+    task = DataScrapingTask(
+        driver=get_driver(timeform=True),
+        filepath=os.path.join(os.getcwd(), "src/raw/timeform/tf_scrape_data.csv"),
+        schema="tf_raw",
+        table="performance_data",
+        job_name="tf_scrape_data",
+        scraping_function=scrape_data,
+        link_filter_function=get_results_links,
     )
-
-
-def process_timeform_scraping():
-    driver = get_driver(timeform=True)
-    df = pd.DataFrame()
-    processed_dates = read_data()
-
-    for i, v in enumerate(range(1000000000)):
-        I(f'Current size of the dataframe: {len(df)}')
-        I(f"Number of missing links: {len(processed_dates)}")
-        if processed_dates.empty:
-            I("No missing links found. Ending the script.")
-            break
-        filtered_links_df = get_results_links(processed_dates).sample(frac=1)
-        link = filtered_links_df.link.iloc[0]
-        I(f"Scraping link: {link}")
-
-        try:
-            if not is_driver_session_valid(driver):
-                driver.quit()
-                driver = get_driver(timeform=True)
-                time.sleep(random.randint(360, 600))
-            link = filtered_links_df.link.iloc[0]
-            driver.get(link)
-            performance_data = scrape_data(driver, link)
-            df = pd.concat([df, performance_data])
-
-            if i % 10 == 0:
-                store_data(df, "performance_data", "tf_raw")
-                sync("tf_scrape_data")
-                df = pd.DataFrame()
-                processed_dates = read_data()
-
-            time.sleep(random.randint(4, 7))
-        except Exception as e:
-            E(f"Encountered an error: {e}. Attempting to continue with the next link.")
-            traceback.print_exc()
-            time.sleep(random.randint(360, 600))
-
+    run_scraping_task(task)
 
 if __name__ == "__main__":
-    process_timeform_scraping()
+    process_tf_scrape_data()
