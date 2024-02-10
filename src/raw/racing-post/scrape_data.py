@@ -458,7 +458,7 @@ def scrape_data(driver, result):
 
 def process_rp_scrape_data():
     task = DataScrapingTask(
-        driver=get_headless_driver(),
+        driver=get_headless_driver,
         filepath=os.path.join(os.getcwd(), "src/raw/racing-post/rp_scrape_data.csv"),
         schema="rp_raw",
         table="performance_data",

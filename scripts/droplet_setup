@@ -21,6 +21,11 @@ sudo chmod +x /root/chromedriver-linux64/chromedriver
 echo 'export CHROMEDRIVER_PATH=/root/chromedriver-linux64/chromedriver' >> ~/.bashrc
 echo 'export RACING_ETL_FOLDER=/root/racing-etl' >> ~/.bashrc
 echo 'export RACING_ETL_ENV=/root/venvs/scraper/bin/activate' >> ~/.bashrc
+echo 'export REMOTE_CONN_STR=****' >> ~/.bashrc
+echo 'export TF_PASSWORD=Watford_1' >> ~/.bashrc
+echo 'export TF_USERNAME=wattley83@gmail.com' >> ~/.bashrc
+echo 'export TF_EMAIL=wattley83@gmail.com' >> ~/.bashrc
+echo 'export TF_PASSWORD=Watford_1' >> ~/.bashrc
 
 # Reload .bashrc to apply changes immediately to the current session
 source ~/.bashrc
@@ -43,3 +48,12 @@ echo "Add the following SSH key to your GitHub account: "
 cat ~/.ssh/id_rsa.pub
 echo "https://github.com/settings/ssh/new"
 
+
+
+
+
+# chmod +x /root/setup
+# /root/setup
+
+# git clone git@github.com:twattley/racing-etl.git
+# cd racing-etl

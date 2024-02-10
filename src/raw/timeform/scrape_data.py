@@ -346,7 +346,7 @@ def scrape_data(driver, link):
 
 def process_tf_scrape_data():
     task = DataScrapingTask(
-        driver=get_driver(timeform=True),
+        driver=get_driver,
         filepath=os.path.join(os.getcwd(), "src/raw/timeform/tf_scrape_data.csv"),
         schema="tf_raw",
         table="performance_data",

@@ -51,9 +51,17 @@ def shuffle_dates(dates):
     random.shuffle(dates_list)
     return [i.strftime("%Y-%m-%d") for i in dates_list]
 
-def process_scraping_data(task):
 
-    driver = task.driver
+def get_driver(task):    
+    if 'rp' in task.job_name.lower():
+        driver = task.driver()
+    else:
+        driver = task.driver(timeform=True)
+    return driver
+    
+
+def process_scraping_data(task: DataScrapingTask):
+    driver = get_driver(task)
     df = pd.DataFrame()
     processed_dates = pd.read_csv(task.filepath)
 
@@ -70,7 +78,7 @@ def process_scraping_data(task):
         try:
             if not is_driver_session_valid(driver):
                 driver.quit()
-                driver = get_driver(task.driver)
+                driver = get_driver(task)
                 time.sleep(random.randint(360, 600))
             driver.get(link)
             time.sleep(4)
@@ -83,7 +91,6 @@ def process_scraping_data(task):
                 df = pd.DataFrame()
                 processed_dates = pd.read_csv(task.filepath)
 
-            time.sleep(random.randint(4, 7))
         except KeyboardInterrupt:
             I("Keyboard interrupt detected. Exiting the script.")
             break
