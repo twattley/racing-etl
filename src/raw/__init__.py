@@ -66,16 +66,16 @@ def process_scraping_data(task: DataScrapingTask):
     processed_dates = pd.read_csv(task.filepath)
 
     for i, v in enumerate(range(1000000000)):
-        I(f'Current size of the dataframe: {len(df)}')
-        if processed_dates.empty:
-            I("No missing links found. Ending the script.")
-            break
-        filtered_links_df = task.link_filter_function(processed_dates)
-        sampled_link = filtered_links_df.sample(frac=1)
-        I(f"Number of missing links: {len(filtered_links_df)}")
-        link = sampled_link.link.iloc[0]
-        I(f"Scraping link: {link}")
         try:
+            I(f'Current size of the dataframe: {len(df)}')
+            if processed_dates.empty:
+                I("No missing links found. Ending the script.")
+                break
+            filtered_links_df = task.link_filter_function(processed_dates)
+            sampled_link = filtered_links_df.sample(frac=1)
+            I(f"Number of missing links: {len(filtered_links_df)}")
+            link = sampled_link.link.iloc[0]
+            I(f"Scraping link: {link}")
             if not is_driver_session_valid(driver):
                 driver.quit()
                 driver = get_driver(task)
