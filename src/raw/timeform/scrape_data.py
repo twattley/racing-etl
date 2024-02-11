@@ -225,14 +225,14 @@ def get_entity_info_from_row(row, selector, index):
         return entity_name, entity_id
 
 
-def get_horse_name(row):
+def get_entity_names(row):
     all_links = row.find_elements(By.TAG_NAME, "a")
     for link in all_links:
         horse_links = row.find_elements(By.CSS_SELECTOR, "a.rp-horse")
         all_hrefs = link.get_attribute("href")
         if "horse-form" in all_hrefs:
             tf_horse_id = all_hrefs.split("/")[-1]
-            tf_horse_name_link = all_hrefs.split("/")[-2]
+            tf_horse_name_link = all_hrefs.split("/")[-2].replace("-", " ").title().strip()
         for horse_link in horse_links:
             horse_name = horse_link.text
             if horse_name.strip():
@@ -241,14 +241,42 @@ def get_horse_name(row):
                 )
         for link in all_links:
             href = link.get_attribute("href")
-            if "sire" in href and "dam_sire" not in href:
-                tf_sire_name_link = href.split("/")[-3]
+            href_parts = href.split("/")
+            if href_parts[-1] == "sire":
+                print(f'sire href: {href}')
+                tf_sire_name_link, tf_sire_name_id = href_parts[-3], href_parts[-2]
                 tf_clean_sire_name = tf_sire_name_link.replace("-", " ").title().strip()
+            if  href_parts[-1] =='dam':
+                print(f'dam href: {href}')
+                tf_dam_name_link, tf_dam_name_id = href_parts[-3], href_parts[-2]
+                print(f'tf_dam_name_link: {tf_dam_name_link}')
+                tf_clean_dam_name = tf_dam_name_link.replace("-", " ").title().strip()
+            if href_parts[4] == 'trainer':
+                print(f'trainer href: {href}')
+                tf_trainer_id, tf_trainer_name = href_parts[-1], href_parts[-3]
+                tf_clean_trainer_name = tf_trainer_name.replace("-", " ").title().strip()
+            if href_parts[4] == 'jockey':
+                print(f'jockey href: {href}')
+                tf_jockey_id, tf_jockey_name = href_parts[-1], href_parts[-3]
+                tf_clean_jockey_name = tf_jockey_name.replace("-", " ").title().strip()
 
-        return tf_horse_name, tf_horse_id, tf_horse_name_link, tf_clean_sire_name
+
+        return (
+            tf_horse_name, 
+            tf_horse_id, 
+            tf_horse_name_link, 
+            tf_clean_sire_name, 
+            tf_clean_dam_name, 
+            tf_sire_name_id, 
+            tf_dam_name_id, 
+            tf_clean_trainer_name, 
+            tf_trainer_id, 
+            tf_clean_jockey_name,
+            tf_jockey_id)
 
 
 def get_performance_data(driver, race_details_link, race_details_page, link):
+    # sourcery skip: merge-dict-assign
     table_rows = driver.find_elements(By.CLASS_NAME, "rp-table-row")
 
     data = []
@@ -261,22 +289,6 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
             row, "td.al-center.rp-tfig"
         )
         performance_data["draw"] = return_element_from_css_selector(row, "span.rp-draw")
-        performance_data["trainer_name"], performance_data["trainer_id"] = (
-            get_entity_info_from_row(
-                row, "td.rp-jockeytrainer-hide > a[title='Trainer']", -1
-            )
-        )
-        performance_data["jockey_name"], performance_data["jockey_id"] = (
-            get_entity_info_from_row(
-                row, "td.rp-jockeytrainer-hide > a[title='Jockey']", -1
-            )
-        )
-        performance_data["sire_name"], performance_data["sire_id"] = (
-            get_entity_info_from_row(row, "span[title='Sire'] > a", -2)
-        )
-        performance_data["dam_name"], performance_data["dam_id"] = (
-            get_entity_info_from_row(row, "span[title='Dam'] > a", -2)
-        )
         performance_data["finishing_position"] = get_element_text_by_selector(
             row, 'span.rp-entry-number[title="Finishing Position"]'
         )
@@ -284,8 +296,16 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
             performance_data["horse_name"],
             performance_data["horse_id"],
             performance_data["horse_name_link"],
-            performance_data["sire_name_link"],
-        ) = get_horse_name(row)
+            performance_data["sire_name"],
+            performance_data["dam_name"],
+            performance_data["sire_id"],
+            performance_data["dam_id"],
+            performance_data["trainer_name"],
+            performance_data["trainer_id"],
+            performance_data["jockey_name"],
+            performance_data["jockey_id"],
+
+        )  = get_entity_names(row)
         performance_data["horse_age"] = find_element_text_by_selector(
             row,
             "td.al-center.rp-body-text.rp-ageequip-hide[title='Horse age']",
@@ -333,6 +353,10 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
         performance_data["debug_link"] = link
         performance_data["created_at"] = datetime.now()
 
+        unique_id = performance_data['horse_id'] + performance_data['finishing_position'] + performance_data['debug_link']
+        performance_data['unique_id'] = hashlib.sha512(unique_id.encode()).hexdigest()
+
+
         data.append(performance_data)
 
     return pd.DataFrame(data)
@@ -346,7 +370,7 @@ def scrape_data(driver, link):
 
 def process_tf_scrape_data():
     task = DataScrapingTask(
-        driver=get_driver,
+        driver=get_headless_driver,
         filepath=os.path.join(os.getcwd(), "src/raw/timeform/tf_scrape_data.csv"),
         schema="tf_raw",
         table="performance_data",

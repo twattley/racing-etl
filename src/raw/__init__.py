@@ -97,7 +97,9 @@ def process_scraping_data(task: DataScrapingTask):
         except Exception as e:
             E(f"Encountered an error: {e}. Attempting to continue with the next link.")
             traceback.print_exc()
+            driver.quit()
             time.sleep(random.randint(10, 20))
+            driver = get_driver(task)
             continue
 
 

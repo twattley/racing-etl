@@ -443,7 +443,7 @@ def scrape_data(driver, result):
         created_at=created_at,
         unique_id=lambda x: x.apply(
             lambda y: hashlib.sha512(
-                f"{y['horse_id']}-{y['sire_id']}-{y['dam_id']}-{y['race_id']}-{y['course_id']}-{y['jockey_id']}-{y['owner_id']}".encode()
+                f"racing_post{y['horse_id']}{y['finishing_position']}{y['debug_link']}".encode()
             ).hexdigest(),
             axis=1,
         ),
