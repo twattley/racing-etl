@@ -47,12 +47,10 @@ def get_driver(task):
 
 def process_scraping_data(task: DataScrapingTask) -> None:
     driver = get_driver(task)
-    df = pd.DataFrame()
-    processed_dates = pd.read_csv(task.filepath)
-
+    dataframes_list = []
+    processed_dates = fetch_data(f"SELECT * FROM {task.schema}.missing_links")
     for i, _ in enumerate(range(1000000000)):
         try:
-            I(f"Current size of the dataframe: {len(df)}")
             if processed_dates.empty:
                 I("No missing links found. Ending the script.")
                 break
@@ -68,13 +66,15 @@ def process_scraping_data(task: DataScrapingTask) -> None:
             driver.get(link)
             time.sleep(4)
             performance_data = task.scraping_function(driver, link)
-            df = pd.concat([df, performance_data])
+            dataframes_list.append(performance_data)
 
-            if i % 10 == 0:
+            if (i + 1) % 10 == 0:
+                df = pd.concat(dataframes_list)
                 store_data(df, task.table, task.schema)
                 sync(task.job_name)
-                df = pd.DataFrame()
+                dataframes_list = []  # Reset the list for the next batch
                 processed_dates = pd.read_csv(task.filepath)
+                I(f"Current size of the dataframe: {len(df)}")
 
         except KeyboardInterrupt:
             I("Keyboard interrupt detected. Exiting the script.")
