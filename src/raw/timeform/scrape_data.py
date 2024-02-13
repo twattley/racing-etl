@@ -1,112 +1,14 @@
 import hashlib
 import os
-import random
 import re
-import time
 from datetime import datetime
-import traceback
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+
 import pandas as pd
 from selenium.webdriver.common.by import By
-from src.raw.webdriver_base import (
-    get_driver,
-    get_headless_driver,
-    is_driver_session_valid,
-)
-from src.storage.sql_db import fetch_data, store_data
-from src.utils.logging_config import I, E
-from src.raw.syncronizer import sync
-from src.raw import DataScrapingTask, run_scraping_task
 
-UK_IRE_COURSES = {
-    "aintree",
-    "ascot",
-    "ayr",
-    "ballinrobe",
-    "bangor-on-dee",
-    "bath",
-    "bellewstown",
-    "beverley",
-    "brighton",
-    "carlisle",
-    "cartmel",
-    "catterick-bridge",
-    "chelmsford-city",
-    "cheltenham",
-    "chepstow",
-    "chester",
-    "clonmel",
-    "cork",
-    "curragh",
-    "doncaster",
-    "down-royal",
-    "downpatrick",
-    "dundalk",
-    "epsom-downs",
-    "exeter",
-    "fairyhouse",
-    "fakenham",
-    "ffos-las",
-    "fontwell-park",
-    "galway",
-    "goodwood",
-    "gowran-park",
-    "hamilton-park",
-    "haydock-park",
-    "hereford",
-    "hexham",
-    "huntingdon",
-    "kelso",
-    "kempton-park",
-    "kilbeggan",
-    "killarney",
-    "laytown",
-    "leicester",
-    "leopardstown",
-    "limerick",
-    "lingfield-park",
-    "listowel",
-    "ludlow",
-    "market-rasen",
-    "musselburgh",
-    "naas",
-    "newbury",
-    "newcastle",
-    "newmarket",
-    "newton-abbot",
-    "nottingham",
-    "perth",
-    "plumpton",
-    "pontefract",
-    "punchestown",
-    "redcar",
-    "ripon",
-    "roscommon",
-    "salisbury",
-    "sandown",
-    "sandown-park",
-    "sedgefield",
-    "sligo",
-    "southwell",
-    "stratford-on-avon",
-    "taunton",
-    "thirsk",
-    "thurles",
-    "tipperary",
-    "towcester",
-    "tramore",
-    "uttoxeter",
-    "warwick",
-    "wetherby",
-    "wexford",
-    "wincanton",
-    "windsor",
-    "wolverhampton",
-    "worcester",
-    "yarmouth",
-    "york",
-}
+from data.reference.tf.courses import UK_IRE_COURSES
+from src.raw import DataScrapingTask, run_scraping_task
+from src.raw.webdriver_base import get_headless_driver
 
 
 def get_results_links(data):
@@ -232,7 +134,9 @@ def get_entity_names(row):
         all_hrefs = link.get_attribute("href")
         if "horse-form" in all_hrefs:
             tf_horse_id = all_hrefs.split("/")[-1]
-            tf_horse_name_link = all_hrefs.split("/")[-2].replace("-", " ").title().strip()
+            tf_horse_name_link = (
+                all_hrefs.split("/")[-2].replace("-", " ").title().strip()
+            )
         for horse_link in horse_links:
             horse_name = horse_link.text
             if horse_name.strip():
@@ -243,36 +147,38 @@ def get_entity_names(row):
             href = link.get_attribute("href")
             href_parts = href.split("/")
             if href_parts[-1] == "sire":
-                print(f'sire href: {href}')
+                print(f"sire href: {href}")
                 tf_sire_name_link, tf_sire_name_id = href_parts[-3], href_parts[-2]
                 tf_clean_sire_name = tf_sire_name_link.replace("-", " ").title().strip()
-            if  href_parts[-1] =='dam':
-                print(f'dam href: {href}')
+            if href_parts[-1] == "dam":
+                print(f"dam href: {href}")
                 tf_dam_name_link, tf_dam_name_id = href_parts[-3], href_parts[-2]
-                print(f'tf_dam_name_link: {tf_dam_name_link}')
+                print(f"tf_dam_name_link: {tf_dam_name_link}")
                 tf_clean_dam_name = tf_dam_name_link.replace("-", " ").title().strip()
-            if href_parts[4] == 'trainer':
-                print(f'trainer href: {href}')
+            if href_parts[4] == "trainer":
+                print(f"trainer href: {href}")
                 tf_trainer_id, tf_trainer_name = href_parts[-1], href_parts[-3]
-                tf_clean_trainer_name = tf_trainer_name.replace("-", " ").title().strip()
-            if href_parts[4] == 'jockey':
-                print(f'jockey href: {href}')
+                tf_clean_trainer_name = (
+                    tf_trainer_name.replace("-", " ").title().strip()
+                )
+            if href_parts[4] == "jockey":
+                print(f"jockey href: {href}")
                 tf_jockey_id, tf_jockey_name = href_parts[-1], href_parts[-3]
                 tf_clean_jockey_name = tf_jockey_name.replace("-", " ").title().strip()
 
-
         return (
-            tf_horse_name, 
-            tf_horse_id, 
-            tf_horse_name_link, 
-            tf_clean_sire_name, 
-            tf_clean_dam_name, 
-            tf_sire_name_id, 
-            tf_dam_name_id, 
-            tf_clean_trainer_name, 
-            tf_trainer_id, 
+            tf_horse_name,
+            tf_horse_id,
+            tf_horse_name_link,
+            tf_clean_sire_name,
+            tf_clean_dam_name,
+            tf_sire_name_id,
+            tf_dam_name_id,
+            tf_clean_trainer_name,
+            tf_trainer_id,
             tf_clean_jockey_name,
-            tf_jockey_id)
+            tf_jockey_id,
+        )
 
 
 def get_performance_data(driver, race_details_link, race_details_page, link):
@@ -304,8 +210,7 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
             performance_data["trainer_id"],
             performance_data["jockey_name"],
             performance_data["jockey_id"],
-
-        )  = get_entity_names(row)
+        ) = get_entity_names(row)
         performance_data["horse_age"] = find_element_text_by_selector(
             row,
             "td.al-center.rp-body-text.rp-ageequip-hide[title='Horse age']",
@@ -353,9 +258,12 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
         performance_data["debug_link"] = link
         performance_data["created_at"] = datetime.now()
 
-        unique_id = performance_data['horse_id'] + performance_data['finishing_position'] + performance_data['debug_link']
-        performance_data['unique_id'] = hashlib.sha512(unique_id.encode()).hexdigest()
-
+        unique_id = (
+            performance_data["horse_id"]
+            + performance_data["finishing_position"]
+            + performance_data["debug_link"]
+        )
+        performance_data["unique_id"] = hashlib.sha512(unique_id.encode()).hexdigest()
 
         data.append(performance_data)
 
@@ -379,6 +287,7 @@ def process_tf_scrape_data():
         link_filter_function=get_results_links,
     )
     run_scraping_task(task)
+
 
 if __name__ == "__main__":
     process_tf_scrape_data()

@@ -1,15 +1,7 @@
-from dataclasses import dataclass
 import hashlib
 import os
-import random
 import re
 from datetime import datetime
-import traceback
-import time
-
-from src.raw.webdriver_base import WebDriverBuilder, get_driver, get_headless_driver, is_driver_session_valid
-from src.storage.sql_db import fetch_data, store_data
-from src.raw.syncronizer import sync
 
 import numpy as np
 import pandas as pd
@@ -17,103 +9,11 @@ import pytz
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from src.utils.logging_config import I, E
+
+from data.reference.rp.courses import UK_IRE_COURSES
 from src.raw import DataScrapingTask, run_scraping_task
-
-
-UK_IRE_COURSES = [
-    "aintree",
-    "ascot",
-    "ayr",
-    "ballinrobe",
-    "bangor-on-dee",
-    "bath",
-    "bellewstown",
-    "beverley",
-    "brighton",
-    "carlisle",
-    "cartmel",
-    "catterick",
-    "chelmsford-aw",
-    "cheltenham",
-    "chepstow",
-    "chester",
-    "clonmel",
-    "cork",
-    "curragh",
-    "doncaster",
-    "down-royal",
-    "downpatrick",
-    "dundalk-aw",
-    "epsom",
-    "exeter",
-    "fairyhouse",
-    "fakenham",
-    "ffos-las",
-    "fontwell",
-    "galway",
-    "goodwood",
-    "gowran-park",
-    "hamilton",
-    "haydock",
-    "hereford",
-    "hexham",
-    "huntingdon",
-    "kelso",
-    "kempton",
-    "kempton-aw",
-    "kilbeggan",
-    "killarney",
-    "laytown",
-    "leicester",
-    "leopardstown",
-    "limerick",
-    "lingfield",
-    "lingfield-aw",
-    "listowel",
-    "ludlow",
-    "market-rasen",
-    "musselburgh",
-    "naas",
-    "navan",
-    "newbury",
-    "newcastle",
-    "newcastle-aw",
-    "newmarket",
-    "newmarket-july",
-    "newton-abbot",
-    "nottingham",
-    "perth",
-    "plumpton",
-    "pontefract",
-    "punchestown",
-    "redcar",
-    "ripon",
-    "roscommon",
-    "salisbury",
-    "sandown",
-    "sedgefield",
-    "sligo",
-    "southwell",
-    "southwell-aw",
-    "stratford",
-    "taunton",
-    "thirsk",
-    "thurles",
-    "tipperary",
-    "towcester",
-    "tramore",
-    "uttoxeter",
-    "warwick",
-    "wetherby",
-    "wexford",
-    "wincanton",
-    "windsor",
-    "wolverhampton-aw",
-    "worcester",
-    "yarmouth",
-    "york",
-]
+from src.raw.webdriver_base import get_headless_driver
+from src.utils.logging_config import E, I
 
 
 def get_results_links(data):
@@ -238,6 +138,10 @@ def get_performance_data(driver):
         )
         horse_weight = f"{weight_st_element.text}-{weight_lb_element.text}"
 
+        horse_age = row.find_element(
+            By.CSS_SELECTOR, "td.rp-horseTable__spanNarrow[data-ending='yo']"
+        ).text.strip()
+
         or_value = row.find_element(
             By.CSS_SELECTOR, "td.rp-horseTable__spanNarrow[data-ending='OR']"
         ).text.strip()
@@ -277,6 +181,7 @@ def get_performance_data(driver):
             {
                 "horse_id": horse_id,
                 "horse_name": horse_name,
+                "horse_age": horse_age,
                 "jockey_id": jockey_id,
                 "jockey_name": jockey_name,
                 "jockey_claim": jockey_claim,
@@ -461,12 +366,13 @@ def process_rp_scrape_data():
         driver=get_headless_driver,
         filepath=os.path.join(os.getcwd(), "src/raw/racing-post/rp_scrape_data.csv"),
         schema="rp_raw",
-        table="performance_data",
+        table="performance_data_v2",
         job_name="rp_scrape_data",
         scraping_function=scrape_data,
         link_filter_function=get_results_links,
     )
     run_scraping_task(task)
+
 
 if __name__ == "__main__":
     process_rp_scrape_data()

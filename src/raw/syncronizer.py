@@ -1,7 +1,9 @@
 import os
 import time
+
 from src.storage.sql_db import fetch_data
-from src.utils.logging_config import I, E
+from src.utils.logging_config import I
+
 
 class Syncronizer:
     def __init__(self, job_name):

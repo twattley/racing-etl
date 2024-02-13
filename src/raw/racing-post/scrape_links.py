@@ -1,11 +1,7 @@
-import random
-import time
-from src.raw import RP_RESULTS_URL, LinkScrapingTask, run_scraping_task
-import pandas as pd
 from selenium.webdriver.common.by import By
+
+from src.raw import LinkScrapingTask, run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
-from src.storage.sql_db import fetch_data, store_data
-from src.utils.logging_config import I
 
 
 def get_results_links(driver):
@@ -20,6 +16,7 @@ def get_results_links(driver):
             and "winning-times" not in i
         }
     )
+
 
 def process_rp_scrape_links():
     task = LinkScrapingTask(

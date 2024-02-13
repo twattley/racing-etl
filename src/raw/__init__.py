@@ -1,24 +1,14 @@
-from dataclasses import dataclass
-import hashlib
-import os
 import random
-import re
-from datetime import datetime
-import traceback
 import time
+import traceback
+from dataclasses import dataclass
 
-from src.raw.webdriver_base import WebDriverBuilder, get_driver, get_headless_driver, is_driver_session_valid
-from src.storage.sql_db import fetch_data, store_data
-from src.raw.syncronizer import sync
-
-import numpy as np
 import pandas as pd
-import pytz
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
-from src.utils.logging_config import I, E
 
+from src.raw.syncronizer import sync
+from src.raw.webdriver_base import WebDriverBuilder, get_driver, is_driver_session_valid
+from src.storage.sql_db import fetch_data, store_data
+from src.utils.logging_config import E, I
 
 BASE_RP_URL = "https://www.racingpost.com"
 RP_RESULTS_URL = f"{BASE_RP_URL}/results/"
@@ -37,6 +27,7 @@ class DataScrapingTask:
     scraping_function: callable
     link_filter_function: callable
 
+
 @dataclass
 class LinkScrapingTask:
     driver: WebDriverBuilder
@@ -52,13 +43,13 @@ def shuffle_dates(dates):
     return [i.strftime("%Y-%m-%d") for i in dates_list]
 
 
-def get_driver(task):    
-    if 'rp' in task.job_name.lower():
+def get_driver(task):
+    if "rp" in task.job_name.lower():
         driver = task.driver()
     else:
         driver = task.driver(timeform=True)
     return driver
-    
+
 
 def process_scraping_data(task: DataScrapingTask):
     driver = get_driver(task)
@@ -67,7 +58,7 @@ def process_scraping_data(task: DataScrapingTask):
 
     for i, v in enumerate(range(1000000000)):
         try:
-            I(f'Current size of the dataframe: {len(df)}')
+            I(f"Current size of the dataframe: {len(df)}")
             if processed_dates.empty:
                 I("No missing links found. Ending the script.")
                 break
@@ -110,7 +101,7 @@ def process_scraping_result_links(task):
     if dates.empty:
         I("No missing dates found. Ending the script.")
         return
-    
+
     dates = shuffle_dates(dates)
     for date in dates:
         try:
@@ -132,6 +123,7 @@ def process_scraping_result_links(task):
         except Exception as e:
             I(f"An error occurred: {e}. Continuing to next date.")
             continue
+
 
 def run_scraping_task(task):
     if isinstance(task, DataScrapingTask):
