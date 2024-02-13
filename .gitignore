@@ -1,2 +1,8 @@
 .env
 
+
+# csv files
+src/raw/timeform/tf_scrape_data.csv
+src/raw/timeform/tf_scrape_links.csv
+src/raw/racing-post/rp_scrape_links.csv
+src/raw/racing-post/rp_scrape_data.csv

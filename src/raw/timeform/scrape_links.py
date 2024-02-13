@@ -7,6 +7,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from src.raw import LinkScrapingTask, run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
 
+BASE_TF_URL = "https://www.timeform.com"
+TF_RESULTS_URL = f"{BASE_TF_URL}/horse-racing/results/"
+
 
 def get_pages_results_links(driver):
     elements = driver.find_elements(
@@ -32,6 +35,7 @@ def get_results_links(driver):
 def process_tf_scrape_links():
     task = LinkScrapingTask(
         driver=get_headless_driver(),
+        base_url=TF_RESULTS_URL,
         schema="tf_raw",
         source_table="missing_dates",
         destination_table="days_results_links",

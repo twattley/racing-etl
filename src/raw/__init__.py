@@ -10,12 +10,6 @@ from src.raw.webdriver_base import WebDriverBuilder, get_driver, is_driver_sessi
 from src.storage.sql_db import fetch_data, store_data
 from src.utils.logging_config import E, I
 
-BASE_RP_URL = "https://www.racingpost.com"
-RP_RESULTS_URL = f"{BASE_RP_URL}/results/"
-
-BASE_TF_URL = "https://www.timeform.com"
-TF_RESULTS_URL = f"{BASE_TF_URL}/horse-racing/results/"
-
 
 @dataclass
 class DataScrapingTask:
@@ -51,12 +45,12 @@ def get_driver(task):
     return driver
 
 
-def process_scraping_data(task: DataScrapingTask):
+def process_scraping_data(task: DataScrapingTask) -> None:
     driver = get_driver(task)
     df = pd.DataFrame()
     processed_dates = pd.read_csv(task.filepath)
 
-    for i, v in enumerate(range(1000000000)):
+    for i, _ in enumerate(range(1000000000)):
         try:
             I(f"Current size of the dataframe: {len(df)}")
             if processed_dates.empty:
@@ -94,7 +88,7 @@ def process_scraping_data(task: DataScrapingTask):
             continue
 
 
-def process_scraping_result_links(task):
+def process_scraping_result_links(task: LinkScrapingTask) -> None:
     I("Scrape_links.py execution started.")
     driver = task.driver
     dates = fetch_data(f"SELECT * FROM {task.schema}.{task.source_table}")
@@ -105,7 +99,7 @@ def process_scraping_result_links(task):
     dates = shuffle_dates(dates)
     for date in dates:
         try:
-            url = f"{TF_RESULTS_URL}{str(date)}"
+            url = f"{task.base_url}{str(date)}"
             I(f"Generated URL for scraping: {url}")
             driver.get(url)
             time.sleep(5)
