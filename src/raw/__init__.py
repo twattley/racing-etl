@@ -25,6 +25,7 @@ class DataScrapingTask:
 @dataclass
 class LinkScrapingTask:
     driver: WebDriverBuilder
+    base_url: str
     schema: str
     source_table: str
     destination_table: str
