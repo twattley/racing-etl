@@ -322,8 +322,6 @@ def scrape_data(driver, result):
     performance_data = get_comment_data(driver, order, performance_data)
     performance_data = get_pedigree_data(driver, order, performance_data)
 
-    I("Procesed html data. Now creating dataframes.")
-
     race_timestamp = datetime.strptime(f"{race_date} {race_time}", "%Y-%m-%d %H:%M")
     performance_data = pd.DataFrame(performance_data).assign(
         race_date=race_date,

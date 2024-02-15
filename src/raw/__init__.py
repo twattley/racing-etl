@@ -5,7 +5,6 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from src.raw.syncronizer import sync
 from src.raw.webdriver_base import WebDriverBuilder, get_driver, is_driver_session_valid
 from src.storage.sql_db import fetch_data, store_data
 from src.utils.logging_config import E, I
@@ -46,19 +45,30 @@ def get_driver(task):
     return driver
 
 
+def process_batch_and_refresh_data(dataframes_list, task):
+    store_data(pd.concat(dataframes_list), task.table, task.schema)
+    filtered_links_df = task.link_filter_function(
+        fetch_data(f"SELECT * FROM {task.schema}.missing_links")
+    )
+    I(f"Number of missing links: {len(filtered_links_df)}")
+    return filtered_links_df
+
+
 def process_scraping_data(task: DataScrapingTask) -> None:
     driver = get_driver(task)
     dataframes_list = []
-    processed_dates = fetch_data(f"SELECT * FROM {task.schema}.missing_links")
+    filtered_links_df = task.link_filter_function(
+        fetch_data(f"SELECT * FROM {task.schema}.missing_links")
+    )
+    I(f"Number of missing links: {len(filtered_links_df)}")
     for i, _ in enumerate(range(1000000000)):
         try:
-            if processed_dates.empty:
+            if filtered_links_df.empty:
                 I("No missing links found. Ending the script.")
                 break
-            filtered_links_df = task.link_filter_function(processed_dates)
-            sampled_link = filtered_links_df.sample(frac=1)
-            I(f"Number of missing links: {len(filtered_links_df)}")
-            link = sampled_link.link.iloc[0]
+
+            link = filtered_links_df.sample().link.iloc[0]
+            
             I(f"Scraping link: {link}")
             if not is_driver_session_valid(driver):
                 driver.quit()
@@ -70,12 +80,13 @@ def process_scraping_data(task: DataScrapingTask) -> None:
             dataframes_list.append(performance_data)
 
             if (i + 1) % 10 == 0:
-                df = pd.concat(dataframes_list)
-                store_data(df, task.table, task.schema)
-                sync(task.job_name)
-                dataframes_list = []  # Reset the list for the next batch
-                processed_dates = pd.read_csv(task.filepath)
-                I(f"Current size of the dataframe: {len(df)}")
+                filtered_links_df = process_batch_and_refresh_data(
+                    dataframes_list, task
+                )
+                dataframes_list = []
+                if filtered_links_df.empty:
+                    I("No missing links found. Ending the script.")
+                    break
 
         except KeyboardInterrupt:
             I("Keyboard interrupt detected. Exiting the script.")
