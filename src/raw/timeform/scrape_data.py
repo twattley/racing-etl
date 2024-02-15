@@ -34,7 +34,6 @@ def return_element_from_css_selector(table_row, css_selector, multiple_elements=
             element = element[0]
         return element.text
     except Exception:
-        print(f"Element not found for css selector: {css_selector}")
         return None
 
 
@@ -147,22 +146,17 @@ def get_entity_names(row):
             href = link.get_attribute("href")
             href_parts = href.split("/")
             if href_parts[-1] == "sire":
-                print(f"sire href: {href}")
                 tf_sire_name_link, tf_sire_name_id = href_parts[-3], href_parts[-2]
                 tf_clean_sire_name = tf_sire_name_link.replace("-", " ").title().strip()
             if href_parts[-1] == "dam":
-                print(f"dam href: {href}")
                 tf_dam_name_link, tf_dam_name_id = href_parts[-3], href_parts[-2]
-                print(f"tf_dam_name_link: {tf_dam_name_link}")
                 tf_clean_dam_name = tf_dam_name_link.replace("-", " ").title().strip()
             if href_parts[4] == "trainer":
-                print(f"trainer href: {href}")
                 tf_trainer_id, tf_trainer_name = href_parts[-1], href_parts[-3]
                 tf_clean_trainer_name = (
                     tf_trainer_name.replace("-", " ").title().strip()
                 )
             if href_parts[4] == "jockey":
-                print(f"jockey href: {href}")
                 tf_jockey_id, tf_jockey_name = href_parts[-1], href_parts[-3]
                 tf_clean_jockey_name = tf_jockey_name.replace("-", " ").title().strip()
 

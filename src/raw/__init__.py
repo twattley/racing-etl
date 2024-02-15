@@ -63,7 +63,7 @@ def process_scraping_data(task: DataScrapingTask) -> None:
             if not is_driver_session_valid(driver):
                 driver.quit()
                 driver = get_driver(task)
-                time.sleep(random.randint(360, 600))
+                time.sleep(5)
             driver.get(link)
             time.sleep(4)
             performance_data = task.scraping_function(driver, link)
