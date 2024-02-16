@@ -364,7 +364,7 @@ def process_rp_scrape_data():
         driver=get_headless_driver,
         filepath=os.path.join(os.getcwd(), "src/raw/racing-post/rp_scrape_data.csv"),
         schema="rp_raw",
-        table="performance_data_v2",
+        table="performance_data",
         job_name="rp_scrape_data",
         scraping_function=scrape_data,
         link_filter_function=get_results_links,
