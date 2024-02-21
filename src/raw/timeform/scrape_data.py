@@ -9,6 +9,42 @@ from selenium.webdriver.common.by import By
 from data.reference.tf.courses import UK_IRE_COURSES
 from src.raw import DataScrapingTask, run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+def wait_for_page_load(driver):
+    """
+    Waits for all necessary elements on the page to be loaded before scraping can proceed.
+    """
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, ".rp-raceInfo"))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "div[data-test-selector='text-prizeMoney']"))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "tr.rp-horseTable__commentRow[data-test-selector='text-comments']"))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "tr.rp-horseTable__pedigreeRow[data-test-selector='block-pedigreeInfoFullResults']"))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "a.rp-raceTimeCourseName__name"))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "span.rp-raceTimeCourseName__time[data-test-selector='text-raceTime']"))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "h2.rp-raceTimeCourseName__title"))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "span.rp-raceTimeCourseName_ratingBandAndAgesAllowed"))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "span.rp-raceTimeCourseName_distance"))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "span.rp-raceTimeCourseName_condition"))
+    )
 
 
 def get_results_links(data):
@@ -265,6 +301,7 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
 
 
 def scrape_data(driver, link):
+    wait_for_page_load(driver)
     race_details_link = get_race_details_from_link(link)
     race_details_page = get_race_details_from_page(driver)
     return get_performance_data(driver, race_details_link, race_details_page, link)

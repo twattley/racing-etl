@@ -271,9 +271,9 @@ def get_pedigree_data(driver, order, horse_data):
         pedigrees.append(pedigree)
 
     for horse_data, pedigrees in zip(sorted_horse_data, pedigrees):
-        horse_data["sire"] = pedigrees["sire"]
+        horse_data["sire_name"] = pedigrees["sire"]
         horse_data["sire_id"] = pedigrees["sire_id"]
-        horse_data["dam"] = pedigrees["dam"]
+        horse_data["dam_name"] = pedigrees["dam"]
         horse_data["dam_id"] = pedigrees["dam_id"]
         horse_data["dams_sire"] = pedigrees["dams_sire"]
         horse_data["dams_sire_id"] = pedigrees["dams_sire_id"]
@@ -317,7 +317,11 @@ def scrape_data(driver, result):
     going = return_element_text_from_css(driver, "span.rp-raceTimeCourseName_condition")
     winning_time = get_raw_winning_time(driver)
     number_of_runners = get_number_of_runners(driver)
-    total_prize_money, first_place_prize_money, currency = get_prize_money(driver)
+    try:
+        total_prize_money, first_place_prize_money, currency = get_prize_money(driver)
+    except Exception as e:
+        total_prize_money, first_place_prize_money, currency = np.NaN, np.NaN, np.NaN
+
     performance_data, order = get_performance_data(driver)
     performance_data = get_comment_data(driver, order, performance_data)
     performance_data = get_pedigree_data(driver, order, performance_data)

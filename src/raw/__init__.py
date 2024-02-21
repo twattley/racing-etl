@@ -75,7 +75,6 @@ def process_scraping_data(task: DataScrapingTask) -> None:
                 driver = get_driver(task)
                 time.sleep(5)
             driver.get(link)
-            time.sleep(4)
             performance_data = task.scraping_function(driver, link)
             dataframes_list.append(performance_data)
 
@@ -95,7 +94,7 @@ def process_scraping_data(task: DataScrapingTask) -> None:
             E(f"Encountered an error: {e}. Attempting to continue with the next link.")
             traceback.print_exc()
             driver.quit()
-            time.sleep(random.randint(10, 20))
+            time.sleep(2)
             driver = get_driver(task)
             continue
 
