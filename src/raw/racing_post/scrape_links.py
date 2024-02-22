@@ -29,7 +29,7 @@ def process_rp_scrape_links():
         schema="rp_raw",
         source_table="missing_dates",
         destination_table="days_results_links",
-        link_filter_function=get_results_links,
+        filter=get_results_links,
     )
     run_scraping_task(task)
 

@@ -13,12 +13,10 @@ from src.utils.logging_config import E, I
 @dataclass
 class DataScrapingTask:
     driver: WebDriverBuilder
-    filepath: str
     schema: str
     table: str
     job_name: str
-    scraping_function: callable
-    link_filter_function: callable
+    scraper: callable
 
 
 @dataclass
@@ -28,7 +26,7 @@ class LinkScrapingTask:
     schema: str
     source_table: str
     destination_table: str
-    link_filter_function: callable
+    filter: callable
 
 
 def shuffle_dates(dates):
@@ -47,9 +45,7 @@ def get_driver(task):
 
 def process_batch_and_refresh_data(dataframes_list, task):
     store_data(pd.concat(dataframes_list), task.table, task.schema)
-    filtered_links_df = task.link_filter_function(
-        fetch_data(f"SELECT * FROM {task.schema}.missing_links")
-    )
+    filtered_links_df = fetch_data(f"SELECT * FROM {task.schema}.missing_links")
     I(f"Number of missing links: {len(filtered_links_df)}")
     return filtered_links_df
 
@@ -57,9 +53,7 @@ def process_batch_and_refresh_data(dataframes_list, task):
 def process_scraping_data(task: DataScrapingTask) -> None:
     driver = get_driver(task)
     dataframes_list = []
-    filtered_links_df = task.link_filter_function(
-        fetch_data(f"SELECT * FROM {task.schema}.missing_links")
-    )
+    filtered_links_df = fetch_data(f"SELECT * FROM {task.schema}.missing_links")
     I(f"Number of missing links: {len(filtered_links_df)}")
     for i, _ in enumerate(range(1000000000)):
         try:
@@ -75,7 +69,7 @@ def process_scraping_data(task: DataScrapingTask) -> None:
                 driver = get_driver(task)
                 time.sleep(5)
             driver.get(link)
-            performance_data = task.scraping_function(driver, link)
+            performance_data = task.scraper(driver, link)
             dataframes_list.append(performance_data)
 
             if (i + 1) % 10 == 0:

@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from typing import Optional
 
 import pandas as pd
 import sqlalchemy
@@ -110,19 +111,20 @@ def upsert_data(
     )
 
 
-def call_procedure(schema: str, procedure: str):
-    I(f"Calling stored procedure {schema}.{procedure}()")
+def call_procedure(procedure: str, schema: Optional[str] = None):
+    full_procedure_name = f"{schema}.{procedure}" if schema else procedure
+    I(f"Calling stored procedure {full_procedure_name}()")
 
     connection = storage_connection().raw_connection()
     cursor = connection.cursor()
 
-    cursor.execute(f"call {schema}.{procedure}();")
+    cursor.execute(f"call {full_procedure_name}();")
     connection.commit()  # wait for transaction to complete
 
     cursor.close()
     connection.close()
 
-    I(f"Stored procedure {schema}.{procedure}() completed")
+    I(f"Stored procedure {full_procedure_name}() completed")
 
 
 def execute_query(query: str):
@@ -158,3 +160,17 @@ def select_function(schema: str, function: str, args: list = None) -> pd.DataFra
     I(f"Function {schema}.{function}() completed")
 
     return result
+
+
+def update_ref_table(entity: str, matched_entities: pd.DataFrame) -> None:
+    if matched_entities.empty:
+        I(f"No data to update in {entity}")
+        return
+    store_data(matched_entities, f'{entity}', 'temp')
+    execute_query(f"""
+            UPDATE public.{entity}
+            SET tf_{entity}_id = es.tf_{entity}_id
+            FROM temp.{entity} es
+            WHERE public.{entity}.rp_{entity}_id = es.rp_{entity}_id;
+    """)
+    execute_query(f"DROP TABLE temp.{entity}")

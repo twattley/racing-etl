@@ -310,12 +310,10 @@ def scrape_data(driver, link):
 def process_tf_scrape_data():
     task = DataScrapingTask(
         driver=get_headless_driver,
-        filepath=os.path.join(os.getcwd(), "src/raw/timeform/tf_scrape_data.csv"),
         schema="tf_raw",
         table="performance_data",
         job_name="tf_scrape_data",
-        scraping_function=scrape_data,
-        link_filter_function=get_results_links,
+        scraper=scrape_data,
     )
     run_scraping_task(task)
 

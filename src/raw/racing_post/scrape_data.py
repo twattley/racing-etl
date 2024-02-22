@@ -6,6 +6,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import pytz
+from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -16,7 +17,57 @@ from src.raw.webdriver_base import get_headless_driver
 from src.utils.logging_config import E, I
 
 
-def get_results_links(data):
+def wait_for_page_load(driver: webdriver) -> None:
+    """
+    Waits for all necessary elements on the page to be loaded before scraping can proceed.
+    """
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, ".rp-raceInfo"))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "div[data-test-selector='text-prizeMoney']"))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "tr.rp-horseTable__commentRow[data-test-selector='text-comments']"))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "tr.rp-horseTable__pedigreeRow[data-test-selector='block-pedigreeInfoFullResults']"))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "a.rp-raceTimeCourseName__name"))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "span.rp-raceTimeCourseName__time[data-test-selector='text-raceTime']"))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "h2.rp-raceTimeCourseName__title"))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "span.rp-raceTimeCourseName_ratingBandAndAgesAllowed"))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "span.rp-raceTimeCourseName_distance"))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "span.rp-raceTimeCourseName_condition"))
+    )
+
+
+def convert_to_24_hour(time_str: str) -> str:
+    """
+    Converts a time string from 12-hour format to 24-hour format.
+    """
+    hours, minutes = map(int, time_str.split(':'))
+    if hours < 10:
+        hours += 12  
+    return f"{hours:02d}:{minutes:02d}"
+
+def create_race_timestamp(race_date: str, race_time: str, country: str) -> datetime:
+    if country in {'IRE', 'UK', "FR"}:
+        race_time = convert_to_24_hour(race_time)
+        return datetime.strptime(f"{race_date} {race_time}", "%Y-%m-%d %H:%M")
+
+def get_results_links(data: pd.DataFrame) -> pd.DataFrame:
     links = data["link"].unique()
     correct_links = [
         url for url in links if any(course in url for course in UK_IRE_COURSES)
@@ -44,7 +95,7 @@ def get_raw_winning_time(driver):
     return match[1] if match else np.NaN
 
 
-def get_number_of_runners(driver):
+def get_number_of_runners(driver: webdriver):
     race_info = " ".join(
         element.text.strip()
         for element in driver.find_elements(By.CSS_SELECTOR, ".rp-raceInfo")
@@ -61,7 +112,7 @@ def get_prize_money(driver):
     prize_money_text = prize_money_container.text
 
     places_and_money = re.split(
-        r"\s*(?:1st|2nd|3rd|4th|5th|6th|7th|8th|9th|10th)\s*", prize_money_text
+        r"\s*(?:1st|2nd|3rd|4th|5th|6th|7th|8th|9th|10th|11th|12th|13th|14th|15th)\s*", prize_money_text
     )
     places_and_money = list(filter(None, places_and_money))
     currency_mapping = {"€": "EURO", "£": "POUNDS"}
@@ -284,19 +335,22 @@ def get_pedigree_data(driver, order, horse_data):
 def get_course_country_data(driver):
     course_name = return_element_text_from_css(driver, "a.rp-raceTimeCourseName__name")
     matches = re.findall(r"\((.*?)\)", course_name)
+    if course_name == 'Newmarket (July)' and matches == ['July']:
+        return "Turf", "UK", "Newmarket (July)"
     if len(matches) == 2:
         surface, country = matches
+        return surface, country, course_name
     elif len(matches) == 1 and matches[0] == "AW":
-        surface = "AW"
-        country = "UK"
+        return "AW", "UK", course_name
+    elif len(matches) == 1:
+        return "Turf", matches[0], course_name
     else:
-        surface = "Turf"
-        country = "UK"
+        return "Turf", "UK", course_name
 
-    return surface, country, course_name
 
 
 def scrape_data(driver, result):
+    wait_for_page_load(driver)
     created_at = datetime.now(pytz.timezone("Europe/London")).strftime(
         "%Y-%m-%d %H:%M:%S"
     )
@@ -326,7 +380,7 @@ def scrape_data(driver, result):
     performance_data = get_comment_data(driver, order, performance_data)
     performance_data = get_pedigree_data(driver, order, performance_data)
 
-    race_timestamp = datetime.strptime(f"{race_date} {race_time}", "%Y-%m-%d %H:%M")
+    race_timestamp = create_race_timestamp(race_date, race_time, country)
     performance_data = pd.DataFrame(performance_data).assign(
         race_date=race_date,
         race_title=race_title,
@@ -360,18 +414,19 @@ def scrape_data(driver, result):
         lambda x: x.str.strip() if x.dtype == "object" else x
     )
 
+    performance_data = performance_data.dropna(subset=["race_timestamp"])
+    if performance_data.empty:
+        E(f"No data for {result} failure to scrape timestamp")
     return performance_data
 
 
 def process_rp_scrape_data():
     task = DataScrapingTask(
         driver=get_headless_driver,
-        filepath=os.path.join(os.getcwd(), "src/raw/racing-post/rp_scrape_data.csv"),
         schema="rp_raw",
         table="performance_data",
         job_name="rp_scrape_data",
-        scraping_function=scrape_data,
-        link_filter_function=get_results_links,
+        scraper=scrape_data,
     )
     run_scraping_task(task)
 
