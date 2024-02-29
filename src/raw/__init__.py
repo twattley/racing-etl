@@ -16,7 +16,7 @@ class DataScrapingTask:
     schema: str
     table: str
     job_name: str
-    scraper: callable
+    scraper_func: callable
 
 
 @dataclass
@@ -26,7 +26,7 @@ class LinkScrapingTask:
     schema: str
     source_table: str
     destination_table: str
-    filter: callable
+    filter_func: callable
 
 
 def shuffle_dates(dates):
@@ -69,7 +69,9 @@ def process_scraping_data(task: DataScrapingTask) -> None:
                 driver = get_driver(task)
                 time.sleep(5)
             driver.get(link)
-            performance_data = task.scraper(driver, link)
+            performance_data = task.scraper_func(driver, link)
+            if performance_data is None:
+                continue
             dataframes_list.append(performance_data)
 
             if (i + 1) % 10 == 0:
@@ -109,7 +111,7 @@ def process_scraping_result_links(task: LinkScrapingTask) -> None:
             driver.get(url)
             time.sleep(5)
             I("Page load complete. Proceeding to scrape links.")
-            days_results_links = task.link_filter_function(driver)
+            days_results_links = task.filter_func(driver)
             I(f"Found {len(days_results_links)} valid links for date {date}.")
             days_results_links_df = pd.DataFrame(
                 {"date": [date] * len(days_results_links), "link": days_results_links}

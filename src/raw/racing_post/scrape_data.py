@@ -10,47 +10,43 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import TimeoutException
 
 from data.reference.rp.courses import UK_IRE_COURSES
 from src.raw import DataScrapingTask, run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
 from src.utils.logging_config import E, I
 
-
 def wait_for_page_load(driver: webdriver) -> None:
     """
-    Waits for all necessary elements on the page to be loaded before scraping can proceed.
+    Logs which elements were not found on the page.
     """
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, ".rp-raceInfo"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "div[data-test-selector='text-prizeMoney']"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "tr.rp-horseTable__commentRow[data-test-selector='text-comments']"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "tr.rp-horseTable__pedigreeRow[data-test-selector='block-pedigreeInfoFullResults']"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "a.rp-raceTimeCourseName__name"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "span.rp-raceTimeCourseName__time[data-test-selector='text-raceTime']"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "h2.rp-raceTimeCourseName__title"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "span.rp-raceTimeCourseName_ratingBandAndAgesAllowed"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "span.rp-raceTimeCourseName_distance"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "span.rp-raceTimeCourseName_condition"))
-    )
+    elements = [
+        (".rp-raceInfo", "Race Info"),
+        ("div[data-test-selector='text-prizeMoney']", "Prize Money"),
+        ("tr.rp-horseTable__commentRow[data-test-selector='text-comments']", "Comments"),
+        ("tr.rp-horseTable__pedigreeRow[data-test-selector='block-pedigreeInfoFullResults']", "Pedigree Info"),
+        ("a.rp-raceTimeCourseName__name", "Course Name"),
+        ("span.rp-raceTimeCourseName__time[data-test-selector='text-raceTime']", "Race Time"),
+        ("h2.rp-raceTimeCourseName__title", "Race Title"),
+        ("span.rp-raceTimeCourseName_ratingBandAndAgesAllowed", "Rating Band and Ages Allowed"),
+        ("span.rp-raceTimeCourseName_distance", "Distance"),
+        ("span.rp-raceTimeCourseName_condition", "Condition"),
+    ]
+    missing_elements = []
+    for selector, name in elements:
+        try:
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, selector))
+            )
+        except TimeoutException:
+            missing_elements.append(name)
+    if missing_elements:
+        E(f"Missing elements: {', '.join(missing_elements)}")
+        raise ValueError("Missing elements on the page.")
+    else:
+        I("All elements were found.")
+
 
 
 def convert_to_24_hour(time_str: str) -> str:
@@ -324,10 +320,18 @@ def get_pedigree_data(driver, order, horse_data):
     for horse_data, pedigrees in zip(sorted_horse_data, pedigrees):
         horse_data["sire_name"] = pedigrees["sire"]
         horse_data["sire_id"] = pedigrees["sire_id"]
-        horse_data["dam_name"] = pedigrees["dam"]
-        horse_data["dam_id"] = pedigrees["dam_id"]
-        horse_data["dams_sire"] = pedigrees["dams_sire"]
-        horse_data["dams_sire_id"] = pedigrees["dams_sire_id"]
+        if 'dam' in pedigrees.keys() and 'dam_id' in pedigrees.keys():
+            horse_data["dam_name"] = pedigrees["dam"]
+            horse_data["dam_id"] = pedigrees["dam_id"]
+        else:
+            horse_data["dam_name"] = np.NaN
+            horse_data["dam_id"] = np.NaN
+        if 'dams_sire' in pedigrees.keys() and 'dams_sire_id' in pedigrees.keys():
+            horse_data["dams_sire"] = pedigrees["dams_sire"]
+            horse_data["dams_sire_id"] = pedigrees["dams_sire_id"]
+        else:
+            horse_data["dams_sire"] = np.NaN
+            horse_data["dams_sire_id"] = np.NaN
 
     return sorted_horse_data
 
@@ -426,7 +430,7 @@ def process_rp_scrape_data():
         schema="rp_raw",
         table="performance_data",
         job_name="rp_scrape_data",
-        scraper=scrape_data,
+        scraper_func=scrape_data,
     )
     run_scraping_task(task)
 

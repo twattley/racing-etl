@@ -2,6 +2,7 @@ import hashlib
 import os
 import re
 from datetime import datetime
+import time
 
 import pandas as pd
 from selenium.webdriver.common.by import By
@@ -11,40 +12,7 @@ from src.raw import DataScrapingTask, run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-def wait_for_page_load(driver):
-    """
-    Waits for all necessary elements on the page to be loaded before scraping can proceed.
-    """
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, ".rp-raceInfo"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "div[data-test-selector='text-prizeMoney']"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "tr.rp-horseTable__commentRow[data-test-selector='text-comments']"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "tr.rp-horseTable__pedigreeRow[data-test-selector='block-pedigreeInfoFullResults']"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "a.rp-raceTimeCourseName__name"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "span.rp-raceTimeCourseName__time[data-test-selector='text-raceTime']"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "h2.rp-raceTimeCourseName__title"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "span.rp-raceTimeCourseName_ratingBandAndAgesAllowed"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "span.rp-raceTimeCourseName_distance"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "span.rp-raceTimeCourseName_condition"))
-    )
+from selenium.common.exceptions import TimeoutException 
 
 
 def get_results_links(data):
@@ -72,6 +40,8 @@ def return_element_from_css_selector(table_row, css_selector, multiple_elements=
     except Exception:
         return None
 
+def find_element_text_by_xpath(row, xpath):
+    return row.find_element(By.XPATH, xpath).text
 
 def find_element_text_by_selector(
     row, selector, default="Information not found for this row"
@@ -178,37 +148,37 @@ def get_entity_names(row):
                 tf_horse_name = title_except_brackets(
                     re.sub(r"^\d+\.\s+", "", horse_link.text)
                 )
-        for link in all_links:
-            href = link.get_attribute("href")
-            href_parts = href.split("/")
-            if href_parts[-1] == "sire":
-                tf_sire_name_link, tf_sire_name_id = href_parts[-3], href_parts[-2]
-                tf_clean_sire_name = tf_sire_name_link.replace("-", " ").title().strip()
-            if href_parts[-1] == "dam":
-                tf_dam_name_link, tf_dam_name_id = href_parts[-3], href_parts[-2]
-                tf_clean_dam_name = tf_dam_name_link.replace("-", " ").title().strip()
-            if href_parts[4] == "trainer":
-                tf_trainer_id, tf_trainer_name = href_parts[-1], href_parts[-3]
-                tf_clean_trainer_name = (
-                    tf_trainer_name.replace("-", " ").title().strip()
-                )
-            if href_parts[4] == "jockey":
-                tf_jockey_id, tf_jockey_name = href_parts[-1], href_parts[-3]
-                tf_clean_jockey_name = tf_jockey_name.replace("-", " ").title().strip()
+    for link in all_links:
+        href = link.get_attribute("href")
+        href_parts = href.split("/")
+        if href_parts[-1] == "sire":
+            tf_sire_name_link, tf_sire_name_id = href_parts[-3], href_parts[-2]
+            tf_clean_sire_name = tf_sire_name_link.replace("-", " ").title().strip()
+        if href_parts[-1] == "dam":
+            tf_dam_name_link, tf_dam_name_id = href_parts[-3], href_parts[-2]
+            tf_clean_dam_name = tf_dam_name_link.replace("-", " ").title().strip()
+        if href_parts[4] == "trainer":
+            tf_trainer_id, tf_trainer_name = href_parts[-1], href_parts[-3]
+            tf_clean_trainer_name = (
+                tf_trainer_name.replace("-", " ").title().strip()
+            )
+        if href_parts[4] == "jockey":
+            tf_jockey_id, tf_jockey_name = href_parts[-1], href_parts[-3]
+            tf_clean_jockey_name = tf_jockey_name.replace("-", " ").title().strip()
 
-        return (
-            tf_horse_name,
-            tf_horse_id,
-            tf_horse_name_link,
-            tf_clean_sire_name,
-            tf_clean_dam_name,
-            tf_sire_name_id,
-            tf_dam_name_id,
-            tf_clean_trainer_name,
-            tf_trainer_id,
-            tf_clean_jockey_name,
-            tf_jockey_id,
-        )
+    return (
+        tf_horse_name,
+        tf_horse_id,
+        tf_horse_name_link,
+        tf_clean_sire_name,
+        tf_clean_dam_name,
+        tf_sire_name_id,
+        tf_dam_name_id,
+        tf_clean_trainer_name,
+        tf_trainer_id,
+        tf_clean_jockey_name,
+        tf_jockey_id,
+    )
 
 
 def get_performance_data(driver, race_details_link, race_details_page, link):
@@ -225,8 +195,8 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
             row, "td.al-center.rp-tfig"
         )
         performance_data["draw"] = return_element_from_css_selector(row, "span.rp-draw")
-        performance_data["finishing_position"] = get_element_text_by_selector(
-            row, 'span.rp-entry-number[title="Finishing Position"]'
+        performance_data["finishing_position"] = find_element_text_by_xpath(
+            row, '//span[@class="rp-entry-number" and @title="Finishing Position"]'
         )
         (
             performance_data["horse_name"],
@@ -301,7 +271,6 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
 
 
 def scrape_data(driver, link):
-    wait_for_page_load(driver)
     race_details_link = get_race_details_from_link(link)
     race_details_page = get_race_details_from_page(driver)
     return get_performance_data(driver, race_details_link, race_details_page, link)
@@ -313,7 +282,7 @@ def process_tf_scrape_data():
         schema="tf_raw",
         table="performance_data",
         job_name="tf_scrape_data",
-        scraper=scrape_data,
+        scraper_func=scrape_data,
     )
     run_scraping_task(task)
 

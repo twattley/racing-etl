@@ -39,7 +39,7 @@ def process_tf_scrape_links():
         schema="tf_raw",
         source_table="missing_dates",
         destination_table="days_results_links",
-        filter=get_results_links,
+        filter_func=get_results_links,
     )
     run_scraping_task(task)
 
