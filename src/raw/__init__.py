@@ -62,7 +62,7 @@ def process_scraping_data(task: DataScrapingTask) -> None:
                 break
 
             link = filtered_links_df.sample().link.iloc[0]
-            
+
             I(f"Scraping link: {link}")
             if not is_driver_session_valid(driver):
                 driver.quit()

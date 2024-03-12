@@ -1,5 +1,6 @@
-from src.pipelines.scraping_pipeline import run_scraping_pipeline
 from src.pipelines.matching_pipeline import run_entity_matching_pipeline
+from src.pipelines.scraping_pipeline import run_scraping_pipeline
+
 
 def run_daily_pipeline():
     run_scraping_pipeline()

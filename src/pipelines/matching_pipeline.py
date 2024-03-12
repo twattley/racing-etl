@@ -1,12 +1,17 @@
 from src.entity_matching.matcher import entity_match
-
-def entity_matching_pipeline():
-    entity_match('jockey')
-    entity_match('trainer')
-    entity_match('horse')
-    entity_match('sire')
-    entity_match('dam')
+from src.storage.sql_db import call_procedure
 
 
-if __name__ == '__main__':
-    entity_matching_pipeline()
+def run_entity_matching_pipeline():
+
+    call_procedure("insert_rp_entities", "rp_raw")
+    entity_match("jockey")
+    entity_match("trainer")
+    entity_match("horse")
+    entity_match("sire")
+    entity_match("dam")
+    call_procedure("insert_entities", "staging")
+
+
+if __name__ == "__main__":
+    run_entity_matching_pipeline()

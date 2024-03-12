@@ -1,8 +1,6 @@
 import hashlib
-import os
 import re
 from datetime import datetime
-import time
 
 import pandas as pd
 from selenium.webdriver.common.by import By
@@ -10,9 +8,6 @@ from selenium.webdriver.common.by import By
 from data.reference.tf.courses import UK_IRE_COURSES
 from src.raw import DataScrapingTask, run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import TimeoutException 
 
 
 def get_results_links(data):
@@ -40,8 +35,10 @@ def return_element_from_css_selector(table_row, css_selector, multiple_elements=
     except Exception:
         return None
 
+
 def find_element_text_by_xpath(row, xpath):
     return row.find_element(By.XPATH, xpath).text
+
 
 def find_element_text_by_selector(
     row, selector, default="Information not found for this row"
@@ -159,9 +156,7 @@ def get_entity_names(row):
             tf_clean_dam_name = tf_dam_name_link.replace("-", " ").title().strip()
         if href_parts[4] == "trainer":
             tf_trainer_id, tf_trainer_name = href_parts[-1], href_parts[-3]
-            tf_clean_trainer_name = (
-                tf_trainer_name.replace("-", " ").title().strip()
-            )
+            tf_clean_trainer_name = tf_trainer_name.replace("-", " ").title().strip()
         if href_parts[4] == "jockey":
             tf_jockey_id, tf_jockey_name = href_parts[-1], href_parts[-3]
             tf_clean_jockey_name = tf_jockey_name.replace("-", " ").title().strip()
@@ -198,7 +193,9 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
         performance_data["finishing_position"] = find_element_text_by_xpath(
             row, '//span[@class="rp-entry-number" and @title="Finishing Position"]'
         )
-        performance_data["finishing_position"] = performance_data["finishing_position"].str.upper()
+        performance_data["finishing_position"] = performance_data[
+            "finishing_position"
+        ].str.upper()
         (
             performance_data["horse_name"],
             performance_data["horse_id"],

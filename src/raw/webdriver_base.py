@@ -1,4 +1,3 @@
-import os
 import random
 import time
 
@@ -33,7 +32,7 @@ class WebDriverBuilder:
 
         options.add_argument(f"user-agent={self.user_agent}")
 
-        chromedriver_path = os.environ.get("CHROMEDRIVER_PATH")
+        chromedriver_path = "/Users/tom.wattley/chromedriver/chromedriver"
         service = Service(executable_path=chromedriver_path)
 
         return webdriver.Chrome(service=service, options=options)
@@ -79,11 +78,11 @@ def login_to_timeform(driver):
     time.sleep(5)
     email = driver.find_element(by=By.NAME, value="EmailAddress")
     time.sleep(2)
-    email.send_keys(os.environ.get("TF_USERNAME"))
+    email.send_keys("wattley83@gmail.com")
     time.sleep(3)
     password = driver.find_element(by=By.NAME, value="Password")
     time.sleep(3)
-    password.send_keys(os.environ.get("TF_PASSWORD"))
+    password.send_keys("Watford_1")
     time.sleep(3)
     driver.find_element(by=By.CLASS_NAME, value="submit-section").click()
     time.sleep(3)

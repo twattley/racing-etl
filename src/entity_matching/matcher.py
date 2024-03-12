@@ -1,10 +1,10 @@
-from typing import Any, Dict, List, Tuple
+from typing import Tuple
 
 import pandas as pd
 from fuzzywuzzy import fuzz
-from src.raw.webdriver_base import get_headless_driver
-from src.utils.logging_config import E, I
-from src.storage.sql_db import call_procedure, fetch_data, insert_updates, store_data
+
+from src.storage.sql_db import fetch_data, store_data
+from src.utils.logging_config import I
 
 
 def fetch_entity_data(entity: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -138,7 +138,10 @@ def fuzzy_match_entities(
         }
     )
     matches = matches.assign(
-        name=lambda x: x["name"].str.replace(r"\s*\([^)]*\)", "", regex=True).str.title().str.strip()
+        name=lambda x: x["name"]
+        .str.replace(r"\s*\([^)]*\)", "", regex=True)
+        .str.title()
+        .str.strip()
     )
 
     I(f"Found {len(matches)} matches")

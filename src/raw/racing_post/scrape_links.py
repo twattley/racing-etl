@@ -3,7 +3,6 @@ from selenium.webdriver.common.by import By
 from src.raw import LinkScrapingTask, run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
 
-
 BASE_RP_URL = "https://www.racingpost.com"
 RP_RESULTS_URL = f"{BASE_RP_URL}/results/"
 

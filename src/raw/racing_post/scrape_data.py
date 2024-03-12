@@ -1,5 +1,4 @@
 import hashlib
-import os
 import re
 from datetime import datetime
 
@@ -7,15 +6,16 @@ import numpy as np
 import pandas as pd
 import pytz
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import TimeoutException
 
 from data.reference.rp.courses import UK_IRE_COURSES
 from src.raw import DataScrapingTask, run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
 from src.utils.logging_config import E, I
+
 
 def wait_for_page_load(driver: webdriver) -> None:
     """
@@ -24,12 +24,24 @@ def wait_for_page_load(driver: webdriver) -> None:
     elements = [
         (".rp-raceInfo", "Race Info"),
         ("div[data-test-selector='text-prizeMoney']", "Prize Money"),
-        ("tr.rp-horseTable__commentRow[data-test-selector='text-comments']", "Comments"),
-        ("tr.rp-horseTable__pedigreeRow[data-test-selector='block-pedigreeInfoFullResults']", "Pedigree Info"),
+        (
+            "tr.rp-horseTable__commentRow[data-test-selector='text-comments']",
+            "Comments",
+        ),
+        (
+            "tr.rp-horseTable__pedigreeRow[data-test-selector='block-pedigreeInfoFullResults']",
+            "Pedigree Info",
+        ),
         ("a.rp-raceTimeCourseName__name", "Course Name"),
-        ("span.rp-raceTimeCourseName__time[data-test-selector='text-raceTime']", "Race Time"),
+        (
+            "span.rp-raceTimeCourseName__time[data-test-selector='text-raceTime']",
+            "Race Time",
+        ),
         ("h2.rp-raceTimeCourseName__title", "Race Title"),
-        ("span.rp-raceTimeCourseName_ratingBandAndAgesAllowed", "Rating Band and Ages Allowed"),
+        (
+            "span.rp-raceTimeCourseName_ratingBandAndAgesAllowed",
+            "Rating Band and Ages Allowed",
+        ),
         ("span.rp-raceTimeCourseName_distance", "Distance"),
         ("span.rp-raceTimeCourseName_condition", "Condition"),
     ]
@@ -48,20 +60,21 @@ def wait_for_page_load(driver: webdriver) -> None:
         I("All elements were found.")
 
 
-
 def convert_to_24_hour(time_str: str) -> str:
     """
     Converts a time string from 12-hour format to 24-hour format.
     """
-    hours, minutes = map(int, time_str.split(':'))
+    hours, minutes = map(int, time_str.split(":"))
     if hours < 10:
-        hours += 12  
+        hours += 12
     return f"{hours:02d}:{minutes:02d}"
 
+
 def create_race_timestamp(race_date: str, race_time: str, country: str) -> datetime:
-    if country in {'IRE', 'UK', "FR"}:
+    if country in {"IRE", "UK", "FR"}:
         race_time = convert_to_24_hour(race_time)
         return datetime.strptime(f"{race_date} {race_time}", "%Y-%m-%d %H:%M")
+
 
 def get_results_links(data: pd.DataFrame) -> pd.DataFrame:
     links = data["link"].unique()
@@ -108,7 +121,8 @@ def get_prize_money(driver):
     prize_money_text = prize_money_container.text
 
     places_and_money = re.split(
-        r"\s*(?:1st|2nd|3rd|4th|5th|6th|7th|8th|9th|10th|11th|12th|13th|14th|15th)\s*", prize_money_text
+        r"\s*(?:1st|2nd|3rd|4th|5th|6th|7th|8th|9th|10th|11th|12th|13th|14th|15th)\s*",
+        prize_money_text,
     )
     places_and_money = list(filter(None, places_and_money))
     currency_mapping = {"€": "EURO", "£": "POUNDS"}
@@ -320,13 +334,13 @@ def get_pedigree_data(driver, order, horse_data):
     for horse_data, pedigrees in zip(sorted_horse_data, pedigrees):
         horse_data["sire_name"] = pedigrees["sire"]
         horse_data["sire_id"] = pedigrees["sire_id"]
-        if 'dam' in pedigrees.keys() and 'dam_id' in pedigrees.keys():
+        if "dam" in pedigrees.keys() and "dam_id" in pedigrees.keys():
             horse_data["dam_name"] = pedigrees["dam"]
             horse_data["dam_id"] = pedigrees["dam_id"]
         else:
             horse_data["dam_name"] = np.NaN
             horse_data["dam_id"] = np.NaN
-        if 'dams_sire' in pedigrees.keys() and 'dams_sire_id' in pedigrees.keys():
+        if "dams_sire" in pedigrees.keys() and "dams_sire_id" in pedigrees.keys():
             horse_data["dams_sire"] = pedigrees["dams_sire"]
             horse_data["dams_sire_id"] = pedigrees["dams_sire_id"]
         else:
@@ -339,7 +353,7 @@ def get_pedigree_data(driver, order, horse_data):
 def get_course_country_data(driver):
     course_name = return_element_text_from_css(driver, "a.rp-raceTimeCourseName__name")
     matches = re.findall(r"\((.*?)\)", course_name)
-    if course_name == 'Newmarket (July)' and matches == ['July']:
+    if course_name == "Newmarket (July)" and matches == ["July"]:
         return "Turf", "UK", "Newmarket (July)"
     if len(matches) == 2:
         surface, country = matches
@@ -350,7 +364,6 @@ def get_course_country_data(driver):
         return "Turf", matches[0], course_name
     else:
         return "Turf", "UK", course_name
-
 
 
 def scrape_data(driver, result):
@@ -377,7 +390,7 @@ def scrape_data(driver, result):
     number_of_runners = get_number_of_runners(driver)
     try:
         total_prize_money, first_place_prize_money, currency = get_prize_money(driver)
-    except Exception as e:
+    except Exception:
         total_prize_money, first_place_prize_money, currency = np.NaN, np.NaN, np.NaN
 
     performance_data, order = get_performance_data(driver)

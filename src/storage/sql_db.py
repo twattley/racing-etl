@@ -166,11 +166,13 @@ def update_ref_table(entity: str, matched_entities: pd.DataFrame) -> None:
     if matched_entities.empty:
         I(f"No data to update in {entity}")
         return
-    store_data(matched_entities, f'{entity}', 'temp')
-    execute_query(f"""
+    store_data(matched_entities, f"{entity}", "temp")
+    execute_query(
+        f"""
             UPDATE public.{entity}
             SET tf_{entity}_id = es.tf_{entity}_id
             FROM temp.{entity} es
             WHERE public.{entity}.rp_{entity}_id = es.rp_{entity}_id;
-    """)
+    """
+    )
     execute_query(f"DROP TABLE temp.{entity}")
