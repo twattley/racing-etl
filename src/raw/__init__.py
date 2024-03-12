@@ -74,7 +74,7 @@ def process_scraping_data(task: DataScrapingTask) -> None:
                 continue
             dataframes_list.append(performance_data)
 
-            if (i + 1) % 10 == 0:
+            if (i + 1) % 1 == 0:
                 filtered_links_df = process_batch_and_refresh_data(
                     dataframes_list, task
                 )
@@ -89,9 +89,9 @@ def process_scraping_data(task: DataScrapingTask) -> None:
         except Exception as e:
             E(f"Encountered an error: {e}. Attempting to continue with the next link.")
             traceback.print_exc()
-            driver.quit()
-            time.sleep(2)
-            driver = get_driver(task)
+            # driver.quit()
+            # time.sleep(2)
+            # driver = get_driver(task)
             continue
 
 

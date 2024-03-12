@@ -198,6 +198,7 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
         performance_data["finishing_position"] = find_element_text_by_xpath(
             row, '//span[@class="rp-entry-number" and @title="Finishing Position"]'
         )
+        performance_data["finishing_position"] = performance_data["finishing_position"].str.upper()
         (
             performance_data["horse_name"],
             performance_data["horse_id"],
