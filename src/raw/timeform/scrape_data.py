@@ -5,17 +5,23 @@ from datetime import datetime
 import pandas as pd
 from selenium.webdriver.common.by import By
 
-from data.reference.tf.courses import UK_IRE_COURSES
 from src.raw import DataScrapingTask, run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
 
 
-def get_results_links(data):
-    links = data["link"].unique()
-    correct_links = [
-        url for url in links if any(course in url for course in UK_IRE_COURSES)
-    ]
-    return data[data["link"].isin(correct_links)]
+def print_dataframe_for_testing(df):
+
+    print('pd.DataFrame({')
+
+    for col in df.columns:
+        value = df[col].iloc[0]
+        if re.match( r'\d{4}-\d{2}-\d{2}', str(value)):
+            str_test = '[' + ' '.join([f"pd.Timestamp('{x}')," for x in list(df[col])] ) + ']'
+            print(f"'{col}':{str_test},")
+        else:
+            print(f"'{col}':{list(df[col])},")
+    print('})')
+
 
 
 def get_element_text_by_selector(row, css_selector):
@@ -195,7 +201,7 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
         )
         performance_data["finishing_position"] = performance_data[
             "finishing_position"
-        ].str.upper()
+        ]
         (
             performance_data["horse_name"],
             performance_data["horse_id"],
@@ -265,7 +271,9 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
 
         data.append(performance_data)
 
-    return pd.DataFrame(data)
+    data = pd.DataFrame(data)
+    
+    return data
 
 
 def scrape_data(driver, link):

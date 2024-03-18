@@ -11,7 +11,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from data.reference.rp.courses import UK_IRE_COURSES
 from src.raw import DataScrapingTask, run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
 from src.utils.logging_config import E, I
@@ -74,14 +73,6 @@ def create_race_timestamp(race_date: str, race_time: str, country: str) -> datet
     if country in {"IRE", "UK", "FR"}:
         race_time = convert_to_24_hour(race_time)
         return datetime.strptime(f"{race_date} {race_time}", "%Y-%m-%d %H:%M")
-
-
-def get_results_links(data: pd.DataFrame) -> pd.DataFrame:
-    links = data["link"].unique()
-    correct_links = [
-        url for url in links if any(course in url for course in UK_IRE_COURSES)
-    ]
-    return data[data["link"].isin(correct_links)]
 
 
 def get_entity_data_from_link(entity_link):
