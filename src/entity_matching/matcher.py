@@ -6,6 +6,14 @@ from fuzzywuzzy import fuzz
 from src.storage.sql_db import fetch_data, store_data
 from src.utils.logging_config import I
 
+BREAK_CONDITION  = {
+    "horse": 1,
+    "jockey": 5,
+    "trainer": 5,
+    "sire": 5,
+    "dam": 5,
+}
+
 
 def fetch_entity_data(entity: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
@@ -17,7 +25,7 @@ def fetch_entity_data(entity: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     return tf, rp
 
 
-def format_last_names(
+def format_names(
     tf: pd.DataFrame, rp: pd.DataFrame
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
 
@@ -57,6 +65,16 @@ def format_last_names(
         .str.lower()
         .str.replace(r"\s+", "", regex=True)
     )
+    tf["filtered_horse_name"] = (
+        tf["filtered_horse_name"]
+        .str.replace("'", "")
+        .str.strip()
+    )
+    rp["filtered_horse_name"] = (
+        rp["filtered_horse_name"]
+        .str.replace("'", "")
+        .str.strip()
+    )
 
     return tf, rp
 
@@ -72,12 +90,18 @@ def fuzzy_match_entities(
         I(f"Entity name: {v}")
         sub_tf = tf[tf[f"filtered_{entity}_name"] == v]
         sub_rp = rp[rp["race_date"].isin(sub_tf["race_date"])]
+        if sub_rp.empty:
+            I(f"No RP data found for {entity} {v}")
+            continue
         for date in sub_tf["race_date"].unique():
             sub_date_tf = sub_tf[(sub_tf["race_date"] == date)].copy()
             sub_date_rp = sub_rp[
                 (sub_rp["race_date"] == date)
                 & (sub_rp["course_id"] == sub_date_tf["course_id"].iloc[0])
             ].copy()
+            if sub_date_rp.empty:
+                I(f"No RP data found for {entity} {v} on {date}")
+                continue
             sub_date_rp = sub_date_rp.assign(
                 fuzz_horse=sub_date_rp["filtered_horse_name"].apply(
                     lambda x: fuzz.ratio(x, sub_date_tf["filtered_horse_name"].iloc[0])
@@ -99,7 +123,15 @@ def fuzzy_match_entities(
                 + x["fuzz_trainer"]
                 + x["fuzz_sire"]
                 + x["fuzz_dam"]
-                + x["fuzz_jockey"]
+                + x["fuzz_jockey"],
+                jockey_fuzz=lambda x: x["fuzz_horse"]
+                + x["fuzz_sire"]
+                + x["fuzz_dam"]
+                + x["fuzz_jockey"],
+                trainer_fuzz=lambda x: x["fuzz_horse"]
+                + x["fuzz_sire"]
+                + x["fuzz_dam"]
+                + x["fuzz_trainer"],
             )
             best_match = sub_date_rp[sub_date_rp["total_fuzz"] >= 480].sort_values(
                 by="total_fuzz", ascending=False
@@ -116,19 +148,53 @@ def fuzzy_match_entities(
                     }
                 )
                 hits += 1
-            if hits != 5:
-                continue
+                if hits != BREAK_CONDITION[entity]:
+                    continue
+            except_trainer = sub_date_rp[sub_date_rp["jockey_fuzz"] == 400].sort_values(
+                by="jockey_fuzz", ascending=False
+            )
+            if not except_trainer.empty:
+                I(f"Found match for {entity} {v} on {date} except trainer")
+                matches.append(
+                    {
+                        f"tf_{entity}_name": sub_tf[f"{entity}_name"].iloc[0],
+                        f"tf_{entity}_id": sub_tf[f"{entity}_id"].iloc[0],
+                        f"rp_{entity}_name": except_trainer[f"{entity}_name"].iloc[0],
+                        f"rp_{entity}_id": except_trainer[f"{entity}_id"].iloc[0],
+                        "fuzz_score": except_trainer["jockey_fuzz"].iloc[0],
+                    }
+                )
+                hits += 1
+                if hits != BREAK_CONDITION[entity]:
+                    continue
+            except_jockey = sub_date_rp[sub_date_rp["trainer_fuzz"] == 400].sort_values(
+                by="trainer_fuzz", ascending=False
+            )
+            if not except_jockey.empty:
+                I(f"Found match for {entity} {v} on {date} except jockey")
+                matches.append(
+                    {
+                        f"tf_{entity}_name": sub_tf[f"{entity}_name"].iloc[0],
+                        f"tf_{entity}_id": sub_tf[f"{entity}_id"].iloc[0],
+                        f"rp_{entity}_name": except_jockey[f"{entity}_name"].iloc[0],
+                        f"rp_{entity}_id": except_jockey[f"{entity}_id"].iloc[0],
+                        "fuzz_score": except_jockey["trainer_fuzz"].iloc[0],
+                    }
+                )
+                hits += 1
+                if hits != BREAK_CONDITION[entity]:
+                    continue
             hits = 0
-            I("5 attempts found, breaking loop")
+            I(f"{BREAK_CONDITION[entity]} attempts, breaking loop")
             break
 
     matches_df = pd.DataFrame(matches)
+    if matches_df.empty:
+        I(f"No matches found for {entity}")
+        return pd.DataFrame()
     counts = matches_df[f"tf_{entity}_name"].value_counts()
 
-    matches = matches_df[
-        (matches_df[f"tf_{entity}_name"].isin(counts[counts >= 1].index.tolist()))
-        & (matches_df["fuzz_score"] >= 480)
-    ].drop_duplicates(subset=[f"tf_{entity}_id", f"rp_{entity}_id"])
+    matches = matches_df.drop_duplicates(subset=[f"tf_{entity}_id", f"rp_{entity}_id"])
 
     matches = matches.rename(
         columns={
@@ -152,10 +218,15 @@ def fuzzy_match_entities(
 def entity_match(entity: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     I(f"Matching {entity}s")
     tf, rp = fetch_entity_data(entity)
-    tf, rp = format_last_names(tf, rp)
+    if tf.empty:
+        I(f"No unmatched {entity}s found")
+        return
+    tf, rp = format_names(tf, rp)
     matches = fuzzy_match_entities(tf, rp, entity)
-    store_data(matches, f"{entity}", "staging")
+    if matches.empty:
+        return
+    store_data(matches, f"{entity}", "staging", truncate=True)
 
 
 if __name__ == "__main__":
-    entity_match("trainer")
+    entity_match("horse")

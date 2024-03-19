@@ -1,13 +1,2 @@
-# Ignore everything
-*
-
-# Allow files and directories
-!/schema
-!/scripts
-!/src
-!/test
-!/requirements.txt
-!/requirements-dev.txt
-!/README.md
-
+.env
 

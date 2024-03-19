@@ -1,6 +1,6 @@
 export LOG_LEVEL="INFO"
 cd $RACING_ETL_FOLDER 
-source ~/.bashrc
+source ~/.zshrc
 source $RACING_ETL_ENV
 export PYTHONPATH=$(pwd) 
 
@@ -28,6 +28,10 @@ case $1 in
     "run_entity_matching_pipeline")
         echo "Running entity_matching_pipeline"
         python3 $RACING_ETL_FOLDER/src/pipelines/matching_pipeline.py >> $RACING_ETL_FOLDER/logs/matching_pipeline.log 2>&1
+        ;;
+    "run_daily_pipeline")
+        echo "Running daily_pipeline"
+        python3 $RACING_ETL_FOLDER/src/pipelines/daily_pipeline.py >> $RACING_ETL_FOLDER/logs/daily_pipeline.log 2>&1
         ;;
     *)
         echo "Invalid command"
