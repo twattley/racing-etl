@@ -1,0 +1,1 @@
+pg_dump -h postgres-rp-do-user-11198504-0.c.db.ondigitalocean.com -p 25060 -U doadmin -s -f /Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/schema/racehorse-database.sql racehorse-database

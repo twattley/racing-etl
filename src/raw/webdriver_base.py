@@ -33,7 +33,7 @@ class WebDriverBuilder:
 
         options.add_argument(f"user-agent={self.user_agent}")
 
-        chromedriver_path = os.environ.get("CHROMEDRIVER_PATH")
+        chromedriver_path = '/Users/tom.wattley/chromedriver/chromedriver'
         service = Service(executable_path=chromedriver_path)
 
         return webdriver.Chrome(service=service, options=options)
