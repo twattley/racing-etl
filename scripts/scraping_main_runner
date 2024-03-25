@@ -1,6 +1,6 @@
 export LOG_LEVEL="INFO"
-cd $RACING_ETL_FOLDER 
 source ~/.zshrc
+cd $RACING_ETL_FOLDER 
 source $RACING_ETL_ENV
 export PYTHONPATH=$(pwd) 
 
