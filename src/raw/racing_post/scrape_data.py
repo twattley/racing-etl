@@ -416,6 +416,12 @@ def scrape_data(driver, result):
             ).hexdigest(),
             axis=1,
         ),
+        meeting_id=lambda x: x.apply(
+            lambda y: hashlib.sha512(
+                f"{y['course_id']}{y['race_date']}".encode()
+            ).hexdigest(),
+            axis=1,
+        ),
     )
 
     performance_data = performance_data.apply(

@@ -407,7 +407,9 @@ BEGIN
         tf_age_range,
         tf_race_type,
         tf_main_race_comment,
-        tf_unique_id
+        tf_unique_id,
+		created_at,
+		rp_meeting_id
     )
 
 WITH new_rp_records AS (
@@ -450,12 +452,12 @@ joined_data AS (
 	LEFT JOIN dam d ON nrr.rp_dam_id = d.id
 	LEFT JOIN trainer t ON nrr.rp_trainer_id = t.id
 	LEFT JOIN jockey j ON nrr.rp_jockey_id = j.id
-    LEFT JOIN tf_raw.performance_data tf ON tf.trainer_id = t.tf_id
+    LEFT JOIN tf_raw.performance_data tf ON tf.horse_id = h.tf_id
 		AND tf.jockey_id = j.tf_id
-		AND tf.horse_id = h.tf_id
+		AND tf.trainer_id = t.tf_id
 		AND tf.dam_id = d.tf_id
 		AND tf.sire_id = s.tf_id
-		AND tf.race_date = rp.race_date
+		AND tf.race_date = nrr.rp_race_date
 		AND tf.course_id = c.tf_course_id
     WHERE tf.unique_id IS NOT NULL
 )
@@ -528,7 +530,9 @@ SELECT rp_horse_id,
         tf_age_range,
         tf_race_type,
         tf_main_race_comment,
-        tf_unique_id
+        tf_unique_id,
+		now(),
+		rp_meeting_id
 	FROM joined_data WHERE rn = 1;
 END;
 $$;
@@ -751,53 +755,54 @@ ALTER TABLE public.trainer OWNER TO doadmin;
 --
 
 CREATE TABLE rp_raw.performance_data (
-    horse_id text,
-    horse_name text,
-    horse_age text,
-    jockey_id text,
-    jockey_name text,
-    jockey_claim text,
-    trainer_id text,
-    trainer_name text,
-    owner_id text,
-    owner_name text,
-    horse_weight text,
-    or_value text,
-    finishing_position text,
-    draw text,
-    ts_value text,
-    rpr_value text,
-    horse_price text,
-    extra_weight double precision,
-    headgear text,
+    horse_id character varying(32),
+    horse_name character varying(132),
+    horse_age character varying(16),
+    jockey_id character varying(32),
+    jockey_name character varying(132),
+    jockey_claim character varying(16),
+    trainer_id character varying(32),
+    trainer_name character varying(132),
+    owner_id character varying(32),
+    owner_name character varying(132),
+    horse_weight character varying(16),
+    or_value character varying(16),
+    finishing_position character varying(16),
+    draw character varying(16),
+    ts_value character varying(16),
+    rpr_value character varying(16),
+    horse_price character varying(16),
+    extra_weight numeric,
+    headgear character varying(16),
     comment text,
-    sire_name text,
-    sire_id text,
-    dam_name text,
-    dam_id text,
-    dams_sire text,
-    dams_sire_id text,
-    race_date text,
+    sire_name character varying(132),
+    sire_id character varying(32),
+    dam_name character varying(132),
+    dam_id character varying(32),
+    dams_sire character varying(132),
+    dams_sire_id character varying(32),
+    race_date character varying(32),
     race_title text,
-    race_time text,
+    race_time character varying(32),
     race_timestamp timestamp without time zone,
-    conditions text,
-    distance text,
-    going text,
-    winning_time text,
-    number_of_runners text,
-    total_prize_money bigint,
-    first_place_prize_money bigint,
-    currency text,
-    course_id text,
-    course_name text,
-    course text,
+    conditions character varying(32),
+    distance character varying(32),
+    going character varying(32),
+    winning_time character varying(32),
+    number_of_runners character varying(32),
+    total_prize_money integer,
+    first_place_prize_money integer,
+    currency character varying(16),
+    course_id character varying(32),
+    course_name character varying(132),
+    course character varying(132),
     debug_link text,
-    race_id text,
-    country text,
-    surface text,
-    created_at text,
-    unique_id text
+    race_id character varying(32),
+    country character varying(16),
+    surface character varying(16),
+    created_at timestamp without time zone,
+    unique_id character varying(132),
+    meeting_id character varying(132)
 );
 
 
@@ -809,31 +814,31 @@ ALTER TABLE rp_raw.performance_data OWNER TO doadmin;
 
 CREATE VIEW rp_raw.base_formatted_entities AS
  SELECT DISTINCT ON (pd.unique_id) pd.horse_name,
-    regexp_replace(lower(regexp_replace(pd.horse_name, '\s*I\s*$'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_horse_name,
+    regexp_replace(lower(regexp_replace((pd.horse_name)::text, '\s*I\s*$'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_horse_name,
     pd.horse_id,
     pd.horse_age,
     pd.jockey_id,
     pd.jockey_name,
-    regexp_replace(lower(regexp_replace(pd.jockey_name, '\s*I\s*$'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
+    regexp_replace(lower(regexp_replace((pd.jockey_name)::text, '\s*I\s*$'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
     pd.trainer_id,
     pd.trainer_name,
-    regexp_replace(lower(regexp_replace(pd.trainer_name, '\s*I\s*$|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
+    regexp_replace(lower(regexp_replace((pd.trainer_name)::text, '\s*I\s*$|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
         CASE
-            WHEN (pd.finishing_position ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
+            WHEN ((pd.finishing_position)::text ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
             ELSE NULL::numeric
         END AS converted_finishing_position,
     pd.sire_name,
-    regexp_replace(lower(regexp_replace(pd.sire_name, '\s*I\s*$'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_sire_name,
+    regexp_replace(lower(regexp_replace((pd.sire_name)::text, '\s*I\s*$'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_sire_name,
     pd.sire_id,
     pd.dam_name,
-    regexp_replace(lower(regexp_replace(pd.dam_name, '\s*I\s*$|\s*\d+[A-Za-z]*'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_dam_name,
+    regexp_replace(lower(regexp_replace((pd.dam_name)::text, '\s*I\s*$|\s*\d+[A-Za-z]*'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_dam_name,
     pd.dam_id,
     pd.race_timestamp,
     c.course_id,
     pd.unique_id,
     (pd.race_timestamp)::date AS race_date
    FROM (rp_raw.performance_data pd
-     LEFT JOIN public.course c ON ((pd.course_id = (c.rp_course_id)::text)));
+     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.rp_course_id)::text)));
 
 
 ALTER VIEW rp_raw.base_formatted_entities OWNER TO doadmin;
@@ -868,7 +873,7 @@ CREATE VIEW rp_raw.unmatched_dams AS
     d.name,
     d.tf_id
    FROM (rp_raw.base_formatted_entities be
-     LEFT JOIN public.dam d ON ((be.dam_id = (d.id)::text)))
+     LEFT JOIN public.dam d ON (((be.dam_id)::text = (d.id)::text)))
   WHERE (d.id IS NULL);
 
 
@@ -904,7 +909,7 @@ CREATE VIEW rp_raw.unmatched_horses AS
     h.name,
     h.tf_id
    FROM (rp_raw.base_formatted_entities be
-     LEFT JOIN public.horse h ON ((be.horse_id = (h.id)::text)))
+     LEFT JOIN public.horse h ON (((be.horse_id)::text = (h.id)::text)))
   WHERE (h.id IS NULL);
 
 
@@ -940,7 +945,7 @@ CREATE VIEW rp_raw.unmatched_jockeys AS
     j.name,
     j.tf_id
    FROM (rp_raw.base_formatted_entities be
-     LEFT JOIN public.jockey j ON ((be.jockey_id = (j.id)::text)))
+     LEFT JOIN public.jockey j ON (((be.jockey_id)::text = (j.id)::text)))
   WHERE (j.id IS NULL);
 
 
@@ -976,7 +981,7 @@ CREATE VIEW rp_raw.unmatched_sires AS
     s.name,
     s.tf_id
    FROM (rp_raw.base_formatted_entities be
-     LEFT JOIN public.sire s ON ((be.sire_id = (s.id)::text)))
+     LEFT JOIN public.sire s ON (((be.sire_id)::text = (s.id)::text)))
   WHERE (s.id IS NULL);
 
 
@@ -1012,7 +1017,7 @@ CREATE VIEW rp_raw.unmatched_trainers AS
     t.name,
     t.tf_id
    FROM (rp_raw.base_formatted_entities be
-     LEFT JOIN public.trainer t ON ((be.trainer_id = (t.id)::text)))
+     LEFT JOIN public.trainer t ON (((be.trainer_id)::text = (t.id)::text)))
   WHERE (t.id IS NULL);
 
 
@@ -1023,47 +1028,47 @@ ALTER VIEW rp_raw.unmatched_trainers OWNER TO doadmin;
 --
 
 CREATE TABLE tf_raw.performance_data (
-    tf_rating text,
-    tf_speed_figure text,
-    draw text,
-    trainer_name text,
-    trainer_id text,
-    jockey_name text,
-    jockey_id text,
-    sire_name text,
-    sire_id text,
-    dam_name text,
-    dam_id text,
-    finishing_position text,
-    horse_name text,
-    horse_id text,
-    horse_name_link text,
-    horse_age text,
-    equipment text,
-    official_rating text,
-    fractional_price text,
-    betfair_win_sp text,
-    betfair_place_sp text,
-    in_play_prices text,
+    tf_rating character varying(16),
+    tf_speed_figure character varying(16),
+    draw character varying(16),
+    trainer_name character varying(132),
+    trainer_id character varying(32),
+    jockey_name character varying(132),
+    jockey_id character varying(32),
+    sire_name character varying(132),
+    sire_id character varying(32),
+    dam_name character varying(132),
+    dam_id character varying(32),
+    finishing_position character varying(16),
+    horse_name character varying(132),
+    horse_id character varying(32),
+    horse_name_link character varying(132),
+    horse_age character varying(16),
+    equipment character varying(16),
+    official_rating character varying(16),
+    fractional_price character varying(64),
+    betfair_win_sp character varying(16),
+    betfair_place_sp character varying(16),
+    in_play_prices character varying(16),
     tf_comment text,
     course text,
-    race_date text,
-    race_time text,
+    race_date character varying(32),
+    race_time character varying(32),
     race_timestamp timestamp without time zone,
-    course_id text,
+    course_id character varying(32),
     race text,
-    race_id text,
-    distance text,
-    going text,
-    prize text,
-    hcap_range text,
-    age_range text,
-    race_type text,
+    race_id character varying(132),
+    distance character varying(32),
+    going character varying(16),
+    prize character varying(16),
+    hcap_range character varying(16),
+    age_range character varying(16),
+    race_type character varying(16),
     main_race_comment text,
     debug_link text,
     created_at timestamp without time zone,
-    sire_name_link text,
-    unique_id text
+    sire_name_link character varying(132),
+    unique_id character varying(132)
 );
 
 
@@ -1075,32 +1080,32 @@ ALTER TABLE tf_raw.performance_data OWNER TO doadmin;
 
 CREATE VIEW tf_raw.unmatched_dams AS
  SELECT DISTINCT ON (pd.unique_id) pd.horse_name,
-    regexp_replace(lower(regexp_replace(pd.horse_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
+    regexp_replace(lower(regexp_replace((pd.horse_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
     pd.horse_id,
     pd.horse_age,
     pd.jockey_id,
     pd.jockey_name,
-    regexp_replace(lower(regexp_replace(pd.jockey_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
+    regexp_replace(lower(regexp_replace((pd.jockey_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
     pd.trainer_id,
     pd.trainer_name,
-    regexp_replace(lower(regexp_replace(pd.trainer_name, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
+    regexp_replace(lower(regexp_replace((pd.trainer_name)::text, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
         CASE
-            WHEN (pd.finishing_position ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
+            WHEN ((pd.finishing_position)::text ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
             ELSE NULL::numeric
         END AS converted_finishing_position,
     pd.sire_name,
-    regexp_replace(lower(regexp_replace(pd.sire_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
+    regexp_replace(lower(regexp_replace((pd.sire_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
     pd.sire_id,
     pd.dam_name,
-    regexp_replace(lower(regexp_replace(pd.dam_name, '\s*\([^\)]*\)|\s*\d+[A-Za-z]*'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
+    regexp_replace(lower(regexp_replace((pd.dam_name)::text, '\s*\([^\)]*\)|\s*\d+[A-Za-z]*'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
     pd.dam_id,
     pd.race_timestamp,
     c.course_id,
     pd.unique_id,
     (pd.race_timestamp)::date AS race_date
    FROM ((tf_raw.performance_data pd
-     LEFT JOIN public.course c ON ((pd.course_id = (c.tf_course_id)::text)))
-     LEFT JOIN public.dam d ON ((pd.dam_id = (d.tf_id)::text)))
+     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.tf_course_id)::text)))
+     LEFT JOIN public.dam d ON (((pd.dam_id)::text = (d.tf_id)::text)))
   WHERE (d.tf_id IS NULL);
 
 
@@ -1112,24 +1117,24 @@ ALTER VIEW tf_raw.unmatched_dams OWNER TO doadmin;
 
 CREATE VIEW tf_raw.unmatched_horses AS
  SELECT DISTINCT ON (pd.unique_id) pd.horse_name,
-    regexp_replace(lower(regexp_replace(pd.horse_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
+    regexp_replace(lower(regexp_replace((pd.horse_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
     pd.horse_id,
     pd.horse_age,
     pd.jockey_id,
     pd.jockey_name,
-    regexp_replace(lower(regexp_replace(pd.jockey_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
+    regexp_replace(lower(regexp_replace((pd.jockey_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
     pd.trainer_id,
     pd.trainer_name,
-    regexp_replace(lower(regexp_replace(pd.trainer_name, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
+    regexp_replace(lower(regexp_replace((pd.trainer_name)::text, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
         CASE
-            WHEN (pd.finishing_position ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
+            WHEN ((pd.finishing_position)::text ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
             ELSE NULL::numeric
         END AS converted_finishing_position,
     pd.sire_name,
-    regexp_replace(lower(regexp_replace(pd.sire_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
+    regexp_replace(lower(regexp_replace((pd.sire_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
     pd.sire_id,
     pd.dam_name,
-    regexp_replace(lower(regexp_replace(pd.dam_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
+    regexp_replace(lower(regexp_replace((pd.dam_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
     pd.dam_id,
     pd.race_timestamp,
     pd.unique_id,
@@ -1142,8 +1147,8 @@ CREATE VIEW tf_raw.unmatched_horses AS
     c.tf_course_id,
     c.country_id
    FROM ((tf_raw.performance_data pd
-     LEFT JOIN public.course c ON ((pd.course_id = (c.tf_course_id)::text)))
-     LEFT JOIN public.horse h ON ((pd.horse_id = (h.tf_id)::text)))
+     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.tf_course_id)::text)))
+     LEFT JOIN public.horse h ON (((pd.horse_id)::text = (h.tf_id)::text)))
   WHERE (h.tf_id IS NULL);
 
 
@@ -1155,32 +1160,32 @@ ALTER VIEW tf_raw.unmatched_horses OWNER TO doadmin;
 
 CREATE VIEW tf_raw.unmatched_jockeys AS
  SELECT DISTINCT ON (pd.unique_id) pd.horse_name,
-    regexp_replace(lower(regexp_replace(pd.horse_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
+    regexp_replace(lower(regexp_replace((pd.horse_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
     pd.horse_id,
     pd.horse_age,
     pd.jockey_id,
     pd.jockey_name,
-    regexp_replace(lower(regexp_replace(pd.jockey_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
+    regexp_replace(lower(regexp_replace((pd.jockey_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
     pd.trainer_id,
     pd.trainer_name,
-    regexp_replace(lower(regexp_replace(pd.trainer_name, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
+    regexp_replace(lower(regexp_replace((pd.trainer_name)::text, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
         CASE
-            WHEN (pd.finishing_position ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
+            WHEN ((pd.finishing_position)::text ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
             ELSE NULL::numeric
         END AS converted_finishing_position,
     pd.sire_name,
-    regexp_replace(lower(regexp_replace(pd.sire_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
+    regexp_replace(lower(regexp_replace((pd.sire_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
     pd.sire_id,
     pd.dam_name,
-    regexp_replace(lower(regexp_replace(pd.dam_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
+    regexp_replace(lower(regexp_replace((pd.dam_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
     pd.dam_id,
     pd.race_timestamp,
     c.course_id,
     pd.unique_id,
     (pd.race_timestamp)::date AS race_date
    FROM ((tf_raw.performance_data pd
-     LEFT JOIN public.course c ON ((pd.course_id = (c.tf_course_id)::text)))
-     LEFT JOIN public.jockey j ON ((pd.jockey_id = (j.tf_id)::text)))
+     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.tf_course_id)::text)))
+     LEFT JOIN public.jockey j ON (((pd.jockey_id)::text = (j.tf_id)::text)))
   WHERE (j.tf_id IS NULL);
 
 
@@ -1192,32 +1197,32 @@ ALTER VIEW tf_raw.unmatched_jockeys OWNER TO doadmin;
 
 CREATE VIEW tf_raw.unmatched_sires AS
  SELECT DISTINCT ON (pd.unique_id) pd.horse_name,
-    regexp_replace(lower(regexp_replace(pd.horse_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
+    regexp_replace(lower(regexp_replace((pd.horse_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
     pd.horse_id,
     pd.horse_age,
     pd.jockey_id,
     pd.jockey_name,
-    regexp_replace(lower(regexp_replace(pd.jockey_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
+    regexp_replace(lower(regexp_replace((pd.jockey_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
     pd.trainer_id,
     pd.trainer_name,
-    regexp_replace(lower(regexp_replace(pd.trainer_name, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
+    regexp_replace(lower(regexp_replace((pd.trainer_name)::text, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
         CASE
-            WHEN (pd.finishing_position ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
+            WHEN ((pd.finishing_position)::text ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
             ELSE NULL::numeric
         END AS converted_finishing_position,
     pd.sire_name,
-    regexp_replace(lower(regexp_replace(pd.sire_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
+    regexp_replace(lower(regexp_replace((pd.sire_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
     pd.sire_id,
     pd.dam_name,
-    regexp_replace(lower(regexp_replace(pd.dam_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
+    regexp_replace(lower(regexp_replace((pd.dam_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
     pd.dam_id,
     pd.race_timestamp,
     c.course_id,
     pd.unique_id,
     (pd.race_timestamp)::date AS race_date
    FROM ((tf_raw.performance_data pd
-     LEFT JOIN public.course c ON ((pd.course_id = (c.tf_course_id)::text)))
-     LEFT JOIN public.sire s ON ((pd.sire_id = (s.tf_id)::text)))
+     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.tf_course_id)::text)))
+     LEFT JOIN public.sire s ON (((pd.sire_id)::text = (s.tf_id)::text)))
   WHERE (s.tf_id IS NULL);
 
 
@@ -1229,32 +1234,32 @@ ALTER VIEW tf_raw.unmatched_sires OWNER TO doadmin;
 
 CREATE VIEW tf_raw.unmatched_trainers AS
  SELECT DISTINCT ON (pd.unique_id) pd.horse_name,
-    regexp_replace(lower(regexp_replace(pd.horse_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
+    regexp_replace(lower(regexp_replace((pd.horse_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
     pd.horse_id,
     pd.horse_age,
     pd.jockey_id,
     pd.jockey_name,
-    regexp_replace(lower(regexp_replace(pd.jockey_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
+    regexp_replace(lower(regexp_replace((pd.jockey_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
     pd.trainer_id,
     pd.trainer_name,
-    regexp_replace(lower(regexp_replace(pd.trainer_name, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
+    regexp_replace(lower(regexp_replace((pd.trainer_name)::text, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
         CASE
-            WHEN (pd.finishing_position ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
+            WHEN ((pd.finishing_position)::text ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
             ELSE NULL::numeric
         END AS converted_finishing_position,
     pd.sire_name,
-    regexp_replace(lower(regexp_replace(pd.sire_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
+    regexp_replace(lower(regexp_replace((pd.sire_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
     pd.sire_id,
     pd.dam_name,
-    regexp_replace(lower(regexp_replace(pd.dam_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
+    regexp_replace(lower(regexp_replace((pd.dam_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
     pd.dam_id,
     pd.race_timestamp,
     c.course_id,
     pd.unique_id,
     (pd.race_timestamp)::date AS race_date
    FROM ((tf_raw.performance_data pd
-     LEFT JOIN public.course c ON ((pd.course_id = (c.tf_course_id)::text)))
-     LEFT JOIN public.trainer j ON ((pd.trainer_id = (j.tf_id)::text)))
+     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.tf_course_id)::text)))
+     LEFT JOIN public.trainer j ON (((pd.trainer_id)::text = (j.tf_id)::text)))
   WHERE (j.tf_id IS NULL);
 
 
@@ -1319,7 +1324,7 @@ CREATE VIEW metrics.record_count_differences AS
             count(DISTINCT pd.unique_id) AS num_records,
             c.course_id
            FROM (rp_raw.performance_data pd
-             LEFT JOIN public.course c ON ((pd.course_id = (c.rp_course_id)::text)))
+             LEFT JOIN public.course c ON (((pd.course_id)::text = (c.rp_course_id)::text)))
           GROUP BY c.course_name, pd.race_date, c.course_id
         ), tf_course_counts AS (
          SELECT c.course_name,
@@ -1327,7 +1332,7 @@ CREATE VIEW metrics.record_count_differences AS
             count(DISTINCT pd.unique_id) AS num_records,
             c.course_id
            FROM (tf_raw.performance_data pd
-             LEFT JOIN public.course c ON ((pd.course_id = (c.tf_course_id)::text)))
+             LEFT JOIN public.course c ON (((pd.course_id)::text = (c.tf_course_id)::text)))
           GROUP BY c.course_name, pd.race_date, c.course_id
         )
  SELECT COALESCE(rp.course_name, tf.course_name) AS course,
@@ -1335,7 +1340,7 @@ CREATE VIEW metrics.record_count_differences AS
     rp.num_records AS rp_num_records,
     tf.num_records AS tf_num_records
    FROM (rp_course_counts rp
-     JOIN tf_course_counts tf ON (((rp.race_date = tf.race_date) AND ((rp.course_id)::text = (tf.course_id)::text))))
+     JOIN tf_course_counts tf ON ((((rp.race_date)::text = (tf.race_date)::text) AND ((rp.course_id)::text = (tf.course_id)::text))))
   WHERE ((rp.num_records <> tf.num_records) OR (rp.num_records IS NULL) OR (tf.num_records IS NULL))
   ORDER BY COALESCE(rp.race_date, tf.race_date) DESC, COALESCE(rp.course_name, tf.course_name), rp.course_id;
 
@@ -1469,31 +1474,31 @@ ALTER TABLE rp_raw.days_results_links OWNER TO doadmin;
 
 CREATE VIEW rp_raw.formatted_rp_entities AS
  SELECT DISTINCT ON (pd.unique_id) pd.horse_name,
-    regexp_replace(lower(regexp_replace(pd.horse_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
+    regexp_replace(lower(regexp_replace((pd.horse_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
     pd.horse_id,
     pd.horse_age,
     pd.jockey_id,
     pd.jockey_name,
-    regexp_replace(lower(regexp_replace(pd.jockey_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
+    regexp_replace(lower(regexp_replace((pd.jockey_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
     pd.trainer_id,
     pd.trainer_name,
-    regexp_replace(lower(regexp_replace(pd.trainer_name, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
+    regexp_replace(lower(regexp_replace((pd.trainer_name)::text, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
         CASE
-            WHEN (pd.finishing_position ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
+            WHEN ((pd.finishing_position)::text ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
             ELSE NULL::numeric
         END AS converted_finishing_position,
     pd.sire_name,
-    regexp_replace(lower(regexp_replace(pd.sire_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
+    regexp_replace(lower(regexp_replace((pd.sire_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
     pd.sire_id,
     pd.dam_name,
-    regexp_replace(lower(regexp_replace(pd.dam_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
+    regexp_replace(lower(regexp_replace((pd.dam_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
     pd.dam_id,
     pd.race_timestamp,
     c.course_id,
     pd.unique_id,
     (pd.race_timestamp)::date AS race_date
    FROM (rp_raw.performance_data pd
-     LEFT JOIN public.course c ON ((pd.course_id = (c.rp_course_id)::text)));
+     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.rp_course_id)::text)));
 
 
 ALTER VIEW rp_raw.formatted_rp_entities OWNER TO doadmin;
@@ -1601,17 +1606,17 @@ CREATE TABLE staging.joined_performance_data (
     rp_sire_id character varying(32),
     rp_dam_name character varying(132),
     rp_dam_id character varying(32),
-    rp_dams_sire character varying(16),
-    rp_dams_sire_id character varying(132),
-    rp_race_date character varying(16),
-    rp_race_title character varying(132),
-    rp_race_time character varying(16),
+    rp_dams_sire character varying(132),
+    rp_dams_sire_id character varying(32),
+    rp_race_date character varying(32),
+    rp_race_title text,
+    rp_race_time character varying(32),
     rp_race_timestamp timestamp without time zone,
-    rp_conditions character varying(16),
-    rp_distance character varying(16),
-    rp_going character varying(16),
-    rp_winning_time character varying(16),
-    rp_number_of_runners character varying(16),
+    rp_conditions character varying(32),
+    rp_distance character varying(32),
+    rp_going character varying(32),
+    rp_winning_time character varying(32),
+    rp_number_of_runners character varying(32),
     rp_total_prize_money integer,
     rp_first_place_prize_money integer,
     rp_currency character varying(16),
@@ -1621,7 +1626,7 @@ CREATE TABLE staging.joined_performance_data (
     rp_race_id character varying(32),
     rp_country character varying(16),
     rp_surface character varying(16),
-    rp_unique_id character varying(32),
+    rp_unique_id character varying(132),
     tf_tf_rating character varying(16),
     tf_tf_speed_figure character varying(16),
     tf_draw character varying(16),
@@ -1629,24 +1634,26 @@ CREATE TABLE staging.joined_performance_data (
     tf_horse_age character varying(16),
     tf_equipment character varying(16),
     tf_official_rating character varying(16),
-    tf_fractional_price character varying(16),
+    tf_fractional_price character varying(64),
     tf_betfair_win_sp character varying(16),
     tf_betfair_place_sp character varying(16),
     tf_in_play_prices character varying(16),
     tf_tf_comment text,
-    tf_race_date character varying(16),
-    tf_race_time character varying(16),
+    tf_race_date character varying(32),
+    tf_race_time character varying(32),
     tf_race_timestamp timestamp without time zone,
-    tf_race character varying(132),
-    tf_race_id character varying(32),
-    tf_distance character varying(16),
+    tf_race text,
+    tf_race_id character varying(132),
+    tf_distance character varying(32),
     tf_going character varying(16),
     tf_prize character varying(16),
     tf_hcap_range character varying(16),
     tf_age_range character varying(16),
     tf_race_type character varying(16),
     tf_main_race_comment text,
-    tf_unique_id character varying(132)
+    tf_unique_id character varying(132),
+    created_at timestamp without time zone,
+    rp_meeting_id character varying(132)
 );
 
 
@@ -1701,10 +1708,11 @@ CREATE VIEW staging.missing_performance_data AS
     rp.race_id AS rp_race_id,
     rp.country AS rp_country,
     rp.surface AS rp_surface,
-    rp.unique_id AS rp_unique_id
+    rp.unique_id AS rp_unique_id,
+    rp.meeting_id
    FROM (rp_raw.performance_data rp
-     LEFT JOIN staging.joined_performance_data sjpd ON ((rp.unique_id = (sjpd.rp_unique_id)::text)))
-  WHERE (sjpd.rp_unique_id IS NULL);
+     LEFT JOIN staging.joined_performance_data sjpd ON (((rp.unique_id)::text = (sjpd.rp_unique_id)::text)))
+  WHERE ((sjpd.rp_unique_id IS NULL) AND (rp.race_timestamp <> '2018-12-02 15:05:00'::timestamp without time zone));
 
 
 ALTER VIEW staging.missing_performance_data OWNER TO doadmin;
@@ -1742,58 +1750,58 @@ ALTER TABLE staging.trainer OWNER TO doadmin;
 CREATE VIEW tf_raw.all_entities AS
  WITH rp_raw_entities AS (
          SELECT DISTINCT ON (pd.unique_id) pd.horse_name,
-            regexp_replace(lower(regexp_replace(pd.horse_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
+            regexp_replace(lower(regexp_replace((pd.horse_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
             pd.horse_id,
             pd.horse_age,
             pd.jockey_id,
             pd.jockey_name,
-            regexp_replace(lower(regexp_replace(pd.jockey_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
+            regexp_replace(lower(regexp_replace((pd.jockey_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
             pd.trainer_id,
             pd.trainer_name,
-            regexp_replace(lower(regexp_replace(pd.trainer_name, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
+            regexp_replace(lower(regexp_replace((pd.trainer_name)::text, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
                 CASE
-                    WHEN (pd.finishing_position ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
+                    WHEN ((pd.finishing_position)::text ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
                     ELSE NULL::numeric
                 END AS converted_finishing_position,
             pd.sire_name,
-            regexp_replace(lower(regexp_replace(pd.sire_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
+            regexp_replace(lower(regexp_replace((pd.sire_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
             pd.sire_id,
             pd.dam_name,
-            regexp_replace(lower(regexp_replace(pd.dam_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
+            regexp_replace(lower(regexp_replace((pd.dam_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
             pd.dam_id,
             pd.race_timestamp,
             c.course_id,
             pd.unique_id,
             (pd.race_timestamp)::date AS race_date
            FROM (rp_raw.performance_data pd
-             LEFT JOIN public.course c ON ((pd.course_id = (c.tf_course_id)::text)))
+             LEFT JOIN public.course c ON (((pd.course_id)::text = (c.tf_course_id)::text)))
         ), tf_raw_entities AS (
          SELECT DISTINCT ON (pd.unique_id) pd.horse_name,
-            regexp_replace(lower(regexp_replace(pd.horse_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
+            regexp_replace(lower(regexp_replace((pd.horse_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
             pd.horse_id,
             pd.horse_age,
             pd.jockey_id,
             pd.jockey_name,
-            regexp_replace(lower(regexp_replace(pd.jockey_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
+            regexp_replace(lower(regexp_replace((pd.jockey_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
             pd.trainer_id,
             pd.trainer_name,
-            regexp_replace(lower(regexp_replace(pd.trainer_name, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
+            regexp_replace(lower(regexp_replace((pd.trainer_name)::text, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
                 CASE
-                    WHEN (pd.finishing_position ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
+                    WHEN ((pd.finishing_position)::text ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
                     ELSE NULL::numeric
                 END AS converted_finishing_position,
             pd.sire_name,
-            regexp_replace(lower(regexp_replace(pd.sire_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
+            regexp_replace(lower(regexp_replace((pd.sire_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
             pd.sire_id,
             pd.dam_name,
-            regexp_replace(lower(regexp_replace(pd.dam_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
+            regexp_replace(lower(regexp_replace((pd.dam_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
             pd.dam_id,
             pd.race_timestamp,
             c.course_id,
             pd.unique_id,
             (pd.race_timestamp)::date AS race_date
            FROM (tf_raw.performance_data pd
-             LEFT JOIN public.course c ON ((pd.course_id = (c.tf_course_id)::text)))
+             LEFT JOIN public.course c ON (((pd.course_id)::text = (c.tf_course_id)::text)))
         ), joined_matches AS (
          SELECT rp.filtered_horse_name AS rp_filtered_horse_name,
             rp.horse_id AS rp_horse_id,
@@ -1836,7 +1844,7 @@ CREATE VIEW tf_raw.all_entities AS
             tf.unique_id AS tf_unique_id,
             tf.race_date AS tf_race_date
            FROM (rp_raw_entities rp
-             LEFT JOIN tf_raw_entities tf ON (((rp.race_timestamp = tf.race_timestamp) AND ((rp.course_id)::text = (tf.course_id)::text) AND (rp.converted_finishing_position = tf.converted_finishing_position) AND (rp.horse_age = tf.horse_age))))
+             LEFT JOIN tf_raw_entities tf ON (((rp.race_timestamp = tf.race_timestamp) AND ((rp.course_id)::text = (tf.course_id)::text) AND (rp.converted_finishing_position = tf.converted_finishing_position) AND ((rp.horse_age)::text = (tf.horse_age)::text))))
           WHERE (tf.race_timestamp IS NOT NULL)
         )
  SELECT rp_filtered_horse_name,
@@ -1902,31 +1910,31 @@ ALTER TABLE tf_raw.days_results_links OWNER TO doadmin;
 
 CREATE VIEW tf_raw.formatted_tf_entities AS
  SELECT DISTINCT ON (pd.unique_id) pd.horse_name,
-    regexp_replace(lower(regexp_replace(pd.horse_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
+    regexp_replace(lower(regexp_replace((pd.horse_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
     pd.horse_id,
     pd.horse_age,
     pd.jockey_id,
     pd.jockey_name,
-    regexp_replace(lower(regexp_replace(pd.jockey_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
+    regexp_replace(lower(regexp_replace((pd.jockey_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
     pd.trainer_id,
     pd.trainer_name,
-    regexp_replace(lower(regexp_replace(pd.trainer_name, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
+    regexp_replace(lower(regexp_replace((pd.trainer_name)::text, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
         CASE
-            WHEN (pd.finishing_position ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
+            WHEN ((pd.finishing_position)::text ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
             ELSE NULL::numeric
         END AS converted_finishing_position,
     pd.sire_name,
-    regexp_replace(lower(regexp_replace(pd.sire_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
+    regexp_replace(lower(regexp_replace((pd.sire_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
     pd.sire_id,
     pd.dam_name,
-    regexp_replace(lower(regexp_replace(pd.dam_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
+    regexp_replace(lower(regexp_replace((pd.dam_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
     pd.dam_id,
     pd.race_timestamp,
     c.course_id,
     pd.unique_id,
     (pd.race_timestamp)::date AS race_date
    FROM (tf_raw.performance_data pd
-     LEFT JOIN public.course c ON ((pd.course_id = (c.tf_course_id)::text)));
+     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.tf_course_id)::text)));
 
 
 ALTER VIEW tf_raw.formatted_tf_entities OWNER TO doadmin;
@@ -2012,6 +2020,14 @@ ALTER TABLE ONLY public.sire
 
 ALTER TABLE ONLY public.trainer
     ADD CONSTRAINT rp_tf_trainer_unique_id_v2 UNIQUE (id, tf_id);
+
+
+--
+-- Name: joined_performance_data rp_tf_unique_id_stg_jnd; Type: CONSTRAINT; Schema: staging; Owner: doadmin
+--
+
+ALTER TABLE ONLY staging.joined_performance_data
+    ADD CONSTRAINT rp_tf_unique_id_stg_jnd UNIQUE (rp_unique_id, tf_unique_id);
 
 
 --
@@ -2187,6 +2203,20 @@ CREATE INDEX idx_rp_raw_performance_data_trainer_id ON rp_raw.performance_data U
 --
 
 CREATE INDEX idx_rp_raw_performance_data_unique_id ON rp_raw.performance_data USING btree (unique_id);
+
+
+--
+-- Name: idx_stg_performance_data_rp_unique_id; Type: INDEX; Schema: staging; Owner: doadmin
+--
+
+CREATE INDEX idx_stg_performance_data_rp_unique_id ON staging.joined_performance_data USING btree (rp_unique_id);
+
+
+--
+-- Name: idx_stg_performance_data_tf_unique_id; Type: INDEX; Schema: staging; Owner: doadmin
+--
+
+CREATE INDEX idx_stg_performance_data_tf_unique_id ON staging.joined_performance_data USING btree (tf_unique_id);
 
 
 --
