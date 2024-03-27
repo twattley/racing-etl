@@ -11,17 +11,18 @@ from src.raw.webdriver_base import get_headless_driver
 
 def print_dataframe_for_testing(df):
 
-    print('pd.DataFrame({')
+    print("pd.DataFrame({")
 
     for col in df.columns:
         value = df[col].iloc[0]
-        if re.match( r'\d{4}-\d{2}-\d{2}', str(value)):
-            str_test = '[' + ' '.join([f"pd.Timestamp('{x}')," for x in list(df[col])] ) + ']'
+        if re.match(r"\d{4}-\d{2}-\d{2}", str(value)):
+            str_test = (
+                "[" + " ".join([f"pd.Timestamp('{x}')," for x in list(df[col])]) + "]"
+            )
             print(f"'{col}':{str_test},")
         else:
             print(f"'{col}':{list(df[col])},")
-    print('})')
-
+    print("})")
 
 
 def get_element_text_by_selector(row, css_selector):
@@ -199,9 +200,7 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
         performance_data["finishing_position"] = find_element_text_by_xpath(
             row, '//span[@class="rp-entry-number" and @title="Finishing Position"]'
         )
-        performance_data["finishing_position"] = performance_data[
-            "finishing_position"
-        ]
+        performance_data["finishing_position"] = performance_data["finishing_position"]
         (
             performance_data["horse_name"],
             performance_data["horse_id"],
@@ -272,7 +271,7 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
         data.append(performance_data)
 
     data = pd.DataFrame(data)
-    
+
     return data
 
 

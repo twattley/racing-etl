@@ -1,9 +1,5 @@
-from typing import Literal
-
-import pandas as pd
 from src.entity_matching.matcher import entity_match
 from src.storage.sql_db import call_procedure, fetch_data, store_data
-
 from src.utils.logging_config import I
 
 
@@ -42,7 +38,6 @@ def run_matching_pipeline():
             store_data(matches, f"{entity}", "staging", truncate=True)
 
     call_procedure("load_fuzzy_matches", "public")
-
 
 
 if __name__ == "__main__":

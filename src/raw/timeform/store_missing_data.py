@@ -1,13 +1,15 @@
 import hashlib
-import pandas as pd
-import numpy as np
-from src.storage.sql_db import store_data
 
+import numpy as np
+import pandas as pd
+
+from src.storage.sql_db import store_data
 
 df = pd.read_csv("/Users/tom.wattley/Desktop/missing.csv")
 
-import pandas as pd
 import re
+
+import pandas as pd
 
 
 def print_dataframe_for_testing(df):
@@ -44,9 +46,7 @@ dam_name = "RUB A DUB DUB".title()
 dam_id = "000000383218"
 
 finishing_position = "D"
-debug_link = (
-    'https://www.timeform.com/horse-racing/result/galway/2021-07-27/1710/209/2'
-)
+debug_link = "https://www.timeform.com/horse-racing/result/galway/2021-07-27/1710/209/2"
 unique_id = horse_id + finishing_position + debug_link
 unique_id = hashlib.sha512(unique_id.encode()).hexdigest()
 

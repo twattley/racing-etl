@@ -1,20 +1,12 @@
-from dataclasses import fields
-from src.transform.data_model import (
-    BaseDataModel,
-    RaceDataModel,
-    TranformedDataModel,
-    TransformedDataModel,
-    convert_data,
-)
-import pandas as pd
 import re
-from src.utils.logging_config import E, I
-from src.storage.sql_db import fetch_data, store_data
-
+from dataclasses import fields
 from datetime import datetime
+
 import numpy as np
 import pandas as pd
-import re
+
+from src.storage.sql_db import fetch_data, store_data
+from src.transform.data_model import RaceDataModel, TransformedDataModel, convert_data
 
 
 def time_to_seconds(time_str):
@@ -22,24 +14,26 @@ def time_to_seconds(time_str):
     parts = re.split("[msh]", time_str.strip())
     seconds = 0.0
     if "m" in time_str:
-        seconds += float(parts[0]) * 60  # Convert minutes to seconds
+        seconds += float(parts[0]) * 60  
         parts.pop(0)
-    if parts and parts[0]:  # Check if there's a remaining part for seconds
+    if parts and parts[0]:  
         seconds += float(parts[0])
     return seconds
 
 
 def process_time_strings(s: str) -> tuple[float, str, float]:
+    if s ==  '0.00s (standard time)':
+        return np.NaN, np.NaN, np.NaN
     if "(standard time)" in s:
-        return round(time_to_seconds(s), 2), "standard", 0.0
+        return round(time_to_seconds(s.replace("(standard time)", "")), 2), "standard", 0.0
     if "(" not in s:
         return round(time_to_seconds(s), 2), None, None
     outside, inside = re.match(r"([^\(]+)\(([^)]+)\)", s).groups()
-    relative = inside.split("by")[0].strip()
+    relative_to_standard = inside.split("by")[0].strip()
     relative_time = time_to_seconds(inside.split("by")[1].strip())
     total_seconds_time = time_to_seconds(outside.strip())
 
-    return round(total_seconds_time, 2), relative, round(relative_time, 2)
+    return round(total_seconds_time, 2), relative_to_standard, round(relative_time, 2)
 
 
 def create_pounds(data: pd.DataFrame) -> pd.DataFrame:
@@ -86,9 +80,15 @@ def get_tf_rating_values(data: pd.DataFrame) -> pd.DataFrame:
     data = data.assign(
         tf_rating=lambda x: x["tf_tf_rating"].str.extract(r"(\d+)").astype("Int64"),
     )
-    data = data.assign(tf_rating_view=lambda x: x["tf_tf_rating"].str.extract(r"(\D+)"))
     data = data.assign(
-        tf_rating_view=lambda x: x["tf_rating_view"].map(view_map).fillna("neutral")
+        tf_rating_view=np.select(
+            [
+                data["tf_tf_rating"].str.endswith("+"),
+                data["tf_tf_rating"].str.endswith("?"),
+            ],
+            ["positive", "questionable"],
+            default="neutral",
+        ),
     )
 
     return data
@@ -181,20 +181,24 @@ def convert_headgear(e: str) -> str:
         raise ValueError(f"Unknown headgear code: {e}")
     return ", ".join(headgear)
 
+
 def create_distance_data(data: pd.DataFrame) -> pd.DataFrame:
-    data[["yards", "meters", "kilometers"]] = data["tf_distance"].apply(
+    data[["distance_yards", "distance_meters", "distance_kilometers"]] = data["tf_distance"].apply(
         lambda x: pd.Series(convert_distances(x))
     )
     return data
 
+
 def create_time_data(data: pd.DataFrame) -> pd.DataFrame:
-    data[["time_seconds", "relative", "relative_time"]] = data["rp_winning_time"].apply(
+    data[["time_seconds", "relative_to_standard", "relative_time"]] = data["rp_winning_time"].apply(
         lambda x: pd.Series(process_time_strings(x))
     )
     return data
 
+
 def create_headgear_data(data: pd.DataFrame) -> pd.DataFrame:
     return data.assign(headgear=lambda x: x["rp_headgear"].apply(convert_headgear))
+
 
 def rename_data_columns(data: pd.DataFrame) -> pd.DataFrame:
     data = data.rename(
@@ -263,7 +267,6 @@ def transform_data(
         .pipe(create_headgear_data)
         .pipe(rename_data_columns)
     )
-    
 
     transformed_data = data.pipe(convert_data, transform_data_model)
     race_data = data.pipe(convert_data, race_data_model)
@@ -279,7 +282,13 @@ def transform_data(
 
 
 if __name__ == "__main__":
+    data = fetch_data("SELECT * FROM staging.joined_performance_data where rp_race_timestamp > '2010-01-01' LIMIT 100000")
     transformed_data, race_data = transform_data(
-        data=fetch_data("raw
-        transform_data_model=Tranformed
+        data=data,
+        transform_data_model=TransformedDataModel,
+        race_data_model=RaceDataModel,
+    )
 
+    store_data(
+        transformed_data, "transformed_performance_data", "staging", truncate=True
+    )

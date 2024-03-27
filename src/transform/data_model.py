@@ -1,11 +1,13 @@
-
 from dataclasses import dataclass, fields
 from datetime import date, datetime
+
 import pandas as pd
 
+
 @dataclass
-class BaseDataModel():
+class BaseDataModel:
     pass
+
 
 @dataclass
 class TransformedDataModel(BaseDataModel):
@@ -51,9 +53,9 @@ class RaceDataModel(BaseDataModel):
     race_title: str
     race_type: str
     distance: str
-    yards: float
-    meters: float
-    kilometers: float
+    distance_yards: float
+    distance_meters: float
+    distance_kilometers: float
     conditions: str
     going: str
     number_of_runners: int
@@ -66,7 +68,7 @@ class RaceDataModel(BaseDataModel):
     winning_time: str
     time_seconds: float
     relative_time: float
-    relative: str
+    relative_to_standard: str
     course_name: str
     country: str
     main_race_comment: str
@@ -76,11 +78,9 @@ class RaceDataModel(BaseDataModel):
     created_at: datetime
 
 
-
-
-
 def convert_data(
-    data: pd.DataFrame, data_model: BaseDataModel, 
+    data: pd.DataFrame,
+    data_model: BaseDataModel,
 ) -> pd.DataFrame:
 
     for field in fields(data_model):

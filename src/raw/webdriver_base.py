@@ -1,6 +1,6 @@
+import os
 import random
 import time
-import os
 
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException

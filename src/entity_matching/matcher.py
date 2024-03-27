@@ -3,7 +3,6 @@ from typing import Literal, Tuple
 import pandas as pd
 from fuzzywuzzy import fuzz
 
-from src.storage.sql_db import fetch_data, store_data
 from src.utils.logging_config import I
 
 BREAK_CONDITION = {
@@ -246,7 +245,7 @@ def entity_match(
     matching_set: str,
     base_set: str,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    
+
     I(f"Matching {entity}s")
     if matching_data.empty:
         I(f"No unmatched {entity}s found")
