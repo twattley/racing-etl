@@ -2,8 +2,8 @@ import re
 
 
 input_file_path = '/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/schema/racehorse-database.sql'
-drop_views_file_path = '/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/schema/drop_views.sql'
-create_views_file_path = '/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/schema/create_views.sql'
+drop_views_file_path = '/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/schema/views/drop_views.sql'
+create_views_file_path = '/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/schema/views/create_views.sql'
 
 pattern = re.compile(r'(CREATE VIEW.*?;)\s*(ALTER VIEW.*?;)', re.DOTALL)
 view_name_pattern = re.compile(r'CREATE VIEW\s+(?:IF NOT EXISTS\s+)?([\w.]+)')

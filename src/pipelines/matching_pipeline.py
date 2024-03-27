@@ -44,5 +44,6 @@ def run_matching_pipeline():
     call_procedure("load_fuzzy_matches", "public")
 
 
+
 if __name__ == "__main__":
     run_matching_pipeline()

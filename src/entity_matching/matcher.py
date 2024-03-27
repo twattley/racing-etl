@@ -230,7 +230,8 @@ def fuzzy_match_entities(
         name=lambda x: x["name"]
         .str.replace(r"\s*\([^)]*\)", "", regex=True)
         .str.title()
-        .str.strip()
+        .str.strip(),
+        id=lambda x: x["id"].astype(int),
     )
 
     I(f"Found {len(matches)} matches")
