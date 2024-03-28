@@ -92,16 +92,18 @@ def login_to_timeform(driver):
     return driver
 
 
-def get_headless_driver(timeform=False):
+def get_headless_driver(timeform=False) -> webdriver.Chrome:
     I(f"Creating a new headless WebDriver for Timeform: {timeform}")
     driver = WebDriverBuilder.create_with_random_user_agent(headless_mode=True).driver
     return login_to_timeform(driver) if timeform else driver
 
 
-def get_driver(timeform=False):
-    I(f"Creating a new WebDriver for Timeform: {timeform}")
-    driver = WebDriverBuilder.create_with_random_user_agent().driver
-    return login_to_timeform(driver) if timeform else driver
+def select_source_driver(task) -> webdriver.Chrome:
+    if "rp" in task.job_name.lower():
+        driver = task.driver()
+    else:
+        driver = task.driver(timeform=True)
+    return driver
 
 
 def is_driver_session_valid(driver):

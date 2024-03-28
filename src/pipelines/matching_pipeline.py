@@ -1,11 +1,54 @@
 from src.entity_matching.matcher import entity_match
 from src.storage.sql_db import call_procedure, fetch_data, store_data
 from src.utils.logging_config import I
+from src.utils.processing_utils import execute_stored_procedures
+
+# ---------------------------------------------------------------
+
+
+def load_direct_sire_matches():
+    call_procedure("insert_formatted_sire_data", "staging")
+
+
+def load_direct_dam_matches():
+    call_procedure("insert_formatted_dam_data", "staging")
+
+
+def load_direct_horse_matches():
+    call_procedure("insert_formatted_horse_data", "staging")
+
+
+# ---------------------------------------------------------------
+
+
+def load_fuzzy_sire_matches():
+    call_procedure("insert_matched_sire_data", "staging")
+
+
+def load_fuzzy_dam_matches():
+    call_procedure("insert_matched_dam_data", "staging")
+
+
+def load_fuzzy_horse_matches():
+    call_procedure("insert_matched_horse_data", "staging")
+
+
+def load_fuzzy_jockey_matches():
+    call_procedure("insert_matched_jockey_data", "staging")
+
+
+def load_fuzzy_trainer_matches():
+    call_procedure("insert_matched_trainer_data", "staging")
+
+
+# ---------------------------------------------------------------
 
 
 def run_matching_pipeline():
 
-    # call_procedure("load_direct_matches", "public")
+    execute_stored_procedures(
+        load_direct_sire_matches, load_direct_dam_matches, load_direct_horse_matches
+    )
 
     for i in [
         {
@@ -37,7 +80,13 @@ def run_matching_pipeline():
                 continue
             store_data(matches, f"{entity}", "staging", truncate=True)
 
-    call_procedure("load_fuzzy_matches", "public")
+    execute_stored_procedures(load_fuzzy_jockey_matches, load_fuzzy_horse_matches)
+    execute_stored_procedures(
+        load_fuzzy_trainer_matches,
+        load_fuzzy_sire_matches,
+        load_fuzzy_dam_matches,
+    )
+    call_procedure("insert_into_joined_performance_data", "staging")
 
 
 if __name__ == "__main__":
