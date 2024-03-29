@@ -20,11 +20,12 @@ CREATE VIEW rp_raw.base_formatted_entities AS
     regexp_replace(lower(regexp_replace((pd.dam_name)::text, '\s*I\s*$|\s*\d+[A-Za-z]*'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_dam_name,
     pd.dam_id,
     pd.race_timestamp,
-    c.course_id,
+    c.id AS course_id,
     pd.unique_id,
     (pd.race_timestamp)::date AS race_date
    FROM (rp_raw.performance_data pd
-     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.rp_course_id)::text)));
+     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.rp_id)::text)))
+  WHERE (pd.race_timestamp > (now() - '5 years'::interval));
 
 ALTER VIEW rp_raw.base_formatted_entities OWNER TO doadmin;
 
@@ -50,12 +51,12 @@ CREATE VIEW rp_raw.unmatched_dams AS
     be.course_id,
     be.unique_id,
     be.race_date,
-    d.id,
+    d.rp_id,
     d.name,
     d.tf_id
    FROM (rp_raw.base_formatted_entities be
-     LEFT JOIN public.dam d ON (((be.dam_id)::text = (d.id)::text)))
-  WHERE (d.id IS NULL);
+     LEFT JOIN public.dam d ON (((be.dam_id)::text = (d.rp_id)::text)))
+  WHERE (d.rp_id IS NULL);
 
 ALTER VIEW rp_raw.unmatched_dams OWNER TO doadmin;
 
@@ -81,12 +82,12 @@ CREATE VIEW rp_raw.unmatched_horses AS
     be.course_id,
     be.unique_id,
     be.race_date,
-    h.id,
+    h.rp_id,
     h.name,
     h.tf_id
    FROM (rp_raw.base_formatted_entities be
-     LEFT JOIN public.horse h ON (((be.horse_id)::text = (h.id)::text)))
-  WHERE (h.id IS NULL);
+     LEFT JOIN public.horse h ON (((be.horse_id)::text = (h.rp_id)::text)))
+  WHERE (h.rp_id IS NULL);
 
 ALTER VIEW rp_raw.unmatched_horses OWNER TO doadmin;
 
@@ -112,12 +113,12 @@ CREATE VIEW rp_raw.unmatched_jockeys AS
     be.course_id,
     be.unique_id,
     be.race_date,
-    j.id,
+    j.rp_id,
     j.name,
     j.tf_id
    FROM (rp_raw.base_formatted_entities be
-     LEFT JOIN public.jockey j ON (((be.jockey_id)::text = (j.id)::text)))
-  WHERE (j.id IS NULL);
+     LEFT JOIN public.jockey j ON (((be.jockey_id)::text = (j.rp_id)::text)))
+  WHERE (j.rp_id IS NULL);
 
 ALTER VIEW rp_raw.unmatched_jockeys OWNER TO doadmin;
 
@@ -143,12 +144,12 @@ CREATE VIEW rp_raw.unmatched_sires AS
     be.course_id,
     be.unique_id,
     be.race_date,
-    s.id,
+    s.rp_id,
     s.name,
     s.tf_id
    FROM (rp_raw.base_formatted_entities be
-     LEFT JOIN public.sire s ON (((be.sire_id)::text = (s.id)::text)))
-  WHERE (s.id IS NULL);
+     LEFT JOIN public.sire s ON (((be.sire_id)::text = (s.rp_id)::text)))
+  WHERE (s.rp_id IS NULL);
 
 ALTER VIEW rp_raw.unmatched_sires OWNER TO doadmin;
 
@@ -174,12 +175,12 @@ CREATE VIEW rp_raw.unmatched_trainers AS
     be.course_id,
     be.unique_id,
     be.race_date,
-    t.id,
+    t.rp_id,
     t.name,
     t.tf_id
    FROM (rp_raw.base_formatted_entities be
-     LEFT JOIN public.trainer t ON (((be.trainer_id)::text = (t.id)::text)))
-  WHERE (t.id IS NULL);
+     LEFT JOIN public.trainer t ON (((be.trainer_id)::text = (t.rp_id)::text)))
+  WHERE (t.rp_id IS NULL);
 
 ALTER VIEW rp_raw.unmatched_trainers OWNER TO doadmin;
 
@@ -205,11 +206,12 @@ CREATE VIEW tf_raw.base_formatted_entities AS
     regexp_replace(lower(regexp_replace((pd.dam_name)::text, '\s*I\s*$|\s*\d+[A-Za-z]*'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_dam_name,
     pd.dam_id,
     pd.race_timestamp,
-    c.course_id,
+    c.id AS course_id,
     pd.unique_id,
     (pd.race_timestamp)::date AS race_date
    FROM (tf_raw.performance_data pd
-     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.tf_course_id)::text)));
+     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.tf_id)::text)))
+  WHERE (pd.race_timestamp > (now() - '5 years'::interval));
 
 ALTER VIEW tf_raw.base_formatted_entities OWNER TO doadmin;
 
@@ -235,7 +237,7 @@ CREATE VIEW tf_raw.unmatched_dams AS
     be.course_id,
     be.unique_id,
     be.race_date,
-    d.id,
+    d.rp_id,
     d.name,
     d.tf_id
    FROM (tf_raw.base_formatted_entities be
@@ -266,7 +268,7 @@ CREATE VIEW tf_raw.unmatched_horses AS
     be.course_id,
     be.unique_id,
     be.race_date,
-    h.id,
+    h.rp_id,
     h.name,
     h.tf_id
    FROM (tf_raw.base_formatted_entities be
@@ -297,11 +299,11 @@ CREATE VIEW tf_raw.unmatched_jockeys AS
     be.course_id,
     be.unique_id,
     be.race_date,
-    j.id,
+    j.rp_id,
     j.name,
     j.tf_id
    FROM (tf_raw.base_formatted_entities be
-     LEFT JOIN public.jockey j ON (((be.horse_id)::text = (j.tf_id)::text)))
+     LEFT JOIN public.jockey j ON (((be.jockey_id)::text = (j.tf_id)::text)))
   WHERE (j.tf_id IS NULL);
 
 ALTER VIEW tf_raw.unmatched_jockeys OWNER TO doadmin;
@@ -328,11 +330,11 @@ CREATE VIEW tf_raw.unmatched_sires AS
     be.course_id,
     be.unique_id,
     be.race_date,
-    s.id,
+    s.rp_id,
     s.name,
     s.tf_id
    FROM (tf_raw.base_formatted_entities be
-     LEFT JOIN public.sire s ON (((be.horse_id)::text = (s.tf_id)::text)))
+     LEFT JOIN public.sire s ON (((be.sire_id)::text = (s.tf_id)::text)))
   WHERE (s.tf_id IS NULL);
 
 ALTER VIEW tf_raw.unmatched_sires OWNER TO doadmin;
@@ -359,16 +361,16 @@ CREATE VIEW tf_raw.unmatched_trainers AS
     be.course_id,
     be.unique_id,
     be.race_date,
-    t.id,
+    t.rp_id,
     t.name,
     t.tf_id
    FROM (tf_raw.base_formatted_entities be
-     LEFT JOIN public.trainer t ON (((be.horse_id)::text = (t.tf_id)::text)))
+     LEFT JOIN public.trainer t ON (((be.trainer_id)::text = (t.tf_id)::text)))
   WHERE (t.tf_id IS NULL);
 
 ALTER VIEW tf_raw.unmatched_trainers OWNER TO doadmin;
 
-CREATE VIEW metrics.missing_entity_counts AS
+CREATE VIEW metrics.missing_entity_counts_vw AS
  SELECT 'missing_tf_dams'::text AS missing_entity,
     count(DISTINCT unmatched_dams.dam_name) AS count
    FROM tf_raw.unmatched_dams
@@ -409,25 +411,25 @@ UNION
     count(DISTINCT unmatched_horses.horse_name) AS count
    FROM rp_raw.unmatched_horses;
 
-ALTER VIEW metrics.missing_entity_counts OWNER TO doadmin;
+ALTER VIEW metrics.missing_entity_counts_vw OWNER TO doadmin;
 
-CREATE VIEW metrics.record_count_differences AS
+CREATE VIEW metrics.record_count_differences_vw AS
  WITH rp_course_counts AS (
-         SELECT c.course_name,
+         SELECT c.name AS course_name,
             pd.race_date,
             count(DISTINCT pd.unique_id) AS num_records,
-            c.course_id
+            c.id AS course_id
            FROM (rp_raw.performance_data pd
-             LEFT JOIN public.course c ON (((pd.course_id)::text = (c.rp_course_id)::text)))
-          GROUP BY c.course_name, pd.race_date, c.course_id
+             LEFT JOIN public.course c ON (((pd.course_id)::text = (c.rp_id)::text)))
+          GROUP BY c.name, pd.race_date, c.id
         ), tf_course_counts AS (
-         SELECT c.course_name,
+         SELECT c.name AS course_name,
             pd.race_date,
             count(DISTINCT pd.unique_id) AS num_records,
-            c.course_id
+            c.id AS course_id
            FROM (tf_raw.performance_data pd
-             LEFT JOIN public.course c ON (((pd.course_id)::text = (c.tf_course_id)::text)))
-          GROUP BY c.course_name, pd.race_date, c.course_id
+             LEFT JOIN public.course c ON (((pd.course_id)::text = (c.tf_id)::text)))
+          GROUP BY c.name, pd.race_date, c.id
         )
  SELECT COALESCE(rp.course_name, tf.course_name) AS course,
     COALESCE(rp.race_date, tf.race_date) AS race_date,
@@ -438,17 +440,113 @@ CREATE VIEW metrics.record_count_differences AS
   WHERE ((rp.num_records <> tf.num_records) OR (rp.num_records IS NULL) OR (tf.num_records IS NULL))
   ORDER BY COALESCE(rp.race_date, tf.race_date) DESC, COALESCE(rp.course_name, tf.course_name), rp.course_id;
 
-ALTER VIEW metrics.record_count_differences OWNER TO doadmin;
+ALTER VIEW metrics.record_count_differences_vw OWNER TO doadmin;
 
-CREATE VIEW metrics.record_count_differences_gt_2010 AS
+CREATE VIEW metrics.record_count_differences_gt_2010_vw AS
  SELECT course,
     race_date,
     rp_num_records,
     tf_num_records
-   FROM metrics.record_count_differences
+   FROM metrics.record_count_differences_vw
   WHERE ((race_date)::date > '2010-01-01'::date);
 
-ALTER VIEW metrics.record_count_differences_gt_2010 OWNER TO doadmin;
+ALTER VIEW metrics.record_count_differences_gt_2010_vw OWNER TO doadmin;
+
+CREATE VIEW public.missing_performance_data_vw AS
+ SELECT spd.horse_name,
+    spd.horse_age,
+    spd.jockey_name,
+    spd.jockey_claim,
+    spd.trainer_name,
+    spd.owner_name,
+    spd.horse_weight,
+    spd.draw,
+    spd.finishing_position,
+    spd.age,
+    spd.official_rating,
+    spd.ts,
+    spd.rpr,
+    spd.industry_sp,
+    spd.extra_weight,
+    spd.headgear,
+    spd.in_race_comment,
+    spd.sire_name,
+    spd.dam_name,
+    spd.dams_sire,
+    spd.race_date,
+    spd.race_title,
+    spd.race_time,
+    spd.race_timestamp,
+    spd.conditions,
+    spd.distance,
+    spd.going,
+    spd.winning_time,
+    spd.number_of_runners,
+    spd.total_prize_money,
+    spd.first_place_prize_money,
+    spd.currency,
+    spd.country,
+    spd.surface,
+    spd.tfr,
+    spd.tfig,
+    spd.betfair_win_sp,
+    spd.betfair_place_sp,
+    spd.in_play_prices,
+    spd.tf_comment,
+    spd.hcap_range,
+    spd.age_range,
+    spd.race_type,
+    spd.main_race_comment,
+    spd.meeting_id,
+    spd.course_id,
+    spd.horse_id,
+    spd.sire_id,
+    spd.dam_id,
+    spd.trainer_id,
+    spd.jockey_id,
+    spd.race_id,
+    spd.unique_id,
+    spd.created_at
+   FROM (staging.joined_performance_data spd
+     LEFT JOIN public.performance_data pd ON (((spd.unique_id)::text = (pd.unique_id)::text)))
+  WHERE ((pd.unique_id IS NULL) AND ((spd.race_date)::text > '2010-01-01'::text));
+
+ALTER VIEW public.missing_performance_data_vw OWNER TO doadmin;
+
+CREATE VIEW public.missing_race_data_vw AS
+ SELECT spd.race_time,
+    spd.race_date,
+    spd.race_title,
+    spd.race_type,
+    spd.distance,
+    spd.distance_yards,
+    spd.distance_meters,
+    spd.distance_kilometers,
+    spd.conditions,
+    spd.going,
+    spd.number_of_runners,
+    spd.hcap_range,
+    spd.age_range,
+    spd.surface,
+    spd.prize,
+    spd.total_prize_money,
+    spd.first_place_prize_money,
+    spd.winning_time,
+    spd.time_seconds,
+    spd.relative_time,
+    spd.relative_to_standard,
+    spd.course_name,
+    spd.country,
+    spd.main_race_comment,
+    spd.meeting_id,
+    spd.race_id,
+    spd.course_id,
+    spd.created_at
+   FROM (staging.transformed_race_data spd
+     LEFT JOIN public.race pd ON (((spd.race_id)::text = (pd.race_id)::text)))
+  WHERE (pd.race_id IS NULL);
+
+ALTER VIEW public.missing_race_data_vw OWNER TO doadmin;
 
 CREATE VIEW rp_raw.formatted_rp_entities AS
  SELECT DISTINCT ON (pd.unique_id) pd.horse_name,
@@ -472,11 +570,12 @@ CREATE VIEW rp_raw.formatted_rp_entities AS
     regexp_replace(lower(regexp_replace((pd.dam_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
     pd.dam_id,
     pd.race_timestamp,
-    c.course_id,
+    c.id AS course_id,
     pd.unique_id,
     (pd.race_timestamp)::date AS race_date
    FROM (rp_raw.performance_data pd
-     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.rp_course_id)::text)));
+     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.rp_id)::text)))
+  WHERE (pd.race_timestamp > (now() - '5 years'::interval));
 
 ALTER VIEW rp_raw.formatted_rp_entities OWNER TO doadmin;
 
@@ -505,58 +604,58 @@ CREATE VIEW rp_raw.missing_links AS
 
 ALTER VIEW rp_raw.missing_links OWNER TO doadmin;
 
-CREATE VIEW staging.missing_performance_data AS
- SELECT DISTINCT ON (rp.unique_id) rp.horse_id AS rp_horse_id,
-    rp.horse_name AS rp_horse_name,
-    rp.horse_age AS rp_horse_age,
-    rp.jockey_id AS rp_jockey_id,
-    rp.jockey_name AS rp_jockey_name,
-    rp.jockey_claim AS rp_jockey_claim,
-    rp.trainer_id AS rp_trainer_id,
-    rp.trainer_name AS rp_trainer_name,
-    rp.owner_id AS rp_owner_id,
-    rp.owner_name AS rp_owner_name,
-    rp.horse_weight AS rp_horse_weight,
-    rp.or_value AS rp_or_value,
-    rp.finishing_position AS rp_finishing_position,
-    rp.draw AS rp_draw,
-    rp.ts_value AS rp_ts_value,
-    rp.rpr_value AS rp_rpr_value,
-    rp.horse_price AS rp_horse_price,
-    rp.extra_weight AS rp_extra_weight,
-    rp.headgear AS rp_headgear,
-    rp.comment AS rp_comment,
-    rp.sire_name AS rp_sire_name,
-    rp.sire_id AS rp_sire_id,
-    rp.dam_name AS rp_dam_name,
-    rp.dam_id AS rp_dam_id,
-    rp.dams_sire AS rp_dams_sire,
-    rp.dams_sire_id AS rp_dams_sire_id,
-    rp.race_date AS rp_race_date,
-    rp.race_title AS rp_race_title,
-    rp.race_time AS rp_race_time,
-    rp.race_timestamp AS rp_race_timestamp,
-    rp.conditions AS rp_conditions,
-    rp.distance AS rp_distance,
-    rp.going AS rp_going,
-    rp.winning_time AS rp_winning_time,
-    rp.number_of_runners AS rp_number_of_runners,
-    rp.total_prize_money AS rp_total_prize_money,
-    rp.first_place_prize_money AS rp_first_place_prize_money,
-    rp.currency AS rp_currency,
-    rp.course_id AS rp_course_id,
-    rp.course_name AS rp_course_name,
-    rp.course AS rp_course,
-    rp.race_id AS rp_race_id,
-    rp.country AS rp_country,
-    rp.surface AS rp_surface,
-    rp.unique_id AS rp_unique_id,
+CREATE VIEW staging.missing_performance_data_vw AS
+ SELECT DISTINCT ON (rp.unique_id) rp.horse_id,
+    rp.horse_name,
+    rp.horse_age,
+    rp.jockey_id,
+    rp.jockey_name,
+    rp.jockey_claim,
+    rp.trainer_id,
+    rp.trainer_name,
+    rp.owner_id,
+    rp.owner_name,
+    rp.horse_weight,
+    rp.or_value,
+    rp.finishing_position,
+    rp.draw,
+    rp.ts_value,
+    rp.rpr_value,
+    rp.horse_price,
+    rp.extra_weight,
+    rp.headgear,
+    rp.comment,
+    rp.sire_name,
+    rp.sire_id,
+    rp.dam_name,
+    rp.dam_id,
+    rp.dams_sire,
+    rp.dams_sire_id,
+    rp.race_date,
+    rp.race_title,
+    rp.race_time,
+    rp.race_timestamp,
+    rp.conditions,
+    rp.distance,
+    rp.going,
+    rp.winning_time,
+    rp.number_of_runners,
+    rp.total_prize_money,
+    rp.first_place_prize_money,
+    rp.currency,
+    rp.course_id,
+    rp.course_name,
+    rp.course,
+    rp.race_id,
+    rp.country,
+    rp.surface,
+    rp.unique_id,
     rp.meeting_id
    FROM (rp_raw.performance_data rp
-     LEFT JOIN staging.joined_performance_data sjpd ON (((rp.unique_id)::text = (sjpd.rp_unique_id)::text)))
-  WHERE ((sjpd.rp_unique_id IS NULL) AND (rp.race_timestamp <> '2018-12-02 15:05:00'::timestamp without time zone));
+     LEFT JOIN staging.joined_performance_data sjpd ON (((rp.unique_id)::text = (sjpd.unique_id)::text)))
+  WHERE ((sjpd.unique_id IS NULL) AND (rp.race_timestamp <> '2018-12-02 15:05:00'::timestamp without time zone) AND (rp.race_timestamp > '2010-01-01 00:00:00'::timestamp without time zone));
 
-ALTER VIEW staging.missing_performance_data OWNER TO doadmin;
+ALTER VIEW staging.missing_performance_data_vw OWNER TO doadmin;
 
 CREATE VIEW tf_raw.formatted_tf_entities AS
  SELECT DISTINCT ON (pd.unique_id) pd.horse_name,
@@ -580,11 +679,12 @@ CREATE VIEW tf_raw.formatted_tf_entities AS
     regexp_replace(lower(regexp_replace((pd.dam_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
     pd.dam_id,
     pd.race_timestamp,
-    c.course_id,
+    c.id AS course_id,
     pd.unique_id,
     (pd.race_timestamp)::date AS race_date
    FROM (tf_raw.performance_data pd
-     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.tf_course_id)::text)));
+     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.tf_id)::text)))
+  WHERE (pd.race_timestamp > (now() - '5 years'::interval));
 
 ALTER VIEW tf_raw.formatted_tf_entities OWNER TO doadmin;
 

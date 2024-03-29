@@ -222,7 +222,7 @@ def fuzzy_match_entities(
         columns={
             f"tf_{entity}_id": "tf_id",
             f"rp_{entity}_name": "name",
-            f"rp_{entity}_id": "id",
+            f"rp_{entity}_id": "rp_id",
         }
     )
     matches = matches.assign(
@@ -230,12 +230,12 @@ def fuzzy_match_entities(
         .str.replace(r"\s*\([^)]*\)", "", regex=True)
         .str.title()
         .str.strip(),
-        id=lambda x: x["id"].astype(int),
+        id=lambda x: x["rp_id"].astype(int),
     )
 
     I(f"Found {len(matches)} matches")
 
-    return matches[["id", "name", "tf_id"]]
+    return matches[["rp_id", "name", "tf_id"]]
 
 
 def entity_match(

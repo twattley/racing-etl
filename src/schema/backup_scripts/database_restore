@@ -1,0 +1,7 @@
+#!/bin/bash
+for file in "$BACKUP_DIR"/*.sql.gz; do
+  echo "Restoring $(basename "$file")..."
+  gunzip -c "$file" | psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME"
+done
+
+echo "Database restoration complete."

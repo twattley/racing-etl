@@ -1,13 +1,12 @@
 import re
 from dataclasses import fields
-from datetime import datetime
 
 import numpy as np
 import pandas as pd
 
 from src.storage.sql_db import call_procedure, fetch_data, store_data
 from src.transform.data_model import RaceDataModel, TransformedDataModel, convert_data
-from src.utils.processing_utils import execute_stored_procedures
+from src.utils.logging_config import I, W
 
 
 def time_to_seconds(time_str):
@@ -43,14 +42,14 @@ def process_time_strings(s: str) -> tuple[float, str, float]:
 
 def create_pounds(data: pd.DataFrame) -> pd.DataFrame:
     data["weight_carried_st"] = (
-        data["rp_horse_weight"]
+        data["weight_carried"]
         .str.split("-")
         .str.get(0)
         .str.extract(r"(\d+)")
         .astype("Int64")
     )
     data["weight_carried_extra_lbs"] = (
-        data["rp_horse_weight"]
+        data["weight_carried"]
         .str.split("-")
         .str.get(1)
         .str.extract(r"(\d+)")
@@ -63,22 +62,8 @@ def create_pounds(data: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
-def fill_columns(data: pd.DataFrame) -> pd.DataFrame:
-    data = data.assign(formatted_tf_draw=lambda x: x["tf_draw"].str.extract(r"(\d+)"))
-    data = data.assign(
-        draw=data["rp_draw"].fillna(data["formatted_tf_draw"]),
-        finishing_position=data["rp_finishing_position"].fillna(
-            data["tf_finishing_position"]
-        ),
-        age=data["rp_horse_age"].fillna(data["tf_horse_age"]),
-        official_rating=data["rp_or_value"].fillna(data["tf_official_rating"]),
-        created_at=datetime.now(),
-    )
-    return data
-
-
-def get_tf_rating_view(rating):
-    if not rating:
+def get_tf_rating_view(rating: str) -> str:
+    if pd.isna(rating) or not rating:
         return "neutral"
     if rating.endswith("+"):
         return "positive"
@@ -89,14 +74,12 @@ def get_tf_rating_view(rating):
 
 
 def get_tf_rating_values(data: pd.DataFrame) -> pd.DataFrame:
-    data["tf_rating"] = data["tf_tf_rating"].str.extract(r"(\d+)").astype("Int64")
-    data["tf_rating_view"] = data["tf_tf_rating"].apply(get_tf_rating_view)
-
+    data["tfr_view"] = data["tfr"].apply(get_tf_rating_view)
     return data
 
 
-def get_surface_type(rating):
-    if not rating:
+def get_surface_type(rating: str) -> str:
+    if pd.isna(rating) or not rating:
         return "turf"
     if rating.startswith("a"):
         return "artificial"
@@ -111,7 +94,7 @@ def get_surface_type(rating):
 
 
 def get_surfaces_from_tf_rating(data: pd.DataFrame) -> pd.DataFrame:
-    data["surface"] = data["tf_tf_rating"].apply(get_surface_type)
+    data["surface"] = data["tfr"].apply(get_surface_type)
     return data
 
 
@@ -169,10 +152,10 @@ def convert_distances(distance: str) -> tuple:
 def get_inplay_high_and_low(df: pd.DataFrame) -> pd.DataFrame:
     return df.assign(
         in_play_low=pd.to_numeric(
-            df["tf_in_play_prices"].str.split("/").str.get(1), errors="coerce"
+            df["in_play_prices"].str.split("/").str.get(1), errors="coerce"
         ).astype(float),
         in_play_high=pd.to_numeric(
-            df["tf_in_play_prices"].str.split("/").str.get(0), errors="coerce"
+            df["in_play_prices"].str.split("/").str.get(0), errors="coerce"
         ).astype(float),
     )
 
@@ -212,70 +195,24 @@ def convert_headgear(e: str) -> str:
 
 def create_distance_data(data: pd.DataFrame) -> pd.DataFrame:
     data[["distance_yards", "distance_meters", "distance_kilometers"]] = data[
-        "rp_distance"
+        "distance"
     ].apply(lambda x: pd.Series(convert_distances(x)))
     return data
 
 
 def create_time_data(data: pd.DataFrame) -> pd.DataFrame:
     data[["time_seconds", "relative_to_standard", "relative_time"]] = data[
-        "rp_winning_time"
+        "winning_time"
     ].apply(lambda x: pd.Series(process_time_strings(x)))
     return data
 
 
+def convert_tf_rating(data: pd.DataFrame) -> pd.DataFrame:
+    return data.assign(tfr=data["tfr"].str.extract(r"(\d+)").astype("Int64"))
+
+
 def create_headgear_data(data: pd.DataFrame) -> pd.DataFrame:
-    return data.assign(headgear=lambda x: x["rp_headgear"].apply(convert_headgear))
-
-
-def rename_data_columns(data: pd.DataFrame) -> pd.DataFrame:
-    data = data.rename(
-        columns={
-            "rp_horse_name": "horse_name",
-            "rp_course_name": "course_name",
-            "rp_horse_id": "horse_id",
-            "rp_jockey_id": "jockey_id",
-            "rp_jockey_claim": "jockey_claim",
-            "rp_trainer_id": "trainer_id",
-            "rp_owner_id": "owner_id",
-            "rp_ts_value": "ts",
-            "rp_rpr_value": "rpr",
-            "rp_horse_price": "industry_sp",
-            "rp_horse_weight": "weight_carried_st_lbs",
-            "rp_extra_weight": "extra_weight_lbs",
-            "rp_comment": "in_race_comment",
-            "rp_sire_id": "sire_id",
-            "rp_dam_id": "dam_id",
-            "rp_race_date": "race_date",
-            "rp_race_title": "race_title",
-            "rp_race_timestamp": "race_time",
-            "rp_conditions": "conditions",
-            "rp_distance": "distance",
-            "rp_going": "going",
-            "rp_winning_time": "winning_time",
-            "rp_number_of_runners": "number_of_runners",
-            "rp_total_prize_money": "total_prize_money",
-            "rp_first_place_prize_money": "first_place_prize_money",
-            "rp_course_id": "course_id",
-            "rp_race_id": "race_id",
-            "rp_country": "country",
-            "rp_unique_id": "unique_id",
-            "tf_rating": "tfr",
-            "tf_tf_speed_figure": "tfig",
-            "tf_betfair_win_sp": "betfair_win_sp",
-            "tf_betfair_place_sp": "betfair_place_sp",
-            "tf_in_play_prices": "in_play_prices",
-            "tf_tf_comment": "tf_comment",
-            "tf_prize": "prize",
-            "tf_hcap_range": "hcap_range",
-            "tf_age_range": "age_range",
-            "tf_race_type": "race_type",
-            "tf_main_race_comment": "main_race_comment",
-            "rp_meeting_id": "meeting_id",
-        }
-    )
-
-    return data
+    return data.assign(headgear=lambda x: x["headgear"].apply(convert_headgear))
 
 
 def load_transformed_performance_data():
@@ -285,12 +222,13 @@ def load_transformed_performance_data():
 def load_transformed_race_data():
     call_procedure("insert_transformed_race_data", "public")
 
+
 def refresh_missing_record_counts():
     call_procedure("refresh_missing_record_counts", "metrics")
 
+
 def refresh_missing_entity_counts():
     call_procedure("refresh_missing_entity_counts", "metrics")
-
 
 
 def transform_data(
@@ -300,15 +238,14 @@ def transform_data(
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
 
     data = (
-        data.pipe(fill_columns)
-        .pipe(get_surfaces_from_tf_rating)
+        data.pipe(get_surfaces_from_tf_rating)
         .pipe(get_tf_rating_values)
         .pipe(create_pounds)
         .pipe(get_inplay_high_and_low)
         .pipe(create_distance_data)
         .pipe(create_time_data)
         .pipe(create_headgear_data)
-        .pipe(rename_data_columns)
+        .pipe(convert_tf_rating)
     )
 
     transformed_data = data.pipe(convert_data, transform_data_model)
@@ -324,25 +261,57 @@ def transform_data(
     return transformed_data, race_data
 
 
+def validate_data(data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    non_null_fields = [
+        "race_time",
+        "race_date",
+        "horse_name",
+        "course_id",
+        "horse_id",
+        "jockey_id",
+        "trainer_id",
+        "owner_id",
+        "sire_id",
+        "dam_id",
+        "unique_id",
+    ]
+
+    valid_rows = data[non_null_fields].notna().all(axis=1)
+
+    accepted_df = data[valid_rows]
+    rejected_df = data[~valid_rows]
+
+    if not rejected_df.empty:
+        W(f"Rejected {len(rejected_df)} rows due to missing null values.")
+
+    return accepted_df, rejected_df
+
+
 if __name__ == "__main__":
-    data = fetch_data("SELECT * FROM public.missing_performance_data_vw")
+    data = fetch_data("SELECT * FROM public.missing_performance_data_vw;")
+    if data.empty:
+        I("No missing data to transform.")
+        exit()
     transformed_data, race_data = transform_data(
         data=data,
         transform_data_model=TransformedDataModel,
         race_data_model=RaceDataModel,
     )
 
+    accepted_data, rejected_data = transformed_data.pipe(validate_data)
+
+    store_data(accepted_data, "transformed_performance_data", "staging", truncate=True)
     store_data(
-        transformed_data, "transformed_performance_data", "staging", truncate=True
+        rejected_data, "transformed_performance_data_rejected", "staging", truncate=True
     )
     store_data(race_data, "transformed_race_data", "staging", truncate=True)
 
-    execute_stored_procedures(
-        load_transformed_performance_data,
-        load_transformed_race_data,
-    )
+    # execute_stored_procedures(
+    #     load_transformed_performance_data,
+    #     load_transformed_race_data,
+    # )
 
-    execute_stored_procedures(
-        refresh_missing_record_counts,
-        refresh_missing_entity_counts,
-    )
+    # execute_stored_procedures(
+    #     refresh_missing_record_counts,
+    #     refresh_missing_entity_counts,
+    # )

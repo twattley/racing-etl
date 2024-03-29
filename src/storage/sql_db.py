@@ -9,7 +9,7 @@ from src.utils.logging_config import I
 
 
 def storage_connection():
-    return sqlalchemy.create_engine(os.environ["REMOTE_CONN_STR"])
+    return sqlalchemy.create_engine(os.environ["CONN_STR"])
 
 
 def store_data(

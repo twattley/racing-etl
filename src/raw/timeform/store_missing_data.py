@@ -1,14 +1,12 @@
 import hashlib
+import re
 
 import numpy as np
 import pandas as pd
-import re
 
 from src.storage.sql_db import store_data
 
 df = pd.read_csv("/Users/tom.wattley/Desktop/missing.csv")
-
-
 
 
 def print_dataframe_for_testing(df):

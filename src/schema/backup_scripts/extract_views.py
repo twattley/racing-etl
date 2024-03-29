@@ -1,8 +1,10 @@
 import re
 
-input_file_path = "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/schema/racehorse-database.sql"
-drop_views_file_path = "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/schema/views/drop_views.sql"
-create_views_file_path = "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/schema/views/create_views.sql"
+input_file_path = "./src/schema/backup_files/racehorse-database-schema.sql"
+drop_views_file_path = "./src/schema/backup_files/drop_views.sql"
+create_views_file_path = "./src/schema/backup_files/create_views.sql"
+
+print(f"Reading schema from {input_file_path}")
 
 pattern = re.compile(r"(CREATE VIEW.*?;)\s*(ALTER VIEW.*?;)", re.DOTALL)
 view_name_pattern = re.compile(r"CREATE VIEW\s+(?:IF NOT EXISTS\s+)?([\w.]+)")

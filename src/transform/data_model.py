@@ -17,9 +17,9 @@ class TransformedDataModel(BaseDataModel):
     age: int
     draw: int
     headgear: str
-    weight_carried_st_lbs: str
+    weight_carried: str
     weight_carried_lbs: int
-    extra_weight_lbs: int
+    extra_weight: int
     jockey_claim: str
     finishing_position: str
     industry_sp: str
@@ -34,7 +34,7 @@ class TransformedDataModel(BaseDataModel):
     in_play_low: float
     in_race_comment: str
     tf_comment: str
-    tf_rating_view: str
+    tfr_view: str
     course_id: int
     horse_id: int
     jockey_id: int
@@ -62,14 +62,12 @@ class RaceDataModel(BaseDataModel):
     hcap_range: str
     age_range: str
     surface: str
-    prize: str
     total_prize_money: int
     first_place_prize_money: int
     winning_time: str
     time_seconds: float
     relative_time: float
     relative_to_standard: str
-    course_name: str
     country: str
     main_race_comment: str
     meeting_id: str

@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 from src.transform.transform_data import (
+    convert_tf_rating,
     create_distance_data,
     create_headgear_data,
     create_pounds,
@@ -15,7 +16,7 @@ from src.transform.transform_data import (
 def test_tf_rating_values():
     input_df = pd.DataFrame(
         {
-            "tf_tf_rating": [
+            "tfr": [
                 "",
                 "+",
                 "?",
@@ -35,27 +36,15 @@ def test_tf_rating_values():
         }
     )
 
-    output_df = input_df.pipe(get_surfaces_from_tf_rating).pipe(get_tf_rating_values)
+    output_df = (
+        input_df.pipe(get_surfaces_from_tf_rating)
+        .pipe(get_tf_rating_values)
+        .pipe(convert_tf_rating)
+    )
 
     expected_df = pd.DataFrame(
         {
-            "tf_tf_rating": [
-                "",
-                "+",
-                "?",
-                "1",
-                "1+",
-                "1?",
-                "a1",
-                "a1+",
-                "a1?",
-                "p1",
-                "p1+",
-                "p1?",
-                "f1",
-                "f1+",
-                "f1?",
-            ],
+            "tfr": [np.nan, np.nan, np.nan, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
             "surface": [
                 "turf",
                 "turf",
@@ -73,8 +62,7 @@ def test_tf_rating_values():
                 "fibresand",
                 "fibresand",
             ],
-            "tf_rating": [np.nan, np.nan, np.nan, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            "tf_rating_view": [
+            "tfr_view": [
                 "neutral",
                 "positive",
                 "questionable",
@@ -94,7 +82,7 @@ def test_tf_rating_values():
         }
     )
 
-    expected_df["tf_rating"] = expected_df["tf_rating"].astype("Int64")
+    expected_df["tfr"] = expected_df["tfr"].astype("Int64")
 
     pd.testing.assert_frame_equal(
         output_df.sort_index(axis=1).reset_index(drop=True),
@@ -103,12 +91,12 @@ def test_tf_rating_values():
 
 
 def test_create_pounds():
-    input_df = pd.DataFrame({"rp_horse_weight": ["8-11", "9-11", "10-11", ""]})
+    input_df = pd.DataFrame({"weight_carried": ["8-11", "9-11", "10-11", ""]})
     output_df = input_df.pipe(create_pounds)
 
     expected_df = pd.DataFrame(
         {
-            "rp_horse_weight": ["8-11", "9-11", "10-11", ""],
+            "weight_carried": ["8-11", "9-11", "10-11", ""],
             "weight_carried_st": [8, 9, 10, np.nan],
             "weight_carried_extra_lbs": [11, 11, 11, np.nan],
             "weight_carried_lbs": [123, 137, 151, np.nan],
@@ -125,14 +113,14 @@ def test_create_pounds():
 
 
 def test_get_inplay_high_and_low():
-    input_df = pd.DataFrame({"tf_in_play_prices": ["-/2", "2/-", "/-", "/", ""]})
+    input_df = pd.DataFrame({"in_play_prices": ["-/2", "2/-", "/-", "/", ""]})
     output_df = input_df.pipe(get_inplay_high_and_low)
 
     pd.testing.assert_frame_equal(
         output_df,
         pd.DataFrame(
             {
-                "tf_in_play_prices": ["-/2", "2/-", "/-", "/", ""],
+                "in_play_prices": ["-/2", "2/-", "/-", "/", ""],
                 "in_play_low": [2.0, np.nan, np.nan, np.nan, np.nan],
                 "in_play_high": [np.nan, 2.0, np.nan, np.nan, np.nan],
             }
@@ -142,14 +130,14 @@ def test_get_inplay_high_and_low():
 
 def test_create_distance_data():
     input_df = pd.DataFrame(
-        {"rp_distance": ["1m1½f", "1m1¼f", "1m1⅛f", "6½f", "6f", "1m1f", "", np.nan]}
+        {"distance": ["1m1½f", "1m1¼f", "1m1⅛f", "6½f", "6f", "1m1f", "", np.nan]}
     )
 
     output_df = input_df.pipe(create_distance_data)
 
     expected_df = pd.DataFrame(
         {
-            "rp_distance": ["1m1½f", "1m1¼f", "1m1⅛f", "6½f", "6f", "1m1f", "", np.nan],
+            "distance": ["1m1½f", "1m1¼f", "1m1⅛f", "6½f", "6f", "1m1f", "", np.nan],
             "distance_yards": [
                 2090.0,
                 2035.0,
@@ -179,7 +167,7 @@ def test_create_distance_data():
 def test_create_time_data():
     input_df = pd.DataFrame(
         {
-            "rp_winning_time": [
+            "winning_time": [
                 "",
                 "0.00s",
                 "0.00s (standard time)",
@@ -196,7 +184,7 @@ def test_create_time_data():
 
     expected_df = pd.DataFrame(
         {
-            "rp_winning_time": [
+            "winning_time": [
                 "",
                 "0.00s",
                 "0.00s (standard time)",
@@ -239,7 +227,7 @@ def test_create_time_data():
 def test_create_headgear_data():
     input_df = pd.DataFrame(
         {
-            "rp_headgear": [
+            "headgear": [
                 "tb1",
                 "esb",
                 "hvcp1",
@@ -257,17 +245,6 @@ def test_create_headgear_data():
 
     expected_df = pd.DataFrame(
         {
-            "rp_headgear": [
-                "tb1",
-                "esb",
-                "hvcp1",
-                "b1",
-                "e/s1",
-                "e/sp1",
-                "ep1",
-                "btpe1",
-                "",
-            ],
             "headgear": [
                 "blinkers (first time), tongue tie",
                 "blinkers, eye shield",

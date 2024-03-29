@@ -2,15 +2,13 @@ from src.storage.sql_db import fetch_data, store_data
 from src.transform.transform_data import (
     RaceDataModel,
     TransformedDataModel,
+    load_transformed_performance_data,
+    load_transformed_race_data,
     refresh_missing_entity_counts,
     refresh_missing_record_counts,
     transform_data,
-    load_transformed_performance_data,
-    load_transformed_race_data,
 )
 from src.utils.processing_utils import execute_stored_procedures
-
-
 
 
 def run_transform_pipeline():
@@ -34,5 +32,3 @@ def run_transform_pipeline():
         refresh_missing_record_counts,
         refresh_missing_entity_counts,
     )
-
-

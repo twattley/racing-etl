@@ -1,0 +1,2 @@
+#!/bin/bash
+pg_dump -h postgres-rp-do-user-11198504-0.c.db.ondigitalocean.com -p 25060 -U doadmin racehorse-database | psql -h localhost -U tom.wattley -d racehorse-database

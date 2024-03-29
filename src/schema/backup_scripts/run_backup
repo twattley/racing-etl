@@ -1,0 +1,4 @@
+#!/bin/bash
+./src/schema/backup_scripts/database_schema_backup
+./src/schema/backup_scripts/database_backup
+./src/schema/backup_scripts/upload_files_to_bucket

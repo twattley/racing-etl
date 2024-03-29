@@ -80,12 +80,12 @@ def run_matching_pipeline():
                 continue
             store_data(matches, f"{entity}", "staging", truncate=True)
 
-    execute_stored_procedures(load_fuzzy_jockey_matches, load_fuzzy_horse_matches)
-    execute_stored_procedures(
-        load_fuzzy_trainer_matches,
-        load_fuzzy_sire_matches,
-        load_fuzzy_dam_matches,
-    )
+        execute_stored_procedures(load_fuzzy_jockey_matches, load_fuzzy_horse_matches)
+        execute_stored_procedures(
+            load_fuzzy_trainer_matches,
+            load_fuzzy_sire_matches,
+            load_fuzzy_dam_matches,
+        )
     call_procedure("insert_into_joined_performance_data", "staging")
 
 
