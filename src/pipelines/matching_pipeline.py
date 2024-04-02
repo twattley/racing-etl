@@ -18,6 +18,10 @@ def load_direct_horse_matches():
     call_procedure("insert_formatted_horse_data", "staging")
 
 
+def load_owner_data():
+    call_procedure("insert_owner_data", "staging")
+
+
 # ---------------------------------------------------------------
 
 
@@ -46,10 +50,14 @@ def load_fuzzy_trainer_matches():
 
 def run_matching_pipeline():
 
-    execute_stored_procedures(
-        load_direct_sire_matches, load_direct_dam_matches, load_direct_horse_matches
-    )
+    I("Loading direct matches")
 
+    execute_stored_procedures(
+        load_direct_sire_matches,
+        load_direct_dam_matches,
+        load_direct_horse_matches,
+        load_owner_data,
+    )
     for i in [
         {
             "matching_set": "rp",
@@ -76,6 +84,8 @@ def run_matching_pipeline():
             matches = entity_match(
                 entity, matching_data, base_data, i["matching_set"], i["base_set"]
             )
+            matches = matches.sort_values(by=[f"{i['base_set']}_id"], ascending=True)
+
             if matches.empty:
                 continue
             store_data(matches, f"{entity}", "staging", truncate=True)

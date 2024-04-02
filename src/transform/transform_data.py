@@ -9,6 +9,13 @@ from src.transform.data_model import RaceDataModel, TransformedDataModel, conver
 from src.utils.logging_config import I, W
 
 
+def map_race_time_column(data: pd.DataFrame) -> pd.DataFrame:
+    data = data.rename(
+        columns={"race_time": "race_time_original", "race_timestamp": "race_time"}
+    )
+    return data
+
+
 def time_to_seconds(time_str):
     """Convert a time string in format 'Xm Ys' to total seconds."""
     parts = re.split("[msh]", time_str.strip())
@@ -223,22 +230,14 @@ def load_transformed_race_data():
     call_procedure("insert_transformed_race_data", "public")
 
 
-def refresh_missing_record_counts():
-    call_procedure("refresh_missing_record_counts", "metrics")
-
-
-def refresh_missing_entity_counts():
-    call_procedure("refresh_missing_entity_counts", "metrics")
-
-
-def transform_data(
+def process_data(
     data: pd.DataFrame,
     transform_data_model: TransformedDataModel,
     race_data_model: RaceDataModel,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-
     data = (
-        data.pipe(get_surfaces_from_tf_rating)
+        data.pipe(map_race_time_column)
+        .pipe(get_surfaces_from_tf_rating)
         .pipe(get_tf_rating_values)
         .pipe(create_pounds)
         .pipe(get_inplay_high_and_low)
@@ -247,7 +246,6 @@ def transform_data(
         .pipe(create_headgear_data)
         .pipe(convert_tf_rating)
     )
-
     transformed_data = data.pipe(convert_data, transform_data_model)
     race_data = data.pipe(convert_data, race_data_model)
 
@@ -287,31 +285,36 @@ def validate_data(data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     return accepted_df, rejected_df
 
 
+def transform_data(
+    data: pd.DataFrame,
+    transform_data_model: TransformedDataModel,
+    race_data_model: RaceDataModel,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+
+    transformed_data, race_data = process_data(
+        data=data,
+        transform_data_model=transform_data_model,
+        race_data_model=race_data_model,
+    )
+
+    accepted_data, rejected_data = transformed_data.pipe(validate_data)
+
+    return accepted_data, rejected_data, race_data
+
+
 if __name__ == "__main__":
     data = fetch_data("SELECT * FROM public.missing_performance_data_vw;")
     if data.empty:
         I("No missing data to transform.")
         exit()
-    transformed_data, race_data = transform_data(
+
+    accepted_data, rejected_data, race_data = transform_data(
         data=data,
         transform_data_model=TransformedDataModel,
         race_data_model=RaceDataModel,
     )
-
-    accepted_data, rejected_data = transformed_data.pipe(validate_data)
-
     store_data(accepted_data, "transformed_performance_data", "staging", truncate=True)
     store_data(
         rejected_data, "transformed_performance_data_rejected", "staging", truncate=True
     )
     store_data(race_data, "transformed_race_data", "staging", truncate=True)
-
-    # execute_stored_procedures(
-    #     load_transformed_performance_data,
-    #     load_transformed_race_data,
-    # )
-
-    # execute_stored_procedures(
-    #     refresh_missing_record_counts,
-    #     refresh_missing_entity_counts,
-    # )

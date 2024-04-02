@@ -1,285 +1,83 @@
-/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/pipelines/matching_pipeline.py:3: DeprecationWarning: 
-Pyarrow will become a required dependency of pandas in the next major release of pandas (pandas 3.0),
-(to allow more performant data types, such as the Arrow string type, and better interoperability with other libraries)
-but was not found to be installed on your system.
-If this would cause problems for you,
-please provide us feedback at https://github.com/pandas-dev/pandas/issues/54466
-        
-  import pandas as pd
-2024-03-25T15:43:14Z - INFO     logging_config.py:19 - Matching rp to tf
-2024-03-25T15:45:13Z - INFO     logging_config.py:19 - Query SELECT * FROM tf_raw.formatted_tf_entities 
-		 | returned 2325300 records |
-2024-03-25T15:45:13Z - INFO     logging_config.py:19 - Matching jockeys
-2024-03-25T15:45:59Z - INFO     logging_config.py:19 - Query SELECT * FROM rp_raw.unmatched_jockeys 
+2024-03-30T06:11:30Z - INFO     logging_config.py:19 - Calling stored procedure staging.insert_formatted_sire_data()
+2024-03-30T06:11:30Z - INFO     logging_config.py:19 - Calling stored procedure staging.insert_formatted_dam_data()
+2024-03-30T06:11:30Z - INFO     logging_config.py:19 - Calling stored procedure staging.insert_formatted_horse_data()
+2024-03-30T06:13:38Z - INFO     logging_config.py:19 - Stored procedure staging.insert_formatted_sire_data() completed
+2024-03-30T06:13:41Z - INFO     logging_config.py:19 - Stored procedure staging.insert_formatted_dam_data() completed
+2024-03-30T06:13:45Z - INFO     logging_config.py:19 - Stored procedure staging.insert_formatted_horse_data() completed
+2024-03-30T06:13:45Z - INFO     logging_config.py:19 - Matching rp to tf
+2024-03-30T06:14:12Z - INFO     logging_config.py:19 - Query SELECT * FROM tf_raw.formatted_tf_entities 
+		 | returned 596984 records |
+2024-03-30T06:14:12Z - INFO     logging_config.py:19 - Matching jockeys
+2024-03-30T06:14:36Z - INFO     logging_config.py:19 - Query SELECT * FROM rp_raw.unmatched_jockeys 
 		 | returned 0 records |
-2024-03-25T15:45:59Z - INFO     logging_config.py:19 - Matching trainers
-2024-03-25T15:46:45Z - INFO     logging_config.py:19 - Query SELECT * FROM rp_raw.unmatched_trainers 
-		 | returned 1 records |
-2024-03-25T15:46:45Z - INFO     logging_config.py:19 - Found 1 unique trainers
-2024-03-25T15:46:45Z - INFO     logging_config.py:19 - Matching trainers
-2024-03-25T15:47:06Z - INFO     logging_config.py:19 - 0/1
-2024-03-25T15:47:06Z - INFO     logging_config.py:19 - Entity name: mrsgellis
-2024-03-25T15:47:07Z - INFO     logging_config.py:19 - Matching trainer mrsgellis on 2024-03-22
-2024-03-25T15:47:07Z - INFO     logging_config.py:19 - Course ID: 55
-2024-03-25T15:47:07Z - INFO     logging_config.py:19 - Found match for trainer mrsgellis on 2024-03-22
-2024-03-25T15:47:07Z - INFO     logging_config.py:19 - Found 1 matches
-2024-03-25T15:47:08Z - INFO     logging_config.py:19 - Truncating staging.trainer
-2024-03-25T15:47:08Z - INFO     logging_config.py:19 - Executing query: TRUNCATE TABLE staging.trainer
-2024-03-25T15:47:08Z - INFO     logging_config.py:19 - Query executed. Number of rows affected: -1
-2024-03-25T15:47:08Z - INFO     logging_config.py:19 - Storing 1 records in staging.trainer
-2024-03-25T15:47:09Z - INFO     logging_config.py:19 - Matching horses
-2024-03-25T15:47:47Z - INFO     logging_config.py:19 - Query SELECT * FROM rp_raw.unmatched_horses 
-		 | returned 10 records |
-2024-03-25T15:47:47Z - INFO     logging_config.py:19 - Found 10 unique horses
-2024-03-25T15:47:47Z - INFO     logging_config.py:19 - Matching horses
-2024-03-25T15:48:10Z - INFO     logging_config.py:19 - 0/10
-2024-03-25T15:48:10Z - INFO     logging_config.py:19 - Entity name: cmoncoyney
-2024-03-25T15:48:10Z - INFO     logging_config.py:19 - Matching horse cmoncoyney on 2024-03-22
-2024-03-25T15:48:10Z - INFO     logging_config.py:19 - Course ID: 56
-2024-03-25T15:48:10Z - INFO     logging_config.py:19 - Found match for horse cmoncoyney on 2024-03-22
-2024-03-25T15:48:10Z - INFO     logging_config.py:19 - Found match for horse cmoncoyney on 2024-03-22 except trainer
-2024-03-25T15:48:10Z - INFO     logging_config.py:19 - 1/10
-2024-03-25T15:48:10Z - INFO     logging_config.py:19 - Entity name: sliogan
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Matching horse sliogan on 2024-03-22
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Course ID: 23
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Found match for horse sliogan on 2024-03-22
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Found match for horse sliogan on 2024-03-22 except trainer
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - 2/10
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Entity name: cillmocheallog
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Matching horse cillmocheallog on 2024-03-22
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Course ID: 23
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Found match for horse cillmocheallog on 2024-03-22
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Found match for horse cillmocheallog on 2024-03-22 except trainer
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - 3/10
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Entity name: adaaylikethis
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Matching horse adaaylikethis on 2024-03-22
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Course ID: 23
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Found match for horse adaaylikethis on 2024-03-22
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Found match for horse adaaylikethis on 2024-03-22 except trainer
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - 4/10
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Entity name: debtowings
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Matching horse debtowings on 2024-03-22
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Course ID: 47
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Found match for horse debtowings on 2024-03-22
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Found match for horse debtowings on 2024-03-22 except trainer
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - 5/10
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Entity name: restlessprince
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Matching horse restlessprince on 2024-03-22
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Course ID: 56
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Found match for horse restlessprince on 2024-03-22
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Found match for horse restlessprince on 2024-03-22 except trainer
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - 6/10
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Entity name: huffinanapuffin
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Matching horse huffinanapuffin on 2024-03-22
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Course ID: 55
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Found match for horse huffinanapuffin on 2024-03-22
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Found match for horse huffinanapuffin on 2024-03-22 except trainer
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - 7/10
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Entity name: grandlad
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Matching horse grandlad on 2024-03-22
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Course ID: 56
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Found match for horse grandlad on 2024-03-22
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Found match for horse grandlad on 2024-03-22 except trainer
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - 8/10
-2024-03-25T15:48:11Z - INFO     logging_config.py:19 - Entity name: arnaman
-2024-03-25T15:48:12Z - INFO     logging_config.py:19 - Matching horse arnaman on 2024-03-22
-2024-03-25T15:48:12Z - INFO     logging_config.py:19 - Course ID: 23
-2024-03-25T15:48:12Z - INFO     logging_config.py:19 - Found match for horse arnaman on 2024-03-22
-2024-03-25T15:48:12Z - INFO     logging_config.py:19 - Found match for horse arnaman on 2024-03-22 except trainer
-2024-03-25T15:48:12Z - INFO     logging_config.py:19 - 9/10
-2024-03-25T15:48:12Z - INFO     logging_config.py:19 - Entity name: marisangel
-2024-03-25T15:48:12Z - INFO     logging_config.py:19 - Matching horse marisangel on 2024-03-22
-2024-03-25T15:48:12Z - INFO     logging_config.py:19 - Course ID: 47
-2024-03-25T15:48:12Z - INFO     logging_config.py:19 - Found match for horse marisangel on 2024-03-22
-2024-03-25T15:48:12Z - INFO     logging_config.py:19 - Found match for horse marisangel on 2024-03-22 except trainer
-2024-03-25T15:48:12Z - INFO     logging_config.py:19 - Found 10 matches
-2024-03-25T15:48:12Z - INFO     logging_config.py:19 - Truncating staging.horse
-2024-03-25T15:48:12Z - INFO     logging_config.py:19 - Executing query: TRUNCATE TABLE staging.horse
-2024-03-25T15:48:12Z - INFO     logging_config.py:19 - Query executed. Number of rows affected: -1
-2024-03-25T15:48:12Z - INFO     logging_config.py:19 - Storing 10 records in staging.horse
-2024-03-25T15:48:12Z - INFO     logging_config.py:19 - Matching sires
-2024-03-25T15:49:01Z - INFO     logging_config.py:19 - Query SELECT * FROM rp_raw.unmatched_sires 
-		 | returned 1 records |
-2024-03-25T15:49:01Z - INFO     logging_config.py:19 - Found 1 unique sires
-2024-03-25T15:49:01Z - INFO     logging_config.py:19 - Matching sires
-2024-03-25T15:49:17Z - INFO     logging_config.py:19 - 0/1
-2024-03-25T15:49:17Z - INFO     logging_config.py:19 - Entity name: mrowen
-2024-03-25T15:49:17Z - INFO     logging_config.py:19 - Matching sire mrowen on 2024-03-22
-2024-03-25T15:49:17Z - INFO     logging_config.py:19 - Course ID: 47
-2024-03-25T15:49:17Z - INFO     logging_config.py:19 - Found match for sire mrowen on 2024-03-22
-2024-03-25T15:49:17Z - INFO     logging_config.py:19 - Found 1 matches
-2024-03-25T15:49:18Z - INFO     logging_config.py:19 - Truncating staging.sire
-2024-03-25T15:49:18Z - INFO     logging_config.py:19 - Executing query: TRUNCATE TABLE staging.sire
-2024-03-25T15:49:18Z - INFO     logging_config.py:19 - Query executed. Number of rows affected: -1
-2024-03-25T15:49:18Z - INFO     logging_config.py:19 - Storing 1 records in staging.sire
-2024-03-25T15:49:18Z - INFO     logging_config.py:19 - Matching dams
-2024-03-25T15:49:54Z - INFO     logging_config.py:19 - Query SELECT * FROM rp_raw.unmatched_dams 
-		 | returned 3 records |
-2024-03-25T15:49:54Z - INFO     logging_config.py:19 - Found 3 unique dams
-2024-03-25T15:49:54Z - INFO     logging_config.py:19 - Matching dams
-2024-03-25T15:50:04Z - INFO     logging_config.py:19 - 0/3
-2024-03-25T15:50:04Z - INFO     logging_config.py:19 - Entity name: princesspalliser
-2024-03-25T15:50:04Z - INFO     logging_config.py:19 - Matching dam princesspalliser on 2024-03-22
-2024-03-25T15:50:04Z - INFO     logging_config.py:19 - Course ID: 56
-2024-03-25T15:50:05Z - INFO     logging_config.py:19 - Found match for dam princesspalliser on 2024-03-22
-2024-03-25T15:50:05Z - INFO     logging_config.py:19 - 1/3
-2024-03-25T15:50:05Z - INFO     logging_config.py:19 - Entity name: muchbetter
-2024-03-25T15:50:05Z - INFO     logging_config.py:19 - Matching dam muchbetter on 2024-03-22
-2024-03-25T15:50:05Z - INFO     logging_config.py:19 - Course ID: 47
-2024-03-25T15:50:05Z - INFO     logging_config.py:19 - Found match for dam muchbetter on 2024-03-22
-2024-03-25T15:50:05Z - INFO     logging_config.py:19 - 2/3
-2024-03-25T15:50:05Z - INFO     logging_config.py:19 - Entity name: tralongbay
-2024-03-25T15:50:05Z - INFO     logging_config.py:19 - Matching dam tralongbay on 2024-03-22
-2024-03-25T15:50:05Z - INFO     logging_config.py:19 - Course ID: 56
-2024-03-25T15:50:05Z - INFO     logging_config.py:19 - Found match for dam tralongbay on 2024-03-22
-2024-03-25T15:50:05Z - INFO     logging_config.py:19 - Found 3 matches
-2024-03-25T15:50:05Z - INFO     logging_config.py:19 - Truncating staging.dam
-2024-03-25T15:50:05Z - INFO     logging_config.py:19 - Executing query: TRUNCATE TABLE staging.dam
-2024-03-25T15:50:06Z - INFO     logging_config.py:19 - Query executed. Number of rows affected: -1
-2024-03-25T15:50:06Z - INFO     logging_config.py:19 - Storing 3 records in staging.dam
-2024-03-25T15:50:06Z - INFO     logging_config.py:19 - Matching tf to rp
-2024-03-25T15:51:47Z - INFO     logging_config.py:19 - Query SELECT * FROM rp_raw.formatted_rp_entities 
-		 | returned 2325236 records |
-2024-03-25T15:52:09Z - INFO     logging_config.py:19 - Matching jockeys
-2024-03-25T15:52:15Z - INFO     logging_config.py:19 - Query SELECT * FROM tf_raw.unmatched_jockeys 
-		 | returned 1 records |
-2024-03-25T15:52:15Z - INFO     logging_config.py:19 - Found 1 unique jockeys
-2024-03-25T15:52:15Z - INFO     logging_config.py:19 - Matching jockeys
-2024-03-25T15:52:39Z - INFO     logging_config.py:19 - 0/1
-2024-03-25T15:52:39Z - INFO     logging_config.py:19 - Entity name: williampike
-2024-03-25T15:52:40Z - INFO     logging_config.py:19 - Matching jockey williampike on 2006-12-20
-2024-03-25T15:52:40Z - INFO     logging_config.py:19 - Course ID: None
-2024-03-25T15:52:40Z - INFO     logging_config.py:19 - No RP data found for jockey williampike on 2006-12-20
-2024-03-25T15:52:40Z - INFO     logging_config.py:19 - No matches found for jockey
-2024-03-25T15:52:40Z - INFO     logging_config.py:19 - Matching trainers
-2024-03-25T15:52:44Z - INFO     logging_config.py:19 - Query SELECT * FROM tf_raw.unmatched_trainers 
+2024-03-30T06:14:36Z - INFO     logging_config.py:19 - Matching trainers
+2024-03-30T06:14:55Z - INFO     logging_config.py:19 - Query SELECT * FROM rp_raw.unmatched_trainers 
+		 | returned 0 records |
+2024-03-30T06:14:55Z - INFO     logging_config.py:19 - Matching horses
+2024-03-30T06:15:14Z - INFO     logging_config.py:19 - Query SELECT * FROM rp_raw.unmatched_horses 
 		 | returned 2 records |
-2024-03-25T15:52:44Z - INFO     logging_config.py:19 - Found 2 unique trainers
-2024-03-25T15:52:44Z - INFO     logging_config.py:19 - Matching trainers
-2024-03-25T15:52:59Z - INFO     logging_config.py:19 - 0/2
-2024-03-25T15:52:59Z - INFO     logging_config.py:19 - Entity name: mrsgellis
-2024-03-25T15:53:00Z - INFO     logging_config.py:19 - Matching trainer mrsgellis on 2024-03-22
-2024-03-25T15:53:00Z - INFO     logging_config.py:19 - Course ID: 55
-2024-03-25T15:53:00Z - INFO     logging_config.py:19 - Found match for trainer mrsgellis on 2024-03-22
-2024-03-25T15:53:00Z - INFO     logging_config.py:19 - 1/2
-2024-03-25T15:53:00Z - INFO     logging_config.py:19 - Entity name: misssklug
-2024-03-25T15:53:00Z - INFO     logging_config.py:19 - Matching trainer misssklug on 2024-03-22
-2024-03-25T15:53:00Z - INFO     logging_config.py:19 - Course ID: 55
-2024-03-25T15:53:00Z - INFO     logging_config.py:19 - Found match for trainer misssklug on 2024-03-22
-2024-03-25T15:53:00Z - INFO     logging_config.py:19 - Found 2 matches
-2024-03-25T15:53:01Z - INFO     logging_config.py:19 - Truncating staging.trainer
-2024-03-25T15:53:01Z - INFO     logging_config.py:19 - Executing query: TRUNCATE TABLE staging.trainer
-2024-03-25T15:53:01Z - INFO     logging_config.py:19 - Query executed. Number of rows affected: -1
-2024-03-25T15:53:01Z - INFO     logging_config.py:19 - Storing 2 records in staging.trainer
-2024-03-25T15:53:01Z - INFO     logging_config.py:19 - Matching horses
-2024-03-25T15:53:06Z - INFO     logging_config.py:19 - Query SELECT * FROM tf_raw.unmatched_horses 
-		 | returned 10 records |
-2024-03-25T15:53:06Z - INFO     logging_config.py:19 - Found 10 unique horses
-2024-03-25T15:53:06Z - INFO     logging_config.py:19 - Matching horses
-2024-03-25T15:53:17Z - INFO     logging_config.py:19 - 0/10
-2024-03-25T15:53:17Z - INFO     logging_config.py:19 - Entity name: cmoncoyney
-2024-03-25T15:53:17Z - INFO     logging_config.py:19 - Matching horse cmoncoyney on 2024-03-22
-2024-03-25T15:53:17Z - INFO     logging_config.py:19 - Course ID: 56
-2024-03-25T15:53:17Z - INFO     logging_config.py:19 - Found match for horse cmoncoyney on 2024-03-22
-2024-03-25T15:53:17Z - INFO     logging_config.py:19 - Found match for horse cmoncoyney on 2024-03-22 except trainer
-2024-03-25T15:53:17Z - INFO     logging_config.py:19 - 1/10
-2024-03-25T15:53:17Z - INFO     logging_config.py:19 - Entity name: debtowings
-2024-03-25T15:53:17Z - INFO     logging_config.py:19 - Matching horse debtowings on 2024-03-22
-2024-03-25T15:53:17Z - INFO     logging_config.py:19 - Course ID: 47
-2024-03-25T15:53:17Z - INFO     logging_config.py:19 - Found match for horse debtowings on 2024-03-22
-2024-03-25T15:53:17Z - INFO     logging_config.py:19 - Found match for horse debtowings on 2024-03-22 except trainer
-2024-03-25T15:53:17Z - INFO     logging_config.py:19 - 2/10
-2024-03-25T15:53:17Z - INFO     logging_config.py:19 - Entity name: cillmocheallog
-2024-03-25T15:53:17Z - INFO     logging_config.py:19 - Matching horse cillmocheallog on 2024-03-22
-2024-03-25T15:53:17Z - INFO     logging_config.py:19 - Course ID: 23
-2024-03-25T15:53:17Z - INFO     logging_config.py:19 - Found match for horse cillmocheallog on 2024-03-22
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Found match for horse cillmocheallog on 2024-03-22 except trainer
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - 3/10
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Entity name: marisangel
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Matching horse marisangel on 2024-03-22
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Course ID: 47
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Found match for horse marisangel on 2024-03-22
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Found match for horse marisangel on 2024-03-22 except trainer
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - 4/10
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Entity name: grandlad
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Matching horse grandlad on 2024-03-22
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Course ID: 56
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Found match for horse grandlad on 2024-03-22
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Found match for horse grandlad on 2024-03-22 except trainer
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - 5/10
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Entity name: arnaman
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Matching horse arnaman on 2024-03-22
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Course ID: 23
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Found match for horse arnaman on 2024-03-22
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Found match for horse arnaman on 2024-03-22 except trainer
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - 6/10
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Entity name: restlessprince
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Matching horse restlessprince on 2024-03-22
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Course ID: 56
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Found match for horse restlessprince on 2024-03-22
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Found match for horse restlessprince on 2024-03-22 except trainer
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - 7/10
-2024-03-25T15:53:18Z - INFO     logging_config.py:19 - Entity name: adaaylikethis
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Matching horse adaaylikethis on 2024-03-22
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Course ID: 23
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Found match for horse adaaylikethis on 2024-03-22
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Found match for horse adaaylikethis on 2024-03-22 except trainer
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - 8/10
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Entity name: sliogan
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Matching horse sliogan on 2024-03-22
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Course ID: 23
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Found match for horse sliogan on 2024-03-22
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Found match for horse sliogan on 2024-03-22 except trainer
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - 9/10
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Entity name: huffinanapuffin
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Matching horse huffinanapuffin on 2024-03-22
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Course ID: 55
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Found match for horse huffinanapuffin on 2024-03-22
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Found match for horse huffinanapuffin on 2024-03-22 except trainer
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Found 10 matches
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Truncating staging.horse
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Executing query: TRUNCATE TABLE staging.horse
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Query executed. Number of rows affected: -1
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Storing 10 records in staging.horse
-2024-03-25T15:53:19Z - INFO     logging_config.py:19 - Matching sires
-2024-03-25T15:53:24Z - INFO     logging_config.py:19 - Query SELECT * FROM tf_raw.unmatched_sires 
-		 | returned 1 records |
-2024-03-25T15:53:24Z - INFO     logging_config.py:19 - Found 1 unique sires
-2024-03-25T15:53:24Z - INFO     logging_config.py:19 - Matching sires
-2024-03-25T15:53:32Z - INFO     logging_config.py:19 - 0/1
-2024-03-25T15:53:32Z - INFO     logging_config.py:19 - Entity name: mrowen
-2024-03-25T15:53:32Z - INFO     logging_config.py:19 - Matching sire mrowen on 2024-03-22
-2024-03-25T15:53:32Z - INFO     logging_config.py:19 - Course ID: 47
-2024-03-25T15:53:33Z - INFO     logging_config.py:19 - Found match for sire mrowen on 2024-03-22
-2024-03-25T15:53:33Z - INFO     logging_config.py:19 - Found 1 matches
-2024-03-25T15:53:33Z - INFO     logging_config.py:19 - Truncating staging.sire
-2024-03-25T15:53:33Z - INFO     logging_config.py:19 - Executing query: TRUNCATE TABLE staging.sire
-2024-03-25T15:53:34Z - INFO     logging_config.py:19 - Query executed. Number of rows affected: -1
-2024-03-25T15:53:34Z - INFO     logging_config.py:19 - Storing 1 records in staging.sire
-2024-03-25T15:53:34Z - INFO     logging_config.py:19 - Matching dams
-2024-03-25T15:53:38Z - INFO     logging_config.py:19 - Query SELECT * FROM tf_raw.unmatched_dams 
-		 | returned 3 records |
-2024-03-25T15:53:38Z - INFO     logging_config.py:19 - Found 3 unique dams
-2024-03-25T15:53:38Z - INFO     logging_config.py:19 - Matching dams
-2024-03-25T15:53:49Z - INFO     logging_config.py:19 - 0/3
-2024-03-25T15:53:49Z - INFO     logging_config.py:19 - Entity name: princesspalliser
-2024-03-25T15:53:49Z - INFO     logging_config.py:19 - Matching dam princesspalliser on 2024-03-22
-2024-03-25T15:53:49Z - INFO     logging_config.py:19 - Course ID: 56
-2024-03-25T15:53:49Z - INFO     logging_config.py:19 - Found match for dam princesspalliser on 2024-03-22
-2024-03-25T15:53:49Z - INFO     logging_config.py:19 - 1/3
-2024-03-25T15:53:49Z - INFO     logging_config.py:19 - Entity name: muchbetter
-2024-03-25T15:53:49Z - INFO     logging_config.py:19 - Matching dam muchbetter on 2024-03-22
-2024-03-25T15:53:49Z - INFO     logging_config.py:19 - Course ID: 47
-2024-03-25T15:53:49Z - INFO     logging_config.py:19 - Found match for dam muchbetter on 2024-03-22
-2024-03-25T15:53:49Z - INFO     logging_config.py:19 - 2/3
-2024-03-25T15:53:49Z - INFO     logging_config.py:19 - Entity name: tralongbay
-2024-03-25T15:53:49Z - INFO     logging_config.py:19 - Matching dam tralongbay on 2024-03-22
-2024-03-25T15:53:49Z - INFO     logging_config.py:19 - Course ID: 56
-2024-03-25T15:53:49Z - INFO     logging_config.py:19 - Found match for dam tralongbay on 2024-03-22
-2024-03-25T15:53:49Z - INFO     logging_config.py:19 - Found 3 matches
-2024-03-25T15:53:50Z - INFO     logging_config.py:19 - Truncating staging.dam
-2024-03-25T15:53:50Z - INFO     logging_config.py:19 - Executing query: TRUNCATE TABLE staging.dam
-2024-03-25T15:53:50Z - INFO     logging_config.py:19 - Query executed. Number of rows affected: -1
-2024-03-25T15:53:50Z - INFO     logging_config.py:19 - Storing 3 records in staging.dam
-2024-03-25T15:53:50Z - INFO     logging_config.py:19 - Calling stored procedure public.load_fuzzy_matches()
-2024-03-25T15:53:50Z - INFO     logging_config.py:19 - Stored procedure public.load_fuzzy_matches() completed
+2024-03-30T06:15:14Z - INFO     logging_config.py:19 - Found 2 unique horses
+2024-03-30T06:15:14Z - INFO     logging_config.py:19 - Matching horses
+2024-03-30T06:15:16Z - INFO     logging_config.py:19 - 0/2
+2024-03-30T06:15:16Z - INFO     logging_config.py:19 - Entity name: omalley
+2024-03-30T06:15:16Z - INFO     logging_config.py:19 - Matching horse omalley on 2024-03-26
+2024-03-30T06:15:16Z - INFO     logging_config.py:19 - Course ID: 76
+2024-03-30T06:15:16Z - INFO     logging_config.py:19 - Found match for horse omalley on 2024-03-26
+2024-03-30T06:15:16Z - INFO     logging_config.py:19 - Found match for horse omalley on 2024-03-26 except trainer
+2024-03-30T06:15:16Z - INFO     logging_config.py:19 - 1/2
+2024-03-30T06:15:16Z - INFO     logging_config.py:19 - Entity name: lequipedeux
+2024-03-30T06:15:16Z - INFO     logging_config.py:19 - Matching horse lequipedeux on 2024-03-27
+2024-03-30T06:15:16Z - INFO     logging_config.py:19 - Course ID: 35
+2024-03-30T06:15:16Z - INFO     logging_config.py:19 - Found match for horse lequipedeux on 2024-03-27
+2024-03-30T06:15:16Z - INFO     logging_config.py:19 - Found match for horse lequipedeux on 2024-03-27 except trainer
+2024-03-30T06:15:17Z - INFO     logging_config.py:19 - Found 2 matches
+2024-03-30T06:15:17Z - INFO     logging_config.py:19 - Truncating staging.horse
+2024-03-30T06:15:17Z - INFO     logging_config.py:19 - Executing query: TRUNCATE TABLE staging.horse
+2024-03-30T06:15:17Z - INFO     logging_config.py:19 - Query executed. Number of rows affected: -1
+2024-03-30T06:15:17Z - INFO     logging_config.py:19 - Storing 2 records in staging.horse
+2024-03-30T06:15:17Z - INFO     logging_config.py:19 - Matching sires
+2024-03-30T06:15:36Z - INFO     logging_config.py:19 - Query SELECT * FROM rp_raw.unmatched_sires 
+		 | returned 0 records |
+2024-03-30T06:15:36Z - INFO     logging_config.py:19 - Matching dams
+2024-03-30T06:15:54Z - INFO     logging_config.py:19 - Query SELECT * FROM rp_raw.unmatched_dams 
+		 | returned 0 records |
+2024-03-30T06:15:54Z - INFO     logging_config.py:19 - Calling stored procedure staging.insert_matched_jockey_data()
+2024-03-30T06:15:54Z - INFO     logging_config.py:19 - Calling stored procedure staging.insert_matched_horse_data()
+2024-03-30T06:15:54Z - INFO     logging_config.py:19 - Stored procedure staging.insert_matched_horse_data() completed
+2024-03-30T06:15:54Z - INFO     logging_config.py:19 - Stored procedure staging.insert_matched_jockey_data() completed
+2024-03-30T06:15:54Z - INFO     logging_config.py:19 - Calling stored procedure staging.insert_matched_trainer_data()
+2024-03-30T06:15:54Z - INFO     logging_config.py:19 - Calling stored procedure staging.insert_matched_sire_data()
+2024-03-30T06:15:54Z - INFO     logging_config.py:19 - Calling stored procedure staging.insert_matched_dam_data()
+2024-03-30T06:15:54Z - INFO     logging_config.py:19 - Stored procedure staging.insert_matched_trainer_data() completed
+2024-03-30T06:15:54Z - INFO     logging_config.py:19 - Stored procedure staging.insert_matched_sire_data() completed
+2024-03-30T06:15:55Z - INFO     logging_config.py:19 - Stored procedure staging.insert_matched_dam_data() completed
+2024-03-30T06:15:55Z - INFO     logging_config.py:19 - Matching tf to rp
+2024-03-30T06:16:22Z - INFO     logging_config.py:19 - Query SELECT * FROM rp_raw.formatted_rp_entities 
+		 | returned 596966 records |
+2024-03-30T06:16:23Z - INFO     logging_config.py:19 - Matching jockeys
+2024-03-30T06:16:54Z - INFO     logging_config.py:19 - Query SELECT * FROM tf_raw.unmatched_jockeys 
+		 | returned 0 records |
+2024-03-30T06:16:54Z - INFO     logging_config.py:19 - Matching trainers
+2024-03-30T06:17:20Z - INFO     logging_config.py:19 - Query SELECT * FROM tf_raw.unmatched_trainers 
+		 | returned 0 records |
+2024-03-30T06:17:20Z - INFO     logging_config.py:19 - Matching horses
+2024-03-30T06:17:43Z - INFO     logging_config.py:19 - Query SELECT * FROM tf_raw.unmatched_horses 
+		 | returned 0 records |
+2024-03-30T06:17:43Z - INFO     logging_config.py:19 - Matching sires
+2024-03-30T06:18:06Z - INFO     logging_config.py:19 - Query SELECT * FROM tf_raw.unmatched_sires 
+		 | returned 0 records |
+2024-03-30T06:18:06Z - INFO     logging_config.py:19 - Matching dams
+2024-03-30T06:18:29Z - INFO     logging_config.py:19 - Query SELECT * FROM tf_raw.unmatched_dams 
+		 | returned 0 records |
+2024-03-30T06:18:29Z - INFO     logging_config.py:19 - Calling stored procedure staging.insert_matched_jockey_data()
+2024-03-30T06:18:29Z - INFO     logging_config.py:19 - Calling stored procedure staging.insert_matched_horse_data()
+2024-03-30T06:18:29Z - INFO     logging_config.py:19 - Stored procedure staging.insert_matched_horse_data() completed
+2024-03-30T06:18:29Z - INFO     logging_config.py:19 - Stored procedure staging.insert_matched_jockey_data() completed
+2024-03-30T06:18:29Z - INFO     logging_config.py:19 - Calling stored procedure staging.insert_matched_trainer_data()
+2024-03-30T06:18:29Z - INFO     logging_config.py:19 - Calling stored procedure staging.insert_matched_sire_data()
+2024-03-30T06:18:29Z - INFO     logging_config.py:19 - Calling stored procedure staging.insert_matched_dam_data()
+2024-03-30T06:18:29Z - INFO     logging_config.py:19 - Stored procedure staging.insert_matched_trainer_data() completed
+2024-03-30T06:18:29Z - INFO     logging_config.py:19 - Stored procedure staging.insert_matched_sire_data() completed
+2024-03-30T06:18:29Z - INFO     logging_config.py:19 - Stored procedure staging.insert_matched_dam_data() completed
+2024-03-30T06:18:29Z - INFO     logging_config.py:19 - Calling stored procedure staging.insert_into_joined_performance_data()
+2024-03-30T06:18:46Z - INFO     logging_config.py:19 - Stored procedure staging.insert_into_joined_performance_data() completed

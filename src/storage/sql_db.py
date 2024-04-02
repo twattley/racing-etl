@@ -1,15 +1,33 @@
 import os
-from datetime import datetime
 from typing import Optional
 
 import pandas as pd
 import sqlalchemy
 
 from src.utils.logging_config import I
+from src.utils.time_utils import get_uk_time_now
 
 
-def storage_connection():
-    return sqlalchemy.create_engine(os.environ["CONN_STR"])
+def storage_connection(
+    user: str = None,
+    password: str = None,
+    host: str = None,
+    port: int = None,
+    db: str = None,
+):
+    user = user or os.environ.get("PG_DB_USER")
+    password = password or os.environ.get("PG_DB_PASSWORD")
+    host = host or os.environ.get("PG_DB_HOST")
+    port = port or os.environ.get("PG_DB_PORT")
+    db = db or os.environ.get("PG_DB_NAME")
+
+    for i in [user, password, host, port, db]:
+        if not i:
+            raise ValueError(f"Missing database connection parameter: {i} ")
+
+    return sqlalchemy.create_engine(
+        f"postgresql://{user}:{password}@{host}:{port}/{db}"
+    )
 
 
 def store_data(
@@ -18,17 +36,7 @@ def store_data(
     schema: str,
     truncate: bool = False,
     created_at: bool = False,
-    extra_query: list = None,
-    test: bool = False,
-    replace: bool = False,
-    print_data: bool = False,
 ):
-    exists_logic = "replace" if replace else "append"
-    if print_data:
-        print(data)
-    if test:
-        data.to_csv(f"~/Desktop/{schema}_{table}.csv", index=False)
-        return
     if data.empty:
         I(f"No data to store in {schema}.{table}")
         return
@@ -37,78 +45,28 @@ def store_data(
             I(f"Truncating {schema}.{table}")
             execute_query(f"TRUNCATE TABLE {schema}.{table}")
         if created_at:
-            data = data.copy()
-            data["created_at"] = datetime.now()
-        if extra_query:
-            for query in extra_query:
-                execute_query(query)
+            data = data.assign(created_at=get_uk_time_now())
         I(f"Storing {len(data)} records in {schema}.{table}")
         data.to_sql(
             name=table,
             con=conn,
             schema=schema,
-            if_exists=exists_logic,
+            if_exists="append",
             index=False,
         )
 
 
 def fetch_data(
     query: str,
-    extra_args: dict = None,
-    extra_query: str = None,
-    without_logging: bool = False,
 ) -> pd.DataFrame:
-    if extra_args:
-        query = sqlalchemy.text(f"{query} " + extra_args)
-        I(f"Fetching data from query: {query}")
-    else:
-        query = sqlalchemy.text(query)
+    query = sqlalchemy.text(query)
 
     with storage_connection().begin() as conn:
         df = pd.read_sql(
             query,
             conn,
         )
-        if extra_query:
-            conn.execute(sqlalchemy.text(extra_query))
-        if not without_logging:
-            I(f"Query {query} \n\t\t | returned {len(df)} records |")
     return df
-
-
-def upsert_data(
-    new_data: pd.DataFrame,
-    existing_data: pd.DataFrame,
-    table: str,
-    schema: str,
-    duplicate_keys: list,
-):
-
-    if "created_at" not in new_data.columns:
-        new_data = new_data.assign(created_at=datetime.now())
-
-    if not existing_data.empty:
-        print("existing_data")
-        print(existing_data)
-        print(existing_data.columns)
-
-        print("new_data")
-        print(new_data)
-        print(new_data.columns)
-        new_dataset = pd.concat(
-            [new_data, existing_data], ignore_index=True
-        ).sort_values(by="created_at")
-    else:
-        new_dataset = new_data
-    new_dataset = new_dataset.drop_duplicates(subset=duplicate_keys, keep="last")
-
-    store_data(
-        new_dataset,
-        table,
-        schema,
-        truncate=True,
-        created_at=True,
-    )
 
 
 def call_procedure(procedure: str, schema: Optional[str] = None):
@@ -160,19 +118,3 @@ def select_function(schema: str, function: str, args: list = None) -> pd.DataFra
     I(f"Function {schema}.{function}() completed")
 
     return result
-
-
-def update_ref_table(entity: str, matched_entities: pd.DataFrame) -> None:
-    if matched_entities.empty:
-        I(f"No data to update in {entity}")
-        return
-    store_data(matched_entities, f"{entity}", "temp")
-    execute_query(
-        f"""
-            UPDATE public.{entity}
-            SET tf_{entity}_id = es.tf_{entity}_id
-            FROM temp.{entity} es
-            WHERE public.{entity}.rp_{entity}_id = es.rp_{entity}_id;
-    """
-    )
-    execute_query(f"DROP TABLE temp.{entity}")

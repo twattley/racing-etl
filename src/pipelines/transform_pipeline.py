@@ -4,22 +4,25 @@ from src.transform.transform_data import (
     TransformedDataModel,
     load_transformed_performance_data,
     load_transformed_race_data,
-    refresh_missing_entity_counts,
-    refresh_missing_record_counts,
     transform_data,
 )
+from src.utils.logging_config import I
 from src.utils.processing_utils import execute_stored_procedures
 
 
 def run_transform_pipeline():
-    data = fetch_data("SELECT * FROM staging.missing_performance_data")
-    transformed_data, race_data = transform_data(
+    data = fetch_data("SELECT * FROM public.missing_performance_data_vw;")
+    if data.empty:
+        I("No missing data to transform.")
+        return
+    accepted_data, rejected_data, race_data = transform_data(
         data=data,
         transform_data_model=TransformedDataModel,
         race_data_model=RaceDataModel,
     )
+    store_data(accepted_data, "transformed_performance_data", "staging", truncate=True)
     store_data(
-        transformed_data, "transformed_performance_data", "staging", truncate=True
+        rejected_data, "transformed_performance_data_rejected", "staging", truncate=True
     )
     store_data(race_data, "transformed_race_data", "staging", truncate=True)
 
@@ -28,7 +31,6 @@ def run_transform_pipeline():
         load_transformed_race_data,
     )
 
-    execute_stored_procedures(
-        refresh_missing_record_counts,
-        refresh_missing_entity_counts,
-    )
+
+if __name__ == "__main__":
+    run_transform_pipeline()

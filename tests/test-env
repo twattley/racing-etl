@@ -1,0 +1,8 @@
+PG_DB_HOST=localhost
+PG_DB_PORT=5433
+PG_DB_NAME=test_db
+PG_DB_USER=test_user
+PG_DB_PASSWORD=test_password
+PGPASSWORD=test_password
+PG_ADMIN_DB_NAME=postgres
+SQL_SCHEMA_SCRIPT=/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/schema/backup_files/racehorse-database-schema.sql

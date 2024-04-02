@@ -1,0 +1,72 @@
+2024-04-01T12:13:16Z - INFO     logging_config.py:19 - Creating a new headless WebDriver for Timeform: False
+2024-04-01T12:13:16Z - INFO     logging_config.py:19 - Creating a new WebDriver with headless mode set to True
+2024-04-01T12:13:17Z - INFO     logging_config.py:19 - Scrape_links.py execution started.
+Traceback (most recent call last):
+  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/pipelines/daily_pipeline.py", line 13, in <module>
+    run_daily_pipeline()
+  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/pipelines/daily_pipeline.py", line 7, in run_daily_pipeline
+    run_scraping_pipeline()
+  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/pipelines/scraping_pipeline.py", line 8, in run_scraping_pipeline
+    process_rp_scrape_links()
+  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/raw/racing_post/scrape_links.py", line 33, in process_rp_scrape_links
+    run_scraping_task(task)
+  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/raw/__init__.py", line 118, in run_scraping_task
+    process_scraping_result_links(task)
+  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/raw/__init__.py", line 87, in process_scraping_result_links
+    dates = fetch_data(f"SELECT * FROM {task.schema}.{task.source_table}")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/storage/sql_db.py", line 68, in fetch_data
+    with storage_connection().begin() as conn:
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/lib/python3.11/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3233, in begin
+    with self.connect() as conn:
+         ^^^^^^^^^^^^^^
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3269, in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 145, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3293, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 452, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 1269, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 716, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 169, in _do_get
+    with util.safe_reraise():
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 167, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 393, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 678, in __init__
+    self.__connect()
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 902, in __connect
+    with util.safe_reraise():
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 898, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 645, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 616, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

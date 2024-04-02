@@ -1,4 +1,3 @@
-import random
 import time
 import traceback
 from dataclasses import dataclass
@@ -31,12 +30,6 @@ class LinkScrapingTask:
     source_table: str
     destination_table: str
     filter_func: callable
-
-
-def shuffle_dates(dates):
-    dates_list = dates["date"].tolist()
-    random.shuffle(dates_list)
-    return [i.strftime("%Y-%m-%d") for i in dates_list]
 
 
 def process_batch_and_refresh_data(dataframes_list, task):

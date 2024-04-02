@@ -1,8 +1,17 @@
 export LOG_LEVEL="INFO"
-source ~/.zshrc
+
+ENV_FILE="$USER_DIR/Code/Projects/racing-api-project/racing-etl/.env"
+set -a
+source "$ENV_FILE"
+set +a
 cd $RACING_ETL_FOLDER 
 source $RACING_ETL_ENV
 export PYTHONPATH=$(pwd) 
+
+echo "Running with python $(which python3)"
+echo "CONN_STR is set to $CONN_STR"
+echo "RACING_ETL_FOLDER is set to $RACING_ETL_FOLDER"
+echo "RACING_ETL_ENV is set to $RACING_ETL_ENV"
 
 case $1 in
     "tf_scrape_links")
@@ -23,15 +32,15 @@ case $1 in
         ;;
     "run_scraping_pipeline")
         echo "Running rp_scrape_data"
-        python3 $RACING_ETL_FOLDER/src/pipelines/scraping_pipeline.py >> $RACING_ETL_FOLDER/logs/scraping_pipeline.log 2>&1
+        python3 $RACING_ETL_FOLDER/src/pipelines/scraping_pipeline.py > $RACING_ETL_FOLDER/logs/scraping_pipeline.log 2>&1
         ;;
     "run_entity_matching_pipeline")
         echo "Running entity_matching_pipeline"
-        python3 $RACING_ETL_FOLDER/src/pipelines/matching_pipeline.py >> $RACING_ETL_FOLDER/logs/matching_pipeline.log 2>&1
+        python3 $RACING_ETL_FOLDER/src/pipelines/matching_pipeline.py > $RACING_ETL_FOLDER/logs/matching_pipeline.log 2>&1
         ;;
     "run_daily_pipeline")
         echo "Running daily_pipeline"
-        python3 $RACING_ETL_FOLDER/src/pipelines/daily_pipeline.py >> $RACING_ETL_FOLDER/logs/daily_pipeline.log 2>&1
+        python3 $RACING_ETL_FOLDER/src/pipelines/daily_pipeline.py > $RACING_ETL_FOLDER/logs/daily_pipeline.log 2>&1
         ;;
     *)
         echo "Invalid command"
