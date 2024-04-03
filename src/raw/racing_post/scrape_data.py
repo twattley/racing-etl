@@ -10,6 +10,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import ElementClickInterceptedException
 
 from src.raw import DataScrapingTask, run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
@@ -58,6 +59,24 @@ def wait_for_page_load(driver: webdriver) -> None:
     else:
         I("All elements were found.")
 
+def click_pedigree_button(driver):
+    try:
+        pedigree_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "[data-test-selector='button-pedigree']"))
+        )
+        pedigree_button.click()
+    except ElementClickInterceptedException:
+        overlay_selector = "div.ab-page-blocker"
+        WebDriverWait(driver, 10).until(
+            EC.invisibility_of_element_located((By.CSS_SELECTOR, overlay_selector))
+        )
+        close_button = driver.find_element(By.CLASS_NAME, "ab-close-button")
+        close_button.click()
+        pedigree_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "[data-test-selector='button-pedigree']"))
+        )
+        pedigree_button.click()
+
 
 def convert_to_24_hour(time_str: str) -> str:
     """
@@ -83,6 +102,12 @@ def get_entity_data_from_link(entity_link):
 
 def return_element_text_from_css(driver, element_id):
     return driver.find_element(By.CSS_SELECTOR, element_id).text.strip()
+
+def get_optional_element_text(driver, css_selector):
+    try:
+        return driver.find_element(By.CSS_SELECTOR, css_selector).text.strip()
+    except Exception:
+        return None  
 
 
 def get_raw_winning_time(driver):
@@ -208,6 +233,17 @@ def get_performance_data(driver):
             By.CSS_SELECTOR, "span.rp-horseTable__horse__price"
         ).text.strip()
 
+        distnce_beaten_elements = row.find_elements(
+            By.CSS_SELECTOR,
+            "span.rp-horseTable__pos__length > span"
+        )
+        if len(distnce_beaten_elements) == 1:
+            total_distance_beaten = distnce_beaten_elements[0].text.strip()
+        elif len(distnce_beaten_elements) == 2:
+            total_distance_beaten = distnce_beaten_elements[1].text.strip()
+        else:
+            total_distance_beaten = np.NaN
+
         extra_weights_elements = row.find_elements(
             By.CSS_SELECTOR,
             "span.rp-horseTable__extraData img[data-test-selector='img-extraWeights']",
@@ -244,6 +280,7 @@ def get_performance_data(driver):
                 "horse_weight": horse_weight,
                 "or_value": or_value,
                 "finishing_position": horse_position,
+                "total_distance_beaten": total_distance_beaten,
                 "draw": draw,
                 "ts_value": ts_value,
                 "rpr_value": rpr_value,
@@ -298,6 +335,9 @@ def get_pedigree_data(driver, order, horse_data):
             )
         )
     )
+    for horse_data, comment_row in zip(sorted_horse_data, pedigree_rows):
+        comment_text = comment_row.find_element(By.TAG_NAME, "td").text.strip()
+        horse_data["horse_type"] = ', '.join(comment_text.split(" ")[:2])
 
     if len(sorted_horse_data) != len(pedigree_rows):
         E("Number of horses does not match the number of pedigree rows.")
@@ -373,8 +413,14 @@ def scrape_data(driver, result):
     conditions = return_element_text_from_css(
         driver, "span.rp-raceTimeCourseName_ratingBandAndAgesAllowed"
     )
+    race_class = return_element_text_from_css(
+        driver, "span.rp-raceTimeCourseName_class"
+    )
     distance = return_element_text_from_css(
         driver, "span.rp-raceTimeCourseName_distance"
+    )
+    distance_full = get_optional_element_text(
+        driver, "span.rp-raceTimeCourseName_distanceFull"
     )
     going = return_element_text_from_css(driver, "span.rp-raceTimeCourseName_condition")
     winning_time = get_raw_winning_time(driver)
@@ -395,7 +441,9 @@ def scrape_data(driver, result):
         race_time=race_time,
         race_timestamp=race_timestamp,
         conditions=conditions,
+        race_class=race_class,
         distance=distance,
+        distance_full=distance_full,
         going=going,
         winning_time=winning_time,
         number_of_runners=number_of_runners,
@@ -431,14 +479,69 @@ def scrape_data(driver, result):
     performance_data = performance_data.dropna(subset=["race_timestamp"])
     if performance_data.empty:
         E(f"No data for {result} failure to scrape timestamp")
-    return performance_data
+    return performance_data[
+        [
+    "race_timestamp",
+    "race_date",
+    "horse_name",
+    "course_name",
+    "race_class",
+    "conditions",
+    "race_title",
+    "distance",
+    "distance_full",
+    "going",
+    "number_of_runners",
+    "total_prize_money",
+    "first_place_prize_money",
+    "winning_time",
+    "horse_type",
+    "horse_age",
+    "or_value",
+    "horse_weight",
+    "draw",
+    "horse_price",
+    "country",
+    "surface",
+    "jockey_name",
+    "jockey_claim",
+    "trainer_name",
+    "owner_name",
+    "finishing_position",
+    "total_distance_beaten",
+    "ts_value",
+    "rpr_value",
+    "extra_weight",
+    "headgear",
+    "comment",
+    "sire_name",
+    "dam_name",
+    "dams_sire",
+    "race_time",
+    "course",
+    "currency",
+    "course_id",
+    "sire_id",
+    "dam_id",
+    "dams_sire_id",
+    "trainer_id",
+    "jockey_id",
+    "horse_id",
+    "owner_id",
+    "race_id",
+    "meeting_id",
+    "unique_id",
+    "debug_link",
+    "created_at",
+]
+    ]
 
 
 def process_rp_scrape_data():
     task = DataScrapingTask(
         driver=get_headless_driver,
         schema="rp_raw",
-        table="performance_data",
+        table="performance_data_v2",
         job_name="rp_scrape_data",
         scraper_func=scrape_data,
     )

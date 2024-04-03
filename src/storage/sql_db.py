@@ -21,9 +21,15 @@ def storage_connection(
     port = port or os.environ.get("PG_DB_PORT")
     db = db or os.environ.get("PG_DB_NAME")
 
-    for i in [user, password, host, port, db]:
-        if not i:
-            raise ValueError(f"Missing database connection parameter: {i} ")
+    for i in [
+        ('user', user),
+        ('password', password),
+        ('host', host),
+        ('port', port),
+        ('db', db)
+    ]:
+        if not i[1]:
+            raise ValueError(f"Missing database connection parameter: {i[0]} ")
 
     return sqlalchemy.create_engine(
         f"postgresql://{user}:{password}@{host}:{port}/{db}"
