@@ -413,7 +413,7 @@ def scrape_data(driver, result):
     conditions = return_element_text_from_css(
         driver, "span.rp-raceTimeCourseName_ratingBandAndAgesAllowed"
     )
-    race_class = return_element_text_from_css(
+    race_class = get_optional_element_text(
         driver, "span.rp-raceTimeCourseName_class"
     )
     distance = return_element_text_from_css(
