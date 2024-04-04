@@ -4,3 +4,6 @@ pytz
 pandas 
 sqlalchemy
 psycopg2-binary
+pyarrow
+fastparquet
+boto3
