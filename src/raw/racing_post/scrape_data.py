@@ -1,6 +1,7 @@
 import hashlib
 import re
 from datetime import datetime
+import sys
 
 import numpy as np
 import pandas as pd
@@ -59,10 +60,13 @@ def wait_for_page_load(driver: webdriver) -> None:
     else:
         I("All elements were found.")
 
+
 def click_pedigree_button(driver):
     try:
         pedigree_button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, "[data-test-selector='button-pedigree']"))
+            EC.element_to_be_clickable(
+                (By.CSS_SELECTOR, "[data-test-selector='button-pedigree']")
+            )
         )
         pedigree_button.click()
     except ElementClickInterceptedException:
@@ -73,7 +77,9 @@ def click_pedigree_button(driver):
         close_button = driver.find_element(By.CLASS_NAME, "ab-close-button")
         close_button.click()
         pedigree_button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, "[data-test-selector='button-pedigree']"))
+            EC.element_to_be_clickable(
+                (By.CSS_SELECTOR, "[data-test-selector='button-pedigree']")
+            )
         )
         pedigree_button.click()
 
@@ -103,11 +109,12 @@ def get_entity_data_from_link(entity_link):
 def return_element_text_from_css(driver, element_id):
     return driver.find_element(By.CSS_SELECTOR, element_id).text.strip()
 
+
 def get_optional_element_text(driver, css_selector):
     try:
         return driver.find_element(By.CSS_SELECTOR, css_selector).text.strip()
     except Exception:
-        return None  
+        return None
 
 
 def get_raw_winning_time(driver):
@@ -234,8 +241,7 @@ def get_performance_data(driver):
         ).text.strip()
 
         distnce_beaten_elements = row.find_elements(
-            By.CSS_SELECTOR,
-            "span.rp-horseTable__pos__length > span"
+            By.CSS_SELECTOR, "span.rp-horseTable__pos__length > span"
         )
         if len(distnce_beaten_elements) == 1:
             total_distance_beaten = distnce_beaten_elements[0].text.strip()
@@ -337,7 +343,7 @@ def get_pedigree_data(driver, order, horse_data):
     )
     for horse_data, comment_row in zip(sorted_horse_data, pedigree_rows):
         comment_text = comment_row.find_element(By.TAG_NAME, "td").text.strip()
-        horse_data["horse_type"] = ', '.join(comment_text.split(" ")[:2])
+        horse_data["horse_type"] = ", ".join(comment_text.split(" ")[:2])
 
     if len(sorted_horse_data) != len(pedigree_rows):
         E("Number of horses does not match the number of pedigree rows.")
@@ -413,9 +419,7 @@ def scrape_data(driver, result):
     conditions = return_element_text_from_css(
         driver, "span.rp-raceTimeCourseName_ratingBandAndAgesAllowed"
     )
-    race_class = get_optional_element_text(
-        driver, "span.rp-raceTimeCourseName_class"
-    )
+    race_class = get_optional_element_text(driver, "span.rp-raceTimeCourseName_class")
     distance = return_element_text_from_css(
         driver, "span.rp-raceTimeCourseName_distance"
     )
@@ -481,72 +485,73 @@ def scrape_data(driver, result):
         E(f"No data for {result} failure to scrape timestamp")
     return performance_data[
         [
-    "race_timestamp",
-    "race_date",
-    "horse_name",
-    "course_name",
-    "race_class",
-    "conditions",
-    "race_title",
-    "distance",
-    "distance_full",
-    "going",
-    "number_of_runners",
-    "total_prize_money",
-    "first_place_prize_money",
-    "winning_time",
-    "horse_type",
-    "horse_age",
-    "or_value",
-    "horse_weight",
-    "draw",
-    "horse_price",
-    "country",
-    "surface",
-    "jockey_name",
-    "jockey_claim",
-    "trainer_name",
-    "owner_name",
-    "finishing_position",
-    "total_distance_beaten",
-    "ts_value",
-    "rpr_value",
-    "extra_weight",
-    "headgear",
-    "comment",
-    "sire_name",
-    "dam_name",
-    "dams_sire",
-    "race_time",
-    "course",
-    "currency",
-    "course_id",
-    "sire_id",
-    "dam_id",
-    "dams_sire_id",
-    "trainer_id",
-    "jockey_id",
-    "horse_id",
-    "owner_id",
-    "race_id",
-    "meeting_id",
-    "unique_id",
-    "debug_link",
-    "created_at",
-]
+            "race_timestamp",
+            "race_date",
+            "horse_name",
+            "course_name",
+            "race_class",
+            "conditions",
+            "race_title",
+            "distance",
+            "distance_full",
+            "going",
+            "number_of_runners",
+            "total_prize_money",
+            "first_place_prize_money",
+            "winning_time",
+            "horse_type",
+            "horse_age",
+            "or_value",
+            "horse_weight",
+            "draw",
+            "horse_price",
+            "country",
+            "surface",
+            "jockey_name",
+            "jockey_claim",
+            "trainer_name",
+            "owner_name",
+            "finishing_position",
+            "total_distance_beaten",
+            "ts_value",
+            "rpr_value",
+            "extra_weight",
+            "headgear",
+            "comment",
+            "sire_name",
+            "dam_name",
+            "dams_sire",
+            "race_time",
+            "course",
+            "currency",
+            "course_id",
+            "sire_id",
+            "dam_id",
+            "dams_sire_id",
+            "trainer_id",
+            "jockey_id",
+            "horse_id",
+            "owner_id",
+            "race_id",
+            "meeting_id",
+            "unique_id",
+            "debug_link",
+            "created_at",
+        ]
     ]
 
 
-def process_rp_scrape_data():
+def process_rp_scrape_data(year: str):
     task = DataScrapingTask(
         driver=get_headless_driver,
         schema="rp_raw",
         table="performance_data_v2",
         job_name="rp_scrape_data",
         scraper_func=scrape_data,
+        year=year,
     )
     run_scraping_task(task)
 
 
 if __name__ == "__main__":
-    process_rp_scrape_data()
+    process_rp_scrape_data(year=sys.argv[1])

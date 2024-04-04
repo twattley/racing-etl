@@ -1,3 +1,4 @@
+from datetime import datetime
 import time
 import traceback
 from dataclasses import dataclass
@@ -10,8 +11,9 @@ from src.raw.webdriver_base import (
     select_source_driver,
 )
 from src.storage.sql_db import fetch_data, store_data
+from src.storage.s3_bucket import DigitalOceanSpacesHandler
 from src.utils.logging_config import E, I
-
+import os
 
 @dataclass
 class DataScrapingTask:
@@ -20,6 +22,7 @@ class DataScrapingTask:
     table: str
     job_name: str
     scraper_func: callable
+    year: int
 
 
 @dataclass
@@ -33,16 +36,45 @@ class LinkScrapingTask:
 
 
 def process_batch_and_refresh_data(dataframes_list, task):
-    store_data(pd.concat(dataframes_list), task.table, task.schema)
-    filtered_links_df = fetch_data(f"SELECT * FROM {task.schema}.missing_links")
-    I(f"Number of missing links: {len(filtered_links_df)}")
-    return filtered_links_df
+    handler = DigitalOceanSpacesHandler(
+        access_key_id=os.environ.get("DIGITAL_OCEAN_SPACES_ACCESS_KEY_ID"),
+        secret_access_key=os.environ.get("DIGITAL_OCEAN_SPACES_SECRET_ACCESS_KEY"),
+    )
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+
+    folder = f"data/subsets/{task.year}"
+    file_name = f"datachunk_{timestamp}.parquet"
+    object_path = f"{folder}/{file_name}"
+    handler.upload_df_as_parquet(pd.concat(dataframes_list), object_path)
+
+    prefix = f'{folder}/'
+    upload_path = f'{folder}/consolidated_data_{task.year}.parquet'
+    handler.process_folder(prefix, upload_path)
+    s3_data_df = handler.download_folder(prefix)
+    s3_data_df.to_csv("test.csv")
+    lf = fetch_data(
+        f"""
+        SELECT * 
+        FROM {task.schema}.missing_links
+        WHERE EXTRACT(YEAR FROM date) = {task.year};
+        """
+    )
+    processed_links = s3_data_df['debug_link'].unique()
+    lf = lf[~lf.link.isin(processed_links)]
+    I(f"Number of missing links: {len(lf)}")
+    return lf
 
 
 def process_scraping_data(task: DataScrapingTask) -> None:
     driver = select_source_driver(task)
     dataframes_list = []
-    filtered_links_df = fetch_data(f"SELECT * FROM {task.schema}.missing_links")
+    filtered_links_df = fetch_data(
+        f"""
+        SELECT * 
+        FROM {task.schema}.missing_links
+        WHERE EXTRACT(YEAR FROM date) = {task.year};
+        """
+    )
     I(f"Number of missing links: {len(filtered_links_df)}")
     for i, _ in enumerate(range(1000000000)):
         try:
@@ -63,7 +95,7 @@ def process_scraping_data(task: DataScrapingTask) -> None:
                 continue
             dataframes_list.append(performance_data)
 
-            if (i + 1) % 1 == 0:
+            if (i + 1) % 200 == 0:
                 filtered_links_df = process_batch_and_refresh_data(
                     dataframes_list, task
                 )
@@ -74,7 +106,9 @@ def process_scraping_data(task: DataScrapingTask) -> None:
 
         except KeyboardInterrupt:
             I("Keyboard interrupt detected. Exiting the script.")
-            break
+            process_batch_and_refresh_data(
+                    dataframes_list, task
+                )
         except Exception as e:
             E(f"Encountered an error: {e}. Attempting to continue with the next link.")
             traceback.print_exc()
