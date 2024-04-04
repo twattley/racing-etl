@@ -102,7 +102,7 @@ def process_scraping_data(task: DataScrapingTask) -> None:
                 continue
             dataframes_list.append(performance_data)
 
-            if (i + 1) % 2 == 0:
+            if (i + 1) % 200 == 0:
                 filtered_links_df = process_batch_and_refresh_data(
                     dataframes_list, task
                 )
