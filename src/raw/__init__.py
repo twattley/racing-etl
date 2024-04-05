@@ -117,8 +117,6 @@ def process_scraping_data(task: DataScrapingTask) -> None:
             E(f"Encountered an error: {e}. Attempting to continue with the next link.")
             traceback.print_exc()
             continue
-        finally:
-            driver.quit()
 
 
 def process_scraping_result_links(task: LinkScrapingTask) -> None:
