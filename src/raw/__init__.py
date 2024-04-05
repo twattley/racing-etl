@@ -101,7 +101,6 @@ def process_scraping_data(task: DataScrapingTask) -> None:
             if performance_data is None:
                 continue
             dataframes_list.append(performance_data)
-
             if (i + 1) % 20 == 0:
                 filtered_links_df = process_batch_and_refresh_data(
                     dataframes_list, task
@@ -110,14 +109,16 @@ def process_scraping_data(task: DataScrapingTask) -> None:
                 if filtered_links_df.empty:
                     I("No missing links found. Ending the script.")
                     break
-
-        except KeyboardInterrupt:
-            I("Keyboard interrupt detected. Exiting the script.")
-            process_batch_and_refresh_data(dataframes_list, task)
+            if (i + 1) % 60 == 0:
+                I("Refreshing the driver session.")
+                driver.quit()
+                driver = select_source_driver(task)
         except Exception as e:
             E(f"Encountered an error: {e}. Attempting to continue with the next link.")
             traceback.print_exc()
             continue
+        finally:
+            driver.quit()
 
 
 def process_scraping_result_links(task: LinkScrapingTask) -> None:
