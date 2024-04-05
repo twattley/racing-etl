@@ -1,21 +1,13 @@
-import hashlib
 import re
-from datetime import datetime, timedelta
 import time
-import numpy as np
+from datetime import datetime, timedelta
+
 import pandas as pd
-import pytz
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
 
-from src.raw import DataScrapingTask, run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
-from src.utils.logging_config import E, I
 from src.storage.sql_db import fetch_data
-
 
 BASE_LINK = "https://www.racingpost.com/racecards"
 TODAYS_DATE_FILTER = datetime.now().strftime("%Y-%m-%d")

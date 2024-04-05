@@ -25,19 +25,15 @@ def setup_fresh_test_database():
         conn.execution_options(isolation_level="AUTOCOMMIT")
 
         conn.execute(
-                sqlalchemy.text(
-                    """
+            sqlalchemy.text(
+                """
                 SELECT pg_terminate_backend(pg_stat_activity.pid)
                 FROM pg_stat_activity
                 WHERE pg_stat_activity.datname = 'test_db' AND pid <> pg_backend_pid();
             """
-                )
-            )
-        conn.execute(
-            sqlalchemy.text(
-                "DROP DATABASE IF EXISTS test_db;"
             )
         )
+        conn.execute(sqlalchemy.text("DROP DATABASE IF EXISTS test_db;"))
 
         # Ensure the role exists; create if it does not
         if not conn.execute(
@@ -50,9 +46,7 @@ def setup_fresh_test_database():
 
         # Grant all privileges on the new database to the test user
         conn.execute(
-            sqlalchemy.text(
-                f"GRANT ALL PRIVILEGES ON DATABASE test_db TO {TEST_USER};"
-            )
+            sqlalchemy.text(f"GRANT ALL PRIVILEGES ON DATABASE test_db TO {TEST_USER};")
         )
 
         # Load the schema into the new test database
@@ -64,7 +58,6 @@ def setup_fresh_test_database():
             raise e
 
     yield
-
 
 
 @pytest.fixture

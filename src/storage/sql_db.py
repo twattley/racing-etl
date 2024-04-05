@@ -22,11 +22,11 @@ def storage_connection(
     db = db or os.environ.get("PG_DB_NAME")
 
     for i in [
-        ('user', user),
-        ('password', password),
-        ('host', host),
-        ('port', port),
-        ('db', db)
+        ("user", user),
+        ("password", password),
+        ("host", host),
+        ("port", port),
+        ("db", db),
     ]:
         if not i[1]:
             raise ValueError(f"Missing database connection parameter: {i[0]} ")
@@ -124,3 +124,25 @@ def select_function(schema: str, function: str, args: list = None) -> pd.DataFra
     I(f"Function {schema}.{function}() completed")
 
     return result
+
+
+def delete_duplicates_from_table(schema: str, table: str, unique_id: str):
+    I(f"Deleting duplicates from {schema}.{table}")
+
+    with storage_connection().begin() as conn:
+        conn.execute(
+            f"""
+            CREATE TEMP TABLE temp_unique AS
+            SELECT DISTINCT ON ({unique_id}) *
+            FROM {schema}.{table};
+
+            DELETE FROM {schema}.{table};
+
+            INSERT INTO {schema}.{table}
+            SELECT * FROM temp_unique;
+
+            DROP TABLE temp_unique;
+
+            """
+        )
+    I(f"Duplicates deleted from {schema}.{table}")

@@ -1,4 +1,4 @@
-from datetime import date, datetime
+import random
 import time
 import traceback
 from dataclasses import dataclass
@@ -11,9 +11,7 @@ from src.raw.webdriver_base import (
     select_source_driver,
 )
 from src.storage.sql_db import fetch_data, store_data
-from src.storage.s3_bucket import DigitalOceanSpacesHandler
 from src.utils.logging_config import E, I
-import os
 
 
 @dataclass
@@ -23,7 +21,6 @@ class DataScrapingTask:
     table: str
     job_name: str
     scraper_func: callable
-    year: int
 
 
 @dataclass
@@ -36,32 +33,15 @@ class LinkScrapingTask:
     filter_func: callable
 
 
+def shuffle_dates(dates):
+    dates_list = dates["date"].tolist()
+    random.shuffle(dates_list)
+    return [i.strftime("%Y-%m-%d") for i in dates_list]
+
+
 def process_batch_and_refresh_data(dataframes_list, task):
-    handler = DigitalOceanSpacesHandler(
-        access_key_id=os.environ.get("DIGITAL_OCEAN_SPACES_ACCESS_KEY_ID"),
-        secret_access_key=os.environ.get("DIGITAL_OCEAN_SPACES_SECRET_ACCESS_KEY"),
-    )
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-
-    folder = f"data/subsets/{task.year}"
-    file_name = f"datachunk_{timestamp}.parquet"
-    object_path = f"{folder}/{file_name}"
-    handler.upload_df_as_parquet(pd.concat(dataframes_list), object_path)
-
-    prefix = f"{folder}/"
-    upload_path = f"{folder}/consolidated_data_{task.year}.parquet"
-    handler.process_folder(prefix, upload_path)
-    s3_data_df = handler.download_folder(prefix)
-    filtered_links_df = handler.download_df_from_parquet(
-        "data/missing_links/missing_links.parquet"
-    )
-    filtered_links_df = filtered_links_df[
-        filtered_links_df["date"].between(
-            date(int(task.year), 1, 1), date(int(task.year), 12, 31)
-        )
-    ]
-    processed_links = s3_data_df["debug_link"].unique()
-    filtered_links_df = filtered_links_df[~filtered_links_df.link.isin(processed_links)]
+    store_data(pd.concat(dataframes_list), task.table, task.schema)
+    filtered_links_df = fetch_data(f"SELECT * FROM {task.schema}.missing_links")
     I(f"Number of missing links: {len(filtered_links_df)}")
     return filtered_links_df
 
@@ -69,19 +49,7 @@ def process_batch_and_refresh_data(dataframes_list, task):
 def process_scraping_data(task: DataScrapingTask) -> None:
     driver = select_source_driver(task)
     dataframes_list = []
-    handler = DigitalOceanSpacesHandler(
-        access_key_id=os.environ.get("DIGITAL_OCEAN_SPACES_ACCESS_KEY_ID"),
-        secret_access_key=os.environ.get("DIGITAL_OCEAN_SPACES_SECRET_ACCESS_KEY"),
-    )
-    filtered_links_df = handler.download_df_from_parquet(
-        "data/missing_links/missing_links.parquet"
-    )
-    filtered_links_df = filtered_links_df[
-        filtered_links_df["date"].between(
-            date(int(task.year), 1, 1), date(int(task.year), 12, 31)
-        )
-    ]
-
+    filtered_links_df = fetch_data(f"SELECT * FROM {task.schema}.missing_links")
     I(f"Number of missing links: {len(filtered_links_df)}")
     for i, _ in enumerate(range(1000000000)):
         try:
@@ -113,6 +81,10 @@ def process_scraping_data(task: DataScrapingTask) -> None:
                 I("Refreshing the driver session.")
                 driver.quit()
                 driver = select_source_driver(task)
+
+        except KeyboardInterrupt:
+            I("Keyboard interrupt detected. Exiting the script.")
+            break
         except Exception as e:
             E(f"Encountered an error: {e}. Attempting to continue with the next link.")
             traceback.print_exc()
