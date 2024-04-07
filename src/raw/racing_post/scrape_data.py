@@ -63,31 +63,19 @@ def wait_for_page_load(driver: webdriver) -> None:
         I("All elements were found.")
 
 
-def click_pedigree_button(driver):
-    try:
-        pedigree_button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable(
-                (By.CSS_SELECTOR, "[data-test-selector='button-pedigree']")
-            )
-        )
-        driver.execute_script("arguments[0].scrollIntoView(true);", pedigree_button)
-        pedigree_button.click()
-    except ElementClickInterceptedException:
-        overlay_selector = "div.ab-page-blocker"
-        WebDriverWait(driver, 10).until(
-            EC.invisibility_of_element_located((By.CSS_SELECTOR, overlay_selector))
-        )
-        close_button = driver.find_element(By.CLASS_NAME, "ab-close-button")
-        close_button.click()
-        pedigree_button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable(
-                (By.CSS_SELECTOR, "[data-test-selector='button-pedigree']")
-            )
-        )
-        driver.execute_script("arguments[0].scrollIntoView(true);", pedigree_button)
-        pedigree_button.click()
 
 
+def click_pedigree_button_if_needed(driver):
+    pedigree_button = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located(
+            (By.CSS_SELECTOR, "[data-test-selector='button-pedigree']")
+        )
+    )
+    is_clicked = "ui-btn_toggleActive" in pedigree_button.get_attribute("class")
+    if not is_clicked:
+        driver.execute_script("arguments[0].scrollIntoView(true);", pedigree_button)
+        driver.execute_script("arguments[0].click();", pedigree_button)
+    
 
 def convert_to_24_hour(time_str: str) -> str:
     """
@@ -410,7 +398,7 @@ def get_course_country_data(driver):
 
 def scrape_data(driver, result):
     wait_for_page_load(driver)
-    click_pedigree_button(driver)
+    click_pedigree_button_if_needed(driver)
     created_at = datetime.now(pytz.timezone("Europe/London")).strftime(
         "%Y-%m-%d %H:%M:%S"
     )
