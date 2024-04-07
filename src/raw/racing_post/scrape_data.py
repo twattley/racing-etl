@@ -16,7 +16,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from src.raw import DataScrapingTask, run_scraping_task
-from src.raw.webdriver_base import get_headless_driver
+from src.raw.webdriver_base import get_headless_driver, get_non_headless_driver
 from src.utils.logging_config import E, I
 
 
@@ -64,26 +64,13 @@ def wait_for_page_load(driver: webdriver) -> None:
 
 
 def click_pedigree_button(driver):
-    try:
-        pedigree_button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable(
-                (By.CSS_SELECTOR, "[data-test-selector='button-pedigree']")
-            )
+    pedigree_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable(
+            (By.CSS_SELECTOR, "[data-test-selector='button-pedigree']")
         )
-        pedigree_button.click()
-    except ElementClickInterceptedException:
-        overlay_selector = "div.ab-page-blocker"
-        WebDriverWait(driver, 10).until(
-            EC.invisibility_of_element_located((By.CSS_SELECTOR, overlay_selector))
-        )
-        close_button = driver.find_element(By.CLASS_NAME, "ab-close-button")
-        close_button.click()
-        pedigree_button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable(
-                (By.CSS_SELECTOR, "[data-test-selector='button-pedigree']")
-            )
-        )
-        pedigree_button.click()
+    )
+    driver.execute_script("arguments[0].scrollIntoView(true);", pedigree_button)
+    pedigree_button.click()
 
 
 def convert_to_24_hour(time_str: str) -> str:
@@ -228,7 +215,7 @@ def get_performance_data(driver):
             By.CSS_SELECTOR, "td.rp-horseTable__spanNarrow[data-ending='yo']"
         ).text.strip()
 
-        or_value = row.find_element(
+        official_rating = row.find_element(
             By.CSS_SELECTOR, "td.rp-horseTable__spanNarrow[data-ending='OR']"
         ).text.strip()
         ts_value = row.find_element(
@@ -286,7 +273,7 @@ def get_performance_data(driver):
                 "owner_id": owner_id,
                 "owner_name": owner_name,
                 "horse_weight": horse_weight,
-                "or_value": or_value,
+                "official_rating": official_rating,
                 "finishing_position": horse_position,
                 "total_distance_beaten": total_distance_beaten,
                 "draw": draw,
@@ -407,6 +394,7 @@ def get_course_country_data(driver):
 
 def scrape_data(driver, result):
     wait_for_page_load(driver)
+    click_pedigree_button(driver)
     created_at = datetime.now(pytz.timezone("Europe/London")).strftime(
         "%Y-%m-%d %H:%M:%S"
     )
@@ -489,10 +477,14 @@ def scrape_data(driver, result):
         [
             "race_timestamp",
             "race_date",
-            "horse_name",
             "course_name",
             "race_class",
+            "horse_name",
+            "horse_type",
+            "horse_age",
+            "headgear",
             "conditions",
+            "horse_price",
             "race_title",
             "distance",
             "distance_full",
@@ -501,40 +493,36 @@ def scrape_data(driver, result):
             "total_prize_money",
             "first_place_prize_money",
             "winning_time",
-            "horse_type",
-            "horse_age",
-            "or_value",
+            "official_rating",
             "horse_weight",
             "draw",
-            "horse_price",
             "country",
             "surface",
-            "jockey_name",
-            "jockey_claim",
-            "trainer_name",
-            "owner_name",
             "finishing_position",
             "total_distance_beaten",
             "ts_value",
             "rpr_value",
             "extra_weight",
-            "headgear",
             "comment",
+            "race_time",
+            "currency",
+            "course",
+            "jockey_name",
+            "jockey_claim",
+            "trainer_name",
             "sire_name",
             "dam_name",
             "dams_sire",
-            "race_time",
-            "course",
-            "currency",
-            "course_id",
+            "owner_name",
+            "horse_id",
+            "trainer_id",
+            "jockey_id",
             "sire_id",
             "dam_id",
             "dams_sire_id",
-            "trainer_id",
-            "jockey_id",
-            "horse_id",
             "owner_id",
             "race_id",
+            "course_id",
             "meeting_id",
             "unique_id",
             "debug_link",
@@ -543,11 +531,11 @@ def scrape_data(driver, result):
     ]
 
 
-def process_rp_scrape_data(year: str):
+def process_rp_scrape_data(year: int):
     task = DataScrapingTask(
         driver=get_headless_driver,
         schema="rp_raw",
-        table="performance_data_v2",
+        table="performance_data",
         job_name="rp_scrape_data",
         scraper_func=scrape_data,
         year=year,
@@ -556,4 +544,4 @@ def process_rp_scrape_data(year: str):
 
 
 if __name__ == "__main__":
-    process_rp_scrape_data(year=sys.argv[1])
+    process_rp_scrape_data(sys.argv[1])
