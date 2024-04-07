@@ -64,13 +64,28 @@ def wait_for_page_load(driver: webdriver) -> None:
 
 
 def click_pedigree_button(driver):
-    pedigree_button = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable(
-            (By.CSS_SELECTOR, "[data-test-selector='button-pedigree']")
+    try:
+        pedigree_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable(
+                (By.CSS_SELECTOR, "[data-test-selector='button-pedigree']")
+            )
         )
-    )
-    driver.execute_script("arguments[0].scrollIntoView(true);", pedigree_button)
-    pedigree_button.click()
+        driver.execute_script("arguments[0].scrollIntoView(true);", pedigree_button)
+        pedigree_button.click()
+    except ElementClickInterceptedException:
+        overlay_selector = "div.ab-page-blocker"
+        WebDriverWait(driver, 10).until(
+            EC.invisibility_of_element_located((By.CSS_SELECTOR, overlay_selector))
+        )
+        close_button = driver.find_element(By.CLASS_NAME, "ab-close-button")
+        close_button.click()
+        pedigree_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable(
+                (By.CSS_SELECTOR, "[data-test-selector='button-pedigree']")
+            )
+        )
+        pedigree_button.click()
+
 
 
 def convert_to_24_hour(time_str: str) -> str:
