@@ -84,6 +84,7 @@ def click_pedigree_button(driver):
                 (By.CSS_SELECTOR, "[data-test-selector='button-pedigree']")
             )
         )
+        driver.execute_script("arguments[0].scrollIntoView(true);", pedigree_button)
         pedigree_button.click()
 
 
