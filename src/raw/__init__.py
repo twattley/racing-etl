@@ -122,6 +122,7 @@ def process_scraping_data(task: DataScrapingTask) -> None:
         except Exception as e:
             E(f"Encountered an error: {e}. Attempting to continue with the next link.")
             traceback.print_exc()
+            filtered_links_df = filtered_links_df[filtered_links_df.link != link]
             continue
 
 
