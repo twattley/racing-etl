@@ -97,6 +97,7 @@ def get_headless_driver(timeform=False) -> webdriver.Chrome:
     driver = WebDriverBuilder.create_with_random_user_agent(headless_mode=True).driver
     return login_to_timeform(driver) if timeform else driver
 
+
 def get_non_headless_driver(timeform=False) -> webdriver.Chrome:
     I(f"Creating a new non-headless WebDriver for Timeform: {timeform}")
     driver = WebDriverBuilder.create_with_random_user_agent(headless_mode=False).driver

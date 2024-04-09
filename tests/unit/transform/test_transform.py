@@ -2,7 +2,9 @@ import numpy as np
 import pandas as pd
 
 from src.transform.transform_data import (
+    convert_horse_type_to_colour_sex,
     convert_tf_rating,
+    create_distance_beaten_data,
     create_distance_data,
     create_headgear_data,
     create_pounds,
@@ -260,3 +262,109 @@ def test_create_headgear_data():
     )
 
     pd.testing.assert_frame_equal(output_df, expected_df)
+
+
+def test_create_distance_data():
+    input_df = pd.DataFrame(
+        {
+            "race_id": ["1", "1", "1", "2", "2", "2", "3", "3", "3", "3"],
+            "total_distance_beaten": [
+                "",
+                "sht-hd",
+                "3¼",
+                "3",
+                "",
+                "[4¾]",
+                "",
+                "2¼",
+                "[4]",
+                "[dist]",
+            ],
+            "finishing_position": ["1", "2", "3", "2", "1", "3", "1", "2", "3", "4"],
+        }
+    )
+
+    output_df = input_df.pipe(create_distance_beaten_data)
+
+    expected_df = pd.DataFrame(
+        {
+            "race_id": ["1", "1", "1", "2", "2", "2", "3", "3", "3", "3"],
+            "total_distance_beaten": [
+                -0.1,
+                0.1,
+                3.25,
+                3.0,
+                -3.0,
+                4.75,
+                -2.25,
+                2.25,
+                4.0,
+                999.0,
+            ],
+            "finishing_position": ["1", "2", "3", "2", "1", "3", "1", "2", "3", "4"],
+            "total_distance_beaten_str": [
+                "",
+                "sht-hd",
+                "3¼",
+                "3",
+                "",
+                "[4¾]",
+                "",
+                "2¼",
+                "[4]",
+                "[dist]",
+            ],
+        }
+    )
+    pd.testing.assert_frame_equal(output_df, expected_df)
+
+
+def test_convert_horse_type_to_colour_sex():
+
+    input_df = pd.DataFrame(
+        {
+            "horse_type": [
+                "b, g",
+                "b, g",
+                "ch, g",
+                "ch, f",
+                "ch, g",
+                "ch, m",
+                "gr, c",
+                "b, g",
+                "ch, g",
+                "b, g",
+            ],
+        }
+    )
+
+    input_df.pipe(convert_horse_type_to_colour_sex)
+
+    expected_df = pd.DataFrame(
+        {
+            "horse_colour": [
+                "Bay",
+                "Bay",
+                "Chestnut",
+                "Chestnut",
+                "Chestnut",
+                "Chestnut",
+                "Grey",
+                "Bay",
+                "Chestnut",
+                "Bay",
+            ],
+            "horse_sex": [
+                "Gelding",
+                "Gelding",
+                "Gelding",
+                "Filly",
+                "Gelding",
+                "Mare",
+                "Colt",
+                "Gelding",
+                "Gelding",
+                "Gelding",
+            ],
+        }
+    )

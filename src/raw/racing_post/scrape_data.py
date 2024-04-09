@@ -7,16 +7,13 @@ import numpy as np
 import pandas as pd
 import pytz
 from selenium import webdriver
-from selenium.common.exceptions import (
-    ElementClickInterceptedException,
-    TimeoutException,
-)
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from src.raw import DataScrapingTask, run_scraping_task
-from src.raw.webdriver_base import get_headless_driver, get_non_headless_driver
+from src.raw.webdriver_base import get_headless_driver
 from src.utils.logging_config import E, I
 
 
@@ -41,12 +38,8 @@ def wait_for_page_load(driver: webdriver) -> None:
             "Race Time",
         ),
         ("h2.rp-raceTimeCourseName__title", "Race Title"),
-        (
-            "span.rp-raceTimeCourseName_ratingBandAndAgesAllowed",
-            "Rating Band and Ages Allowed",
-        ),
         ("span.rp-raceTimeCourseName_distance", "Distance"),
-        ("span.rp-raceTimeCourseName_condition", "Condition"),
+        ("span.rp-raceTimeCourseName_condition", "Going"),
     ]
     missing_elements = []
     for selector, name in elements:
@@ -55,14 +48,12 @@ def wait_for_page_load(driver: webdriver) -> None:
                 EC.presence_of_element_located((By.CSS_SELECTOR, selector))
             )
         except TimeoutException:
+            E(f"Missing element: {name}")
             missing_elements.append(name)
     if missing_elements:
-        E(f"Missing elements: {', '.join(missing_elements)}")
-        raise ValueError("Missing elements on the page.")
+        raise ValueError(f"Missing elements: {', '.join(missing_elements)}")
     else:
         I("All elements were found.")
-
-
 
 
 def click_pedigree_button_if_needed(driver):
@@ -75,7 +66,7 @@ def click_pedigree_button_if_needed(driver):
     if not is_clicked:
         driver.execute_script("arguments[0].scrollIntoView(true);", pedigree_button)
         driver.execute_script("arguments[0].click();", pedigree_button)
-    
+
 
 def convert_to_24_hour(time_str: str) -> str:
     """
@@ -410,7 +401,7 @@ def scrape_data(driver, result):
         "span.rp-raceTimeCourseName__time[data-test-selector='text-raceTime']",
     )
     race_title = return_element_text_from_css(driver, "h2.rp-raceTimeCourseName__title")
-    conditions = return_element_text_from_css(
+    conditions = get_optional_element_text(
         driver, "span.rp-raceTimeCourseName_ratingBandAndAgesAllowed"
     )
     race_class = get_optional_element_text(driver, "span.rp-raceTimeCourseName_class")
@@ -535,17 +526,16 @@ def scrape_data(driver, result):
     ]
 
 
-def process_rp_scrape_data(year: int):
+def process_rp_scrape_data():
     task = DataScrapingTask(
         driver=get_headless_driver,
         schema="rp_raw",
         table="performance_data",
         job_name="rp_scrape_data",
         scraper_func=scrape_data,
-        year=year,
     )
     run_scraping_task(task)
 
 
 if __name__ == "__main__":
-    process_rp_scrape_data(sys.argv[1])
+    process_rp_scrape_data()

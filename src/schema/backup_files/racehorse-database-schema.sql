@@ -568,6 +568,7 @@ BEGIN
 		weight_carried,
 		draw,
 		finishing_position,
+		total_distance_beaten,
 		age,
 		official_rating,
 		ts,
@@ -583,10 +584,12 @@ BEGIN
 		race_title,
 		race_time,
 		race_timestamp,
+		race_class,
 		conditions,
 		distance,
 		going,
 		winning_time,
+		horse_type,
 		number_of_runners,
 		total_prize_money,
 		first_place_prize_money,
@@ -658,8 +661,9 @@ joined_data AS (
 		nrr.horse_weight as weight_carried,
 		nrr.draw,
 		COALESCE(nrr.finishing_position, tf.finishing_position) AS finishing_position,
+		nrr.total_distance_beaten,
 		COALESCE(nrr.horse_age, tf.horse_age) AS age,
-		COALESCE(nrr.or_value, tf.official_rating) AS official_rating,
+		COALESCE(nrr.official_rating, tf.official_rating) AS official_rating,
 		nrr.ts_value as ts,
 		nrr.rpr_value as rpr,
 		nrr.horse_price as industry_sp,
@@ -673,10 +677,12 @@ joined_data AS (
 		nrr.race_title as race_title,
 		nrr.race_time as race_time,
 		nrr.race_timestamp as race_timestamp,
+		nrr.race_class as race_class,
 		nrr.conditions as conditions,
 		nrr.distance as distance,
 		nrr.going as going,
 		nrr.winning_time as winning_time,
+		nrr.horse_type as horse_type,
 		nrr.number_of_runners as number_of_runners,
 		nrr.total_prize_money as total_prize_money,
 		nrr.first_place_prize_money,
@@ -714,13 +720,14 @@ joined_data AS (
 	LEFT JOIN jockey j ON nrr.jockey_id::integer = j.rp_id
 	LEFT JOIN owner o ON nrr.owner_id::integer = o.rp_id
     LEFT JOIN tf_raw.performance_data tf ON tf.horse_id = h.tf_id
-		AND tf.jockey_id = j.tf_id
-		AND tf.trainer_id = t.tf_id
-		AND tf.dam_id = d.tf_id
-		AND tf.sire_id = s.tf_id
+-- 		AND tf.jockey_id = j.tf_id
+-- 		AND tf.trainer_id = t.tf_id
+-- 		AND tf.dam_id = d.tf_id
+-- 		AND tf.sire_id = s.tf_id
 		AND tf.course_id = c.tf_id
 		AND tf.race_date = nrr.race_date
-    WHERE tf.unique_id IS NOT NULL
+    WHERE tf.unique_id IS NOT NULL 
+-- 	AND nrr.created_at > (select max(created_at) from staging.joined_performance_data)
 )
 SELECT 	horse_name,
 		horse_age,
@@ -731,6 +738,7 @@ SELECT 	horse_name,
 		weight_carried,
 		draw,
 		finishing_position,
+		total_distance_beaten,
 		age,
 		official_rating,
 		ts,
@@ -746,10 +754,12 @@ SELECT 	horse_name,
 		race_title,
 		race_time,
 		race_timestamp,
+		race_class,
 		conditions,
 		distance,
 		going,
 		winning_time,
+		horse_type,
 		number_of_runners,
 		total_prize_money,
 		first_place_prize_money,
@@ -979,6 +989,68 @@ CREATE TABLE backup.rp_raw_performance_data (
 ALTER TABLE backup.rp_raw_performance_data OWNER TO postgres;
 
 --
+-- Name: rp_raw_performance_data_1; Type: TABLE; Schema: backup; Owner: postgres
+--
+
+CREATE TABLE backup.rp_raw_performance_data_1 (
+    race_timestamp timestamp without time zone,
+    race_date text,
+    horse_name text,
+    course_name text,
+    race_class text,
+    conditions text,
+    race_title text,
+    distance text,
+    distance_full text,
+    going text,
+    number_of_runners text,
+    total_prize_money bigint,
+    first_place_prize_money bigint,
+    winning_time text,
+    horse_type text,
+    horse_age text,
+    or_value text,
+    horse_weight text,
+    draw text,
+    horse_price text,
+    country text,
+    surface text,
+    jockey_name text,
+    jockey_claim text,
+    trainer_name text,
+    owner_name text,
+    finishing_position text,
+    total_distance_beaten text,
+    ts_value text,
+    rpr_value text,
+    extra_weight double precision,
+    headgear text,
+    comment text,
+    sire_name text,
+    dam_name text,
+    dams_sire text,
+    race_time text,
+    course text,
+    currency text,
+    course_id text,
+    sire_id text,
+    dam_id text,
+    dams_sire_id text,
+    trainer_id text,
+    jockey_id text,
+    horse_id text,
+    owner_id text,
+    race_id text,
+    meeting_id text,
+    unique_id text,
+    debug_link text,
+    created_at text
+);
+
+
+ALTER TABLE backup.rp_raw_performance_data_1 OWNER TO postgres;
+
+--
 -- Name: course; Type: TABLE; Schema: public; Owner: doadmin
 --
 
@@ -1066,66 +1138,66 @@ CREATE TABLE public.trainer (
 ALTER TABLE public.trainer OWNER TO doadmin;
 
 --
--- Name: performance_data; Type: TABLE; Schema: rp_raw; Owner: doadmin
+-- Name: performance_data; Type: TABLE; Schema: rp_raw; Owner: postgres
 --
 
 CREATE TABLE rp_raw.performance_data (
     race_timestamp timestamp without time zone,
-    race_date text,
-    horse_name text,
-    course_name text,
-    race_class text,
-    conditions text,
+    race_date character varying(32),
+    course_name character varying(132),
+    race_class character varying(132),
+    horse_name character varying(132),
+    horse_type character varying(16),
+    horse_age character varying(16),
+    headgear character varying(16),
+    conditions character varying(32),
+    horse_price character varying(16),
     race_title text,
-    distance text,
-    distance_full text,
-    going text,
-    number_of_runners text,
-    total_prize_money bigint,
-    first_place_prize_money bigint,
-    winning_time text,
-    horse_type text,
-    horse_age text,
-    or_value text,
-    horse_weight text,
-    draw text,
-    horse_price text,
-    country text,
-    surface text,
-    jockey_name text,
-    jockey_claim text,
-    trainer_name text,
-    owner_name text,
-    finishing_position text,
-    total_distance_beaten text,
-    ts_value text,
-    rpr_value text,
-    extra_weight double precision,
-    headgear text,
+    distance character varying(32),
+    distance_full character varying(32),
+    going character varying(32),
+    number_of_runners character varying(32),
+    total_prize_money integer,
+    first_place_prize_money integer,
+    winning_time character varying(32),
+    official_rating character varying(16),
+    horse_weight character varying(16),
+    draw character varying(16),
+    country character varying(16),
+    surface character varying(16),
+    finishing_position character varying(16),
+    total_distance_beaten character varying(32),
+    ts_value character varying(16),
+    rpr_value character varying(16),
+    extra_weight numeric(10,2),
     comment text,
-    sire_name text,
-    dam_name text,
-    dams_sire text,
-    race_time text,
-    course text,
-    currency text,
-    course_id text,
-    sire_id text,
-    dam_id text,
-    dams_sire_id text,
-    trainer_id text,
-    jockey_id text,
-    horse_id text,
-    owner_id text,
-    race_id text,
-    meeting_id text,
-    unique_id text,
+    race_time character varying(32),
+    currency character varying(16),
+    course character varying(132),
+    jockey_name character varying(132),
+    jockey_claim character varying(16),
+    trainer_name character varying(132),
+    sire_name character varying(132),
+    dam_name character varying(132),
+    dams_sire character varying(132),
+    owner_name character varying(132),
+    horse_id character varying(32),
+    trainer_id character varying(32),
+    jockey_id character varying(32),
+    sire_id character varying(32),
+    dam_id character varying(32),
+    dams_sire_id character varying(32),
+    owner_id character varying(32),
+    race_id character varying(32),
+    course_id character varying(32),
+    meeting_id character varying(132),
+    unique_id character varying(132),
     debug_link text,
-    created_at text
+    created_at timestamp without time zone
 );
 
 
-ALTER TABLE rp_raw.performance_data OWNER TO doadmin;
+ALTER TABLE rp_raw.performance_data OWNER TO postgres;
 
 --
 -- Name: base_formatted_entities; Type: VIEW; Schema: rp_raw; Owner: doadmin
@@ -1133,31 +1205,31 @@ ALTER TABLE rp_raw.performance_data OWNER TO doadmin;
 
 CREATE VIEW rp_raw.base_formatted_entities AS
  SELECT DISTINCT ON (pd.unique_id) pd.horse_name,
-    regexp_replace(lower(regexp_replace(pd.horse_name, '\s*I\s*$'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_horse_name,
+    regexp_replace(lower(regexp_replace((pd.horse_name)::text, '\s*I\s*$'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_horse_name,
     pd.horse_id,
     pd.horse_age,
     pd.jockey_id,
     pd.jockey_name,
-    regexp_replace(lower(regexp_replace(pd.jockey_name, '\s*I\s*$'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
+    regexp_replace(lower(regexp_replace((pd.jockey_name)::text, '\s*I\s*$'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
     pd.trainer_id,
     pd.trainer_name,
-    regexp_replace(lower(regexp_replace(pd.trainer_name, '\s*I\s*$|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
+    regexp_replace(lower(regexp_replace((pd.trainer_name)::text, '\s*I\s*$|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
         CASE
-            WHEN (pd.finishing_position ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
+            WHEN ((pd.finishing_position)::text ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
             ELSE NULL::numeric
         END AS converted_finishing_position,
     pd.sire_name,
-    regexp_replace(lower(regexp_replace(pd.sire_name, '\s*I\s*$'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_sire_name,
+    regexp_replace(lower(regexp_replace((pd.sire_name)::text, '\s*I\s*$'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_sire_name,
     pd.sire_id,
     pd.dam_name,
-    regexp_replace(lower(regexp_replace(pd.dam_name, '\s*I\s*$|\s*\d+[A-Za-z]*'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_dam_name,
+    regexp_replace(lower(regexp_replace((pd.dam_name)::text, '\s*I\s*$|\s*\d+[A-Za-z]*'::text, ''::text, 'gi'::text)), '[\s]+'::text, ''::text, 'g'::text) AS filtered_dam_name,
     pd.dam_id,
     pd.race_timestamp,
     c.id AS course_id,
     pd.unique_id,
     (pd.race_timestamp)::date AS race_date
    FROM (rp_raw.performance_data pd
-     LEFT JOIN public.course c ON ((pd.course_id = (c.rp_id)::text)))
+     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.rp_id)::text)))
   WHERE (pd.race_timestamp > (now() - '5 years'::interval));
 
 
@@ -1193,7 +1265,7 @@ CREATE VIEW rp_raw.unmatched_dams AS
     d.name,
     d.tf_id
    FROM (rp_raw.base_formatted_entities be
-     LEFT JOIN public.dam d ON ((be.dam_id = (d.rp_id)::text)))
+     LEFT JOIN public.dam d ON (((be.dam_id)::text = (d.rp_id)::text)))
   WHERE (d.rp_id IS NULL);
 
 
@@ -1229,7 +1301,7 @@ CREATE VIEW rp_raw.unmatched_horses AS
     h.name,
     h.tf_id
    FROM (rp_raw.base_formatted_entities be
-     LEFT JOIN public.horse h ON ((be.horse_id = (h.rp_id)::text)))
+     LEFT JOIN public.horse h ON (((be.horse_id)::text = (h.rp_id)::text)))
   WHERE (h.rp_id IS NULL);
 
 
@@ -1265,7 +1337,7 @@ CREATE VIEW rp_raw.unmatched_jockeys AS
     j.name,
     j.tf_id
    FROM (rp_raw.base_formatted_entities be
-     LEFT JOIN public.jockey j ON ((be.jockey_id = (j.rp_id)::text)))
+     LEFT JOIN public.jockey j ON (((be.jockey_id)::text = (j.rp_id)::text)))
   WHERE (j.rp_id IS NULL);
 
 
@@ -1301,7 +1373,7 @@ CREATE VIEW rp_raw.unmatched_sires AS
     s.name,
     s.tf_id
    FROM (rp_raw.base_formatted_entities be
-     LEFT JOIN public.sire s ON ((be.sire_id = (s.rp_id)::text)))
+     LEFT JOIN public.sire s ON (((be.sire_id)::text = (s.rp_id)::text)))
   WHERE (s.rp_id IS NULL);
 
 
@@ -1337,7 +1409,7 @@ CREATE VIEW rp_raw.unmatched_trainers AS
     t.name,
     t.tf_id
    FROM (rp_raw.base_formatted_entities be
-     LEFT JOIN public.trainer t ON ((be.trainer_id = (t.rp_id)::text)))
+     LEFT JOIN public.trainer t ON (((be.trainer_id)::text = (t.rp_id)::text)))
   WHERE (t.rp_id IS NULL);
 
 
@@ -1669,7 +1741,7 @@ CREATE VIEW metrics.record_count_differences_vw AS
             count(DISTINCT pd.unique_id) AS num_records,
             c.id AS course_id
            FROM (rp_raw.performance_data pd
-             LEFT JOIN public.course c ON ((pd.course_id = (c.rp_id)::text)))
+             LEFT JOIN public.course c ON (((pd.course_id)::text = (c.rp_id)::text)))
           GROUP BY c.name, pd.race_date, c.id
         ), tf_course_counts AS (
          SELECT c.name AS course_name,
@@ -1681,13 +1753,13 @@ CREATE VIEW metrics.record_count_differences_vw AS
           GROUP BY c.name, pd.race_date, c.id
         )
  SELECT COALESCE(rp.course_name, tf.course_name) AS course,
-    COALESCE(rp.race_date, (tf.race_date)::text) AS race_date,
+    COALESCE(rp.race_date, tf.race_date) AS race_date,
     rp.num_records AS rp_num_records,
     tf.num_records AS tf_num_records
    FROM (rp_course_counts rp
-     JOIN tf_course_counts tf ON (((rp.race_date = (tf.race_date)::text) AND ((rp.course_id)::text = (tf.course_id)::text))))
+     JOIN tf_course_counts tf ON ((((rp.race_date)::text = (tf.race_date)::text) AND ((rp.course_id)::text = (tf.course_id)::text))))
   WHERE ((rp.num_records <> tf.num_records) OR (rp.num_records IS NULL) OR (tf.num_records IS NULL))
-  ORDER BY COALESCE(rp.race_date, (tf.race_date)::text) DESC, COALESCE(rp.course_name, tf.course_name), rp.course_id;
+  ORDER BY COALESCE(rp.race_date, tf.race_date) DESC, COALESCE(rp.course_name, tf.course_name), rp.course_id;
 
 
 ALTER VIEW metrics.record_count_differences_vw OWNER TO doadmin;
@@ -1884,6 +1956,7 @@ CREATE TABLE staging.joined_performance_data (
     weight_carried character varying(16),
     draw character varying(16),
     finishing_position character varying(16),
+    total_distance_beaten character varying(16),
     age character varying(16),
     official_rating character varying(16),
     ts character varying(16),
@@ -1899,10 +1972,12 @@ CREATE TABLE staging.joined_performance_data (
     race_title text,
     race_time character varying(32),
     race_timestamp timestamp without time zone,
+    race_class character varying(32),
     conditions character varying(32),
     distance character varying(32),
     going character varying(32),
     winning_time character varying(32),
+    horse_type character varying(32),
     number_of_runners character varying(32),
     total_prize_money integer,
     first_place_prize_money integer,
@@ -1922,10 +1997,10 @@ CREATE TABLE staging.joined_performance_data (
     meeting_id character varying(132),
     course_id smallint,
     horse_id integer,
-    sire_id smallint,
+    sire_id integer,
     dam_id integer,
-    trainer_id smallint,
-    jockey_id smallint,
+    trainer_id integer,
+    jockey_id integer,
     owner_id integer,
     race_id character varying(32),
     unique_id character varying(132),
@@ -2243,31 +2318,31 @@ ALTER TABLE rp_raw.days_results_links OWNER TO doadmin;
 
 CREATE VIEW rp_raw.formatted_rp_entities AS
  SELECT DISTINCT ON (pd.unique_id) pd.horse_name,
-    regexp_replace(lower(regexp_replace(pd.horse_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
+    regexp_replace(lower(regexp_replace((pd.horse_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_horse_name,
     pd.horse_id,
     pd.horse_age,
     pd.jockey_id,
     pd.jockey_name,
-    regexp_replace(lower(regexp_replace(pd.jockey_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
+    regexp_replace(lower(regexp_replace((pd.jockey_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_jockey_name,
     pd.trainer_id,
     pd.trainer_name,
-    regexp_replace(lower(regexp_replace(pd.trainer_name, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
+    regexp_replace(lower(regexp_replace((pd.trainer_name)::text, '\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_trainer_name,
         CASE
-            WHEN (pd.finishing_position ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
+            WHEN ((pd.finishing_position)::text ~ '^[0-9]+(\.[0-9]+)?$'::text) THEN (pd.finishing_position)::numeric
             ELSE NULL::numeric
         END AS converted_finishing_position,
     pd.sire_name,
-    regexp_replace(lower(regexp_replace(pd.sire_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
+    regexp_replace(lower(regexp_replace((pd.sire_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_sire_name,
     pd.sire_id,
     pd.dam_name,
-    regexp_replace(lower(regexp_replace(pd.dam_name, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
+    regexp_replace(lower(regexp_replace((pd.dam_name)::text, '\s*\([^)]*\)'::text, ''::text, 'g'::text)), '\s+'::text, ''::text, 'g'::text) AS filtered_dam_name,
     pd.dam_id,
     pd.race_timestamp,
     c.id AS course_id,
     pd.unique_id,
     (pd.race_timestamp)::date AS race_date
    FROM (rp_raw.performance_data pd
-     LEFT JOIN public.course c ON ((pd.course_id = (c.rp_id)::text)))
+     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.rp_id)::text)))
   WHERE (pd.race_timestamp > (now() - '5 years'::interval));
 
 
@@ -2363,7 +2438,7 @@ CREATE VIEW staging.missing_performance_data_vw AS
     rp.owner_id,
     rp.owner_name,
     rp.horse_weight,
-    rp.or_value,
+    rp.official_rating,
     rp.finishing_position,
     rp.total_distance_beaten,
     rp.draw,
@@ -2389,6 +2464,7 @@ CREATE VIEW staging.missing_performance_data_vw AS
     rp.distance_full,
     rp.going,
     rp.winning_time,
+    rp.horse_type,
     rp.number_of_runners,
     rp.total_prize_money,
     rp.first_place_prize_money,
@@ -2402,7 +2478,7 @@ CREATE VIEW staging.missing_performance_data_vw AS
     rp.unique_id,
     rp.meeting_id
    FROM (rp_raw.performance_data rp
-     LEFT JOIN staging.joined_performance_data sjpd ON ((rp.unique_id = (sjpd.unique_id)::text)))
+     LEFT JOIN staging.joined_performance_data sjpd ON (((rp.unique_id)::text = (sjpd.unique_id)::text)))
   WHERE ((sjpd.unique_id IS NULL) AND (rp.race_timestamp <> '2018-12-02 15:05:00'::timestamp without time zone) AND (rp.race_timestamp > '2010-01-01 00:00:00'::timestamp without time zone));
 
 
@@ -2443,6 +2519,7 @@ CREATE TABLE staging.transformed_performance_data (
     race_date date,
     horse_name character varying(132),
     age integer,
+    horse_sex character varying(32),
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -2450,6 +2527,7 @@ CREATE TABLE staging.transformed_performance_data (
     extra_weight smallint,
     jockey_claim smallint,
     finishing_position character varying(6),
+    total_distance_beaten numeric(6,2),
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -2782,6 +2860,14 @@ ALTER TABLE ONLY staging.transformed_race_data
 
 
 --
+-- Name: joined_performance_data unique_id_stg_jnd; Type: CONSTRAINT; Schema: staging; Owner: doadmin
+--
+
+ALTER TABLE ONLY staging.joined_performance_data
+    ADD CONSTRAINT unique_id_stg_jnd UNIQUE (unique_id);
+
+
+--
 -- Name: transformed_performance_data unique_id_stg_tns; Type: CONSTRAINT; Schema: staging; Owner: doadmin
 --
 
@@ -2997,62 +3083,6 @@ CREATE INDEX idx_trainer_id ON public.trainer USING btree (rp_id);
 --
 
 CREATE INDEX idx_trainer_name ON public.trainer USING btree (name);
-
-
---
--- Name: idx_rp_raw_performance_data_course_id; Type: INDEX; Schema: rp_raw; Owner: doadmin
---
-
-CREATE INDEX idx_rp_raw_performance_data_course_id ON rp_raw.performance_data USING btree (course_id);
-
-
---
--- Name: idx_rp_raw_performance_data_dam_id; Type: INDEX; Schema: rp_raw; Owner: doadmin
---
-
-CREATE INDEX idx_rp_raw_performance_data_dam_id ON rp_raw.performance_data USING btree (dam_id);
-
-
---
--- Name: idx_rp_raw_performance_data_horse_id; Type: INDEX; Schema: rp_raw; Owner: doadmin
---
-
-CREATE INDEX idx_rp_raw_performance_data_horse_id ON rp_raw.performance_data USING btree (horse_id);
-
-
---
--- Name: idx_rp_raw_performance_data_jockey_id; Type: INDEX; Schema: rp_raw; Owner: doadmin
---
-
-CREATE INDEX idx_rp_raw_performance_data_jockey_id ON rp_raw.performance_data USING btree (jockey_id);
-
-
---
--- Name: idx_rp_raw_performance_data_race_date_course_id; Type: INDEX; Schema: rp_raw; Owner: doadmin
---
-
-CREATE INDEX idx_rp_raw_performance_data_race_date_course_id ON rp_raw.performance_data USING btree (race_date, course_id);
-
-
---
--- Name: idx_rp_raw_performance_data_sire_id; Type: INDEX; Schema: rp_raw; Owner: doadmin
---
-
-CREATE INDEX idx_rp_raw_performance_data_sire_id ON rp_raw.performance_data USING btree (sire_id);
-
-
---
--- Name: idx_rp_raw_performance_data_trainer_id; Type: INDEX; Schema: rp_raw; Owner: doadmin
---
-
-CREATE INDEX idx_rp_raw_performance_data_trainer_id ON rp_raw.performance_data USING btree (trainer_id);
-
-
---
--- Name: idx_rp_raw_performance_data_unique_id; Type: INDEX; Schema: rp_raw; Owner: doadmin
---
-
-CREATE INDEX idx_rp_raw_performance_data_unique_id ON rp_raw.performance_data USING btree (unique_id);
 
 
 --

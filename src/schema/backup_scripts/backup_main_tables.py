@@ -2,11 +2,15 @@ import itertools
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
+import subprocess
+
+import pandas as pd
 
 from src.storage.s3_bucket import DigitalOceanSpacesHandler
 from src.storage.sql_db import fetch_data
 from src.utils.logging_config import I
 
+RUNNING_TIME = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
 def fetch_entity_data(table: str):
     return fetch_data(
@@ -23,7 +27,7 @@ def upload_entity_data(
     I(f"Fetching data for public.{table}")
     df = fetch_entity_data(table)  # Fetch data
     if not df.empty:
-        folder = f"snapshots/public/{table}"
+        folder = f"snapshots/{RUNNING_TIME}/public/{table}"
         file_name = "entity_data_chunk.parquet"
         object_path = f"{folder}/{file_name}"
         I(f"Uploading data to {object_path}")
@@ -52,7 +56,7 @@ def upload_performance_data(
     I(f"Fetching data for {schema}.{table} for year {year}")
     df = fetch_performance_data(schema, table, year)  # Fetch data
     if not df.empty:
-        folder = f"snapshots/{schema}/{table}/{year}"
+        folder = f"snapshots/{RUNNING_TIME}/{schema}/{table}/{year}"
         file_name = "performance_data_chunk.parquet"
         object_path = f"{folder}/{file_name}"
         I(f"Uploading data to {object_path}")
@@ -68,11 +72,25 @@ def upload_performance_data(
 
 
 if __name__ == "__main__":
+    subprocess.run(
+        [
+            "pg_dump",
+            "-h",
+            os.environ["PG_DB_HOST"],
+            "-U",
+            os.environ["PG_DB_USER"],
+            "-s",
+            "-f",
+            os.environ["BACKUP_SCHEMA_FILE"],
+            os.environ["PG_DB_NAME"],
+        ]
+    )
 
     d = DigitalOceanSpacesHandler(
         access_key_id=os.environ["DIGITAL_OCEAN_SPACES_ACCESS_KEY_ID"],
         secret_access_key=os.environ["DIGITAL_OCEAN_SPACES_SECRET_ACCESS_KEY"],
     )
+    d.upload_sql_file(os.environ["BACKUP_SCHEMA_FILE"], f"snapshots/{RUNNING_TIME}/racehorse-database-schema.sql")
     table_schema_pairs = [
         ("rp_raw", "performance_data"),
         ("tf_raw", "performance_data"),

@@ -173,7 +173,7 @@ def convert_headgear(e: str) -> str:
     headgear_mapping = {
         "b": "blinkers",
         "t": "tongue tie",
-        "p": "cheekpieces",  # Use 'p' as the sole code for cheekpieces
+        "p": "cheekpieces",
         "v": "visor",
         "h": "hood",
         "e/s": "eye shield",
@@ -198,6 +198,128 @@ def convert_headgear(e: str) -> str:
     if not headgear and e:
         raise ValueError(f"Unknown headgear code: {e}")
     return ", ".join(headgear)
+
+
+def convert_distance_to_float(distance_str):
+    text_code_to_numeric = {
+        "dht": 0,
+        "nse": 0.01,
+        "shd": 0.1,
+        "sht-hd": 0.1,
+        "hd": 0.2,
+        "sht-nk": 0.3,
+        "snk": 0.3,
+        "nk": 0.6,
+        "dist": 999,
+    }
+
+    clean_str = distance_str.strip("[]")
+
+    if clean_str in text_code_to_numeric:
+        return text_code_to_numeric[clean_str]
+
+    if not clean_str:
+        return 0.0
+
+    match = re.match(r"(\d+)?(?:\s*)?([½¼¾⅓⅔⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞])?", clean_str)
+    whole_number, fraction = match[1], match[2]
+
+    whole_number_part = float(whole_number) if whole_number else 0.0
+
+    fraction_to_decimal = {
+        "½": 0.5,
+        "⅓": 0.33,
+        "⅔": 0.66,
+        "¼": 0.25,
+        "¾": 0.75,
+        "⅕": 0.2,
+        "⅖": 0.4,
+        "⅗": 0.6,
+        "⅘": 0.8,
+        "⅙": 0.167,
+        "⅚": 0.833,
+        "⅛": 0.125,
+        "⅜": 0.375,
+        "⅝": 0.625,
+        "⅞": 0.875,
+    }
+    fraction_part = fraction_to_decimal.get(fraction, 0.0)
+
+    return whole_number_part + fraction_part
+
+
+def convert_horse_type_to_colour_sex(data: pd.DataFrame) -> pd.DataFrame:
+
+    # Mapping for horse colours
+    colour_map = {
+        "b": "Bay",
+        "ch": "Chestnut",
+        "bb": "Blood Bay",
+        "bl": "Blue",
+        "br": "Brown",
+        "gr": "Grey",
+        "rg": "Roan",
+        "ro": "Roan",
+        "bg": "Bay",
+        "gb": "Grey Bay",
+        "bz": "Bronze",
+        "bk": "Black",
+        "sk": "Skewbald",
+        "wh": "White",
+    }
+
+    # Mapping for horse sex
+    sex_map = {
+        "c": "Colt",
+        "f": "Filly",
+        "g": "Gelding",
+        "h": "Horse",
+        "m": "Mare",
+        "r": "Ridgling",
+    }
+
+    data = data.assign(
+        horse_colour=data["horse_type"]
+        .str.split(",")
+        .str.get(0)
+        .str.strip()
+        .map(colour_map),
+        horse_sex=data["horse_type"].str.split(",").str.get(1).str.strip().map(sex_map),
+    ).drop(columns=["horse_type"])
+
+    return data
+
+
+def adjust_distances(group):
+    if "2" in group["finishing_position"].values:
+        second_place_distance = group.loc[
+            group["finishing_position"] == "2", "total_distance_beaten"
+        ].iloc[0]
+        group.loc[group["finishing_position"] == "1", "total_distance_beaten"] = (
+            -second_place_distance
+        )
+    return group
+
+
+def create_distance_beaten_data(data: pd.DataFrame) -> pd.DataFrame:
+    data = data.assign(
+        total_distance_beaten_str=data["total_distance_beaten"],
+        total_distance_beaten=data["total_distance_beaten"].apply(
+            convert_distance_to_float
+        ),
+    )
+    return data.groupby("race_id").apply(adjust_distances).reset_index(drop=True)
+
+
+def clean_race_class_field(data: pd.DataFrame) -> pd.DataFrame:
+    data["race_class"] = (
+        data["race_class"]
+        .str.replace("(Class", "")
+        .str.replace(")", "")
+        .str.strip()
+        .astype("Int64")
+    )
+    return data
 
 
 def create_distance_data(data: pd.DataFrame) -> pd.DataFrame:
@@ -245,6 +367,9 @@ def process_data(
         .pipe(create_time_data)
         .pipe(create_headgear_data)
         .pipe(convert_tf_rating)
+        .pipe(clean_race_class_field)
+        .pipe(create_distance_beaten_data)
+        .pipe(convert_horse_type_to_colour_sex)
     )
     transformed_data = data.pipe(convert_data, transform_data_model)
     race_data = data.pipe(convert_data, race_data_model)

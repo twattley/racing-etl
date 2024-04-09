@@ -15,6 +15,7 @@ class TransformedDataModel(BaseDataModel):
     race_date: date
     horse_name: str
     age: int
+    horse_sex: str
     draw: int
     headgear: str
     weight_carried: str
@@ -22,6 +23,7 @@ class TransformedDataModel(BaseDataModel):
     extra_weight: int
     jockey_claim: str
     finishing_position: str
+    total_distance_beaten: float
     industry_sp: str
     betfair_win_sp: float
     betfair_place_sp: float
