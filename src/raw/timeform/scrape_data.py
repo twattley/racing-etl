@@ -5,6 +5,7 @@ from datetime import datetime
 import pandas as pd
 from selenium.webdriver.common.by import By
 
+from src.data_models.raw.timeform_model import TimeformDataModel
 from src.raw import DataScrapingTask, run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
 
@@ -288,6 +289,8 @@ def process_tf_scrape_data():
         table="performance_data",
         job_name="tf_scrape_data",
         scraper_func=scrape_data,
+        data_model=TimeformDataModel,
+        unique_id="unique_id",
     )
     run_scraping_task(task)
 

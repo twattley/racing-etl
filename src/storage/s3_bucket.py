@@ -48,20 +48,22 @@ class DigitalOceanSpacesHandler:
                 f"Failed to upload DataFrame to {self.bucket_name}/{object_path}. Error: {e}"
             )
             return False
-        
+
     def upload_sql_file(self, file_path, object_path):
         """
         Upload a SQL file to DigitalOcean Spaces.
         """
         try:
-            with open(file_path, 'rb') as file:
+            with open(file_path, "rb") as file:
                 self.client.put_object(
                     Bucket=self.bucket_name, Key=object_path, Body=file
                 )
             print(f"SQL file uploaded to {self.bucket_name}/{object_path}.")
             return True
         except Exception as e:
-            print(f"Failed to upload SQL file to {self.bucket_name}/{object_path}. Error: {e}")
+            print(
+                f"Failed to upload SQL file to {self.bucket_name}/{object_path}. Error: {e}"
+            )
             return False
 
     def download_df_from_parquet(self, object_path):

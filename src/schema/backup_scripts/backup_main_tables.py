@@ -1,8 +1,8 @@
 import itertools
 import os
+import subprocess
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
-import subprocess
 
 import pandas as pd
 
@@ -11,6 +11,7 @@ from src.storage.sql_db import fetch_data
 from src.utils.logging_config import I
 
 RUNNING_TIME = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+
 
 def fetch_entity_data(table: str):
     return fetch_data(
@@ -90,7 +91,10 @@ if __name__ == "__main__":
         access_key_id=os.environ["DIGITAL_OCEAN_SPACES_ACCESS_KEY_ID"],
         secret_access_key=os.environ["DIGITAL_OCEAN_SPACES_SECRET_ACCESS_KEY"],
     )
-    d.upload_sql_file(os.environ["BACKUP_SCHEMA_FILE"], f"snapshots/{RUNNING_TIME}/racehorse-database-schema.sql")
+    d.upload_sql_file(
+        os.environ["BACKUP_SCHEMA_FILE"],
+        f"snapshots/{RUNNING_TIME}/racehorse-database-schema.sql",
+    )
     table_schema_pairs = [
         ("rp_raw", "performance_data"),
         ("tf_raw", "performance_data"),

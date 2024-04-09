@@ -4,12 +4,15 @@ from dataclasses import fields
 import numpy as np
 import pandas as pd
 
+from src.data_models.base.base_model import convert_and_validate_data
+from src.data_models.transform.race_model import RaceDataModel
+from src.data_models.transform.transformed_model import TransformedDataModel
 from src.storage.sql_db import call_procedure, fetch_data, store_data
-from src.transform.data_model import RaceDataModel, TransformedDataModel, convert_data
 from src.utils.logging_config import I, W
 
 
 def map_race_time_column(data: pd.DataFrame) -> pd.DataFrame:
+    I("Mapping race time column")
     data = data.rename(
         columns={"race_time": "race_time_original", "race_timestamp": "race_time"}
     )
@@ -48,6 +51,7 @@ def process_time_strings(s: str) -> tuple[float, str, float]:
 
 
 def create_pounds(data: pd.DataFrame) -> pd.DataFrame:
+    I("Creating pounds")
     data["weight_carried_st"] = (
         data["weight_carried"]
         .str.split("-")
@@ -81,6 +85,7 @@ def get_tf_rating_view(rating: str) -> str:
 
 
 def get_tf_rating_values(data: pd.DataFrame) -> pd.DataFrame:
+    I("Getting tf rating values")
     data["tfr_view"] = data["tfr"].apply(get_tf_rating_view)
     return data
 
@@ -101,6 +106,7 @@ def get_surface_type(rating: str) -> str:
 
 
 def get_surfaces_from_tf_rating(data: pd.DataFrame) -> pd.DataFrame:
+    I("Getting surfaces from tf rating")
     data["surface"] = data["tfr"].apply(get_surface_type)
     return data
 
@@ -156,7 +162,28 @@ def convert_distances(distance: str) -> tuple:
     return total_yards, round(total_meters, 2), round(total_kilometers, 2)
 
 
+def convert_distances_full(distance: str) -> tuple:
+    if pd.isna(distance) or not distance:
+        return np.nan, np.nan, np.nan
+    miles_to_yards = 1760
+    furlongs_to_yards = 220
+    yards_to_meters = 0.9144
+    numbers = [int(i) for i in re.sub(r"[^\d]", " ", distance).split(" ") if i]
+    if len(numbers) == 3:
+        m, f, y = numbers
+    else:
+        f, y = numbers
+        m = 0
+
+    total_yards = m * miles_to_yards + f * furlongs_to_yards + y
+    total_meters = total_yards * yards_to_meters
+    total_kilometers = total_meters / 1000
+
+    return total_yards, round(total_meters, 2), round(total_kilometers, 2)
+
+
 def get_inplay_high_and_low(df: pd.DataFrame) -> pd.DataFrame:
+    I("Getting inplay high and low")
     return df.assign(
         in_play_low=pd.to_numeric(
             df["in_play_prices"].str.split("/").str.get(1), errors="coerce"
@@ -249,8 +276,7 @@ def convert_distance_to_float(distance_str):
 
 
 def convert_horse_type_to_colour_sex(data: pd.DataFrame) -> pd.DataFrame:
-
-    # Mapping for horse colours
+    I("Converting horse type to colour and sex")
     colour_map = {
         "b": "Bay",
         "ch": "Chestnut",
@@ -267,8 +293,6 @@ def convert_horse_type_to_colour_sex(data: pd.DataFrame) -> pd.DataFrame:
         "sk": "Skewbald",
         "wh": "White",
     }
-
-    # Mapping for horse sex
     sex_map = {
         "c": "Colt",
         "f": "Filly",
@@ -290,28 +314,23 @@ def convert_horse_type_to_colour_sex(data: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
-def adjust_distances(group):
-    if "2" in group["finishing_position"].values:
-        second_place_distance = group.loc[
-            group["finishing_position"] == "2", "total_distance_beaten"
-        ].iloc[0]
-        group.loc[group["finishing_position"] == "1", "total_distance_beaten"] = (
-            -second_place_distance
-        )
-    return group
+# def create_distance_beaten_data(data: pd.DataFrame) -> pd.DataFrame:
+#     I("Creating distance beaten data")
+#     data = data.assign(
+#         total_distance_beaten_str=data["total_distance_beaten"],
+#         total_distance_beaten=data["total_distance_beaten"].apply(
+#             convert_distance_to_float
+#         ),
+#     )
+#     second_place_mapping = data[data['finishing_position'] == '2'].set_index('race_id')['total_distance_beaten']
+#     condition = data['finishing_position'] == '1'
+#     data.loc[condition, 'total_distance_beaten'] = data[condition]['race_id'].map(second_place_mapping) * -1
 
-
-def create_distance_beaten_data(data: pd.DataFrame) -> pd.DataFrame:
-    data = data.assign(
-        total_distance_beaten_str=data["total_distance_beaten"],
-        total_distance_beaten=data["total_distance_beaten"].apply(
-            convert_distance_to_float
-        ),
-    )
-    return data.groupby("race_id").apply(adjust_distances).reset_index(drop=True)
+#     return data
 
 
 def clean_race_class_field(data: pd.DataFrame) -> pd.DataFrame:
+    I("Cleaning race class field")
     data["race_class"] = (
         data["race_class"]
         .str.replace("(Class", "")
@@ -323,13 +342,34 @@ def clean_race_class_field(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def create_distance_data(data: pd.DataFrame) -> pd.DataFrame:
+    I("Creating distance data")
     data[["distance_yards", "distance_meters", "distance_kilometers"]] = data[
         "distance"
     ].apply(lambda x: pd.Series(convert_distances(x)))
+    data[
+        ["distance_yards_full", "distance_meters_full", "distance_kilometers_full"]
+    ] = data["distance_full"].apply(lambda x: pd.Series(convert_distances_full(x)))
+    data = data.assign(
+        distance_yards=lambda x: x["distance_yards_full"].fillna(x["distance_yards"]),
+        distance_meters=lambda x: x["distance_meters_full"].fillna(
+            x["distance_meters"]
+        ),
+        distance_kilometers=lambda x: x["distance_kilometers_full"].fillna(
+            x["distance_kilometers"]
+        ),
+    ).drop(
+        columns=[
+            "distance_full",
+            "distance_yards_full",
+            "distance_meters_full",
+            "distance_kilometers_full",
+        ]
+    )
     return data
 
 
 def create_time_data(data: pd.DataFrame) -> pd.DataFrame:
+    I("Creating time data")
     data[["time_seconds", "relative_to_standard", "relative_time"]] = data[
         "winning_time"
     ].apply(lambda x: pd.Series(process_time_strings(x)))
@@ -337,10 +377,12 @@ def create_time_data(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def convert_tf_rating(data: pd.DataFrame) -> pd.DataFrame:
+    I("Converting tf rating")
     return data.assign(tfr=data["tfr"].str.extract(r"(\d+)").astype("Int64"))
 
 
 def create_headgear_data(data: pd.DataFrame) -> pd.DataFrame:
+    I("Creating headgear data")
     return data.assign(headgear=lambda x: x["headgear"].apply(convert_headgear))
 
 
@@ -368,11 +410,10 @@ def process_data(
         .pipe(create_headgear_data)
         .pipe(convert_tf_rating)
         .pipe(clean_race_class_field)
-        .pipe(create_distance_beaten_data)
         .pipe(convert_horse_type_to_colour_sex)
     )
-    transformed_data = data.pipe(convert_data, transform_data_model)
-    race_data = data.pipe(convert_data, race_data_model)
+    transformed_data = data.pipe(convert_and_validate_data, transform_data_model)
+    race_data = data.pipe(convert_and_validate_data, race_data_model)
 
     transformed_data = transformed_data[
         [field.name for field in fields(transform_data_model)]

@@ -132,17 +132,29 @@ def test_get_inplay_high_and_low():
 
 def test_create_distance_data():
     input_df = pd.DataFrame(
-        {"distance": ["1m1½f", "1m1¼f", "1m1⅛f", "6½f", "6f", "1m1f", "", np.nan]}
+        {
+            "distance": ["1m1½f", "7½f", "1m1⅛f", "6½f", "6f", "1m1f", "", np.nan],
+            "distance_full": [
+                "(1m1f100yds)",
+                "(7f92yds)",
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+            ],
+        }
     )
 
     output_df = input_df.pipe(create_distance_data)
 
     expected_df = pd.DataFrame(
         {
-            "distance": ["1m1½f", "1m1¼f", "1m1⅛f", "6½f", "6f", "1m1f", "", np.nan],
+            "distance": ["1m1½f", "7½f", "1m1⅛f", "6½f", "6f", "1m1f", "", np.nan],
             "distance_yards": [
-                2090.0,
-                2035.0,
+                2080.0,
+                1632.0,
                 2007.5,
                 1430.0,
                 1320.0,
@@ -151,8 +163,8 @@ def test_create_distance_data():
                 np.nan,
             ],
             "distance_meters": [
-                1911.1,
-                1860.8,
+                1901.95,
+                1492.3,
                 1835.66,
                 1307.59,
                 1207.01,
@@ -160,7 +172,7 @@ def test_create_distance_data():
                 np.nan,
                 np.nan,
             ],
-            "distance_kilometers": [1.91, 1.86, 1.84, 1.31, 1.21, 1.81, np.nan, np.nan],
+            "distance_kilometers": [1.9, 1.49, 1.84, 1.31, 1.21, 1.81, np.nan, np.nan],
         }
     )
     pd.testing.assert_frame_equal(output_df, expected_df)

@@ -1,6 +1,5 @@
 import hashlib
 import re
-import sys
 from datetime import datetime
 
 import numpy as np
@@ -12,6 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+from src.data_models.raw.racing_post_model import RacingPostDataModel
 from src.raw import DataScrapingTask, run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
 from src.utils.logging_config import E, I
@@ -52,8 +52,6 @@ def wait_for_page_load(driver: webdriver) -> None:
             missing_elements.append(name)
     if missing_elements:
         raise ValueError(f"Missing elements: {', '.join(missing_elements)}")
-    else:
-        I("All elements were found.")
 
 
 def click_pedigree_button_if_needed(driver):
@@ -533,6 +531,8 @@ def process_rp_scrape_data():
         table="performance_data",
         job_name="rp_scrape_data",
         scraper_func=scrape_data,
+        data_model=RacingPostDataModel,
+        unique_id="unique_id",
     )
     run_scraping_task(task)
 

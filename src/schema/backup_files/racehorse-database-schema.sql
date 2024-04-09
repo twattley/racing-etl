@@ -587,6 +587,7 @@ BEGIN
 		race_class,
 		conditions,
 		distance,
+		distance_full,
 		going,
 		winning_time,
 		horse_type,
@@ -680,6 +681,7 @@ joined_data AS (
 		nrr.race_class as race_class,
 		nrr.conditions as conditions,
 		nrr.distance as distance,
+		nrr.distance_full as distance_full,
 		nrr.going as going,
 		nrr.winning_time as winning_time,
 		nrr.horse_type as horse_type,
@@ -720,10 +722,10 @@ joined_data AS (
 	LEFT JOIN jockey j ON nrr.jockey_id::integer = j.rp_id
 	LEFT JOIN owner o ON nrr.owner_id::integer = o.rp_id
     LEFT JOIN tf_raw.performance_data tf ON tf.horse_id = h.tf_id
--- 		AND tf.jockey_id = j.tf_id
--- 		AND tf.trainer_id = t.tf_id
--- 		AND tf.dam_id = d.tf_id
--- 		AND tf.sire_id = s.tf_id
+		AND tf.jockey_id = j.tf_id
+		AND tf.trainer_id = t.tf_id
+		AND tf.dam_id = d.tf_id
+		AND tf.sire_id = s.tf_id
 		AND tf.course_id = c.tf_id
 		AND tf.race_date = nrr.race_date
     WHERE tf.unique_id IS NOT NULL 
@@ -757,6 +759,7 @@ SELECT 	horse_name,
 		race_class,
 		conditions,
 		distance,
+		distance_full,
 		going,
 		winning_time,
 		horse_type,
@@ -1975,6 +1978,7 @@ CREATE TABLE staging.joined_performance_data (
     race_class character varying(32),
     conditions character varying(32),
     distance character varying(32),
+    distance_full character varying(32),
     going character varying(32),
     winning_time character varying(32),
     horse_type character varying(32),
@@ -2024,6 +2028,7 @@ CREATE VIEW public.missing_performance_data_vw AS
     spd.weight_carried,
     spd.draw,
     spd.finishing_position,
+    spd.total_distance_beaten,
     spd.age,
     spd.official_rating,
     spd.ts,
@@ -2039,10 +2044,13 @@ CREATE VIEW public.missing_performance_data_vw AS
     spd.race_title,
     spd.race_time,
     spd.race_timestamp,
+    spd.race_class,
     spd.conditions,
     spd.distance,
+    spd.distance_full,
     spd.going,
     spd.winning_time,
+    spd.horse_type,
     spd.number_of_runners,
     spd.total_prize_money,
     spd.first_place_prize_money,
@@ -2124,6 +2132,7 @@ CREATE TABLE staging.transformed_race_data (
     race_date date,
     race_title character varying(132),
     race_type character varying(32),
+    race_class smallint,
     distance character varying(16),
     distance_yards numeric(10,2),
     distance_meters numeric(10,2),
@@ -2134,14 +2143,12 @@ CREATE TABLE staging.transformed_race_data (
     hcap_range character varying(32),
     age_range character varying(32),
     surface character varying(32),
-    prize character varying(32),
     total_prize_money integer,
     first_place_prize_money integer,
     winning_time character varying(32),
     time_seconds numeric(10,2),
     relative_time numeric(10,2),
     relative_to_standard character varying(16),
-    course_name character varying(132),
     country character varying(64),
     main_race_comment text,
     meeting_id character varying(132),
@@ -2162,6 +2169,7 @@ CREATE VIEW public.missing_race_data_vw AS
     spd.race_date,
     spd.race_title,
     spd.race_type,
+    spd.race_class,
     spd.distance,
     spd.distance_yards,
     spd.distance_meters,
@@ -2172,14 +2180,12 @@ CREATE VIEW public.missing_race_data_vw AS
     spd.hcap_range,
     spd.age_range,
     spd.surface,
-    spd.prize,
     spd.total_prize_money,
     spd.first_place_prize_money,
     spd.winning_time,
     spd.time_seconds,
     spd.relative_time,
     spd.relative_to_standard,
-    spd.course_name,
     spd.country,
     spd.main_race_comment,
     spd.meeting_id,
@@ -2857,14 +2863,6 @@ ALTER TABLE ONLY public.performance_data
 
 ALTER TABLE ONLY staging.transformed_race_data
     ADD CONSTRAINT race_id_stg_tns UNIQUE (race_id);
-
-
---
--- Name: joined_performance_data unique_id_stg_jnd; Type: CONSTRAINT; Schema: staging; Owner: doadmin
---
-
-ALTER TABLE ONLY staging.joined_performance_data
-    ADD CONSTRAINT unique_id_stg_jnd UNIQUE (unique_id);
 
 
 --
