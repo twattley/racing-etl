@@ -21,6 +21,7 @@ simple_pass = [
                     "Horse D",
                     "Horse E",
                 ],
+                "horse_type": ["br, m", "b, g", "ch, c", "b, m", "bl, f"],
                 "horse_age": ["3", "4", "5", "6", "7"],
                 "jockey_id": ["1", "2", "3", "4", "5"],
                 "jockey_name": [
@@ -48,8 +49,9 @@ simple_pass = [
                     "Owner E",
                 ],
                 "horse_weight": ["10-0", "10-5", "10-10", "11-0", "11-5"],
-                "or_value": ["45", "50", "55", "60", "65"],
+                "official_rating": ["45", "50", "55", "60", "65"],
                 "finishing_position": ["1", "2", "3", "4", "5"],
+                "total_distance_beaten": ["", "sht-hd", "3¼", "[4¾]", "[dist]"],
                 "draw": ["1", "2", "3", "4", "5"],
                 "ts_value": ["40", "45", "50", "55", "60"],
                 "rpr_value": ["40", "45", "50", "55", "60"],
@@ -110,7 +112,14 @@ simple_pass = [
                     TEST_DATETIME + timedelta(hours=12),
                 ],
                 "conditions": ["(4yo+)", "(4yo+)", "(4yo+)", "(4yo+)", "(4yo+)"],
-                "distance": ["2m3f", "2m3f", "2m3f", "2m3f", "2m3f"],
+                "distance": ["1m1½f", "7½f", "1m1½f", "7½f", "1m1½f"],
+                "distance_full": [
+                    "(1m1f100yds)",
+                    "(7f92yds)",
+                    "(1m1f100yds)",
+                    np.nan,
+                    np.nan,
+                ],
                 "going": [
                     "Yielding To Soft",
                     "Yielding To Soft",
@@ -138,6 +147,13 @@ simple_pass = [
                     "rp-course-e",
                 ],
                 "course": ["course-a", "course-b", "course-c", "course-d", "course-e"],
+                "race_class": [
+                    "(Class 1)",
+                    "(Class 2)",
+                    "(Class 3)",
+                    "(Class 4)",
+                    np.nan,
+                ],
                 "debug_link": [
                     "https://www.racingpost.com/results/some_link",
                     "https://www.racingpost.com/results/some_link",
@@ -299,13 +315,6 @@ simple_pass = [
                     TEST_DATE,
                     TEST_DATE,
                     TEST_DATE,
-                ],
-                "sire_name_link": [
-                    "sire-a",
-                    "sire-b",
-                    "sire-c",
-                    "sire-d",
-                    "sire-e",
                 ],
                 "unique_id": [
                     "1",
@@ -511,6 +520,7 @@ simple_pass_expected_data = pd.DataFrame(
         ],
         "horse_name": ["Horse A", "Horse B", "Horse C", "Horse D", "Horse E"],
         "age": [3, 4, 5, 6, 7],
+        "horse_sex": ["Mare", "Gelding", "Colt", "Mare", "Filly"],
         "draw": [1, 2, 3, 4, 5],
         "headgear": [
             "blinkers",
@@ -524,6 +534,7 @@ simple_pass_expected_data = pd.DataFrame(
         "extra_weight": [None, None, None, None, None],
         "jockey_claim": [None, None, None, None, None],
         "finishing_position": ["1", "2", "3", "4", "5"],
+        "total_distance_beaten": [0.0, 0.1, 3.25, 4.75, 999.0],
         "industry_sp": ["2/1", "3/1", "4/1", "5/1", "6/1"],
         "betfair_win_sp": [3.0, 4.0, 5.0, 6.0, 7.0],
         "betfair_place_sp": [2.0, 3.0, 4.0, 5.0, 6.0],

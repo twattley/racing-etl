@@ -19,6 +19,7 @@ class DataScrapingTask:
     job_name: str
     scraper_func: callable
     data_model: BaseDataModel
+    string_fields: dict
     unique_id: str
 
 
@@ -38,8 +39,6 @@ def shuffle_dates(dates):
     return [i.strftime("%Y-%m-%d") for i in dates_list]
 
 
-
-
 def process_scraping_data(task: DataScrapingTask) -> None:
     driver = select_source_driver(task)
     dataframes_list = []
@@ -56,7 +55,9 @@ def process_scraping_data(task: DataScrapingTask) -> None:
             continue
 
     data = pd.concat(dataframes_list)
-    data = data.pipe(convert_and_validate_data, task.data_model, task.unique_id)
+    data = data.pipe(
+        convert_and_validate_data, task.data_model, task.string_fields, task.unique_id
+    )
     store_data(data, task.table, task.schema)
     driver.quit()
 
@@ -89,6 +90,9 @@ def process_scraping_result_links(task: LinkScrapingTask) -> None:
         except Exception as e:
             I(f"An error occurred: {e}. Continuing to next date.")
             continue
+
+    driver.quit()
+    I("Scrape_links.py execution completed.")
 
 
 def run_scraping_task(task):

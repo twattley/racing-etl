@@ -44,3 +44,40 @@ class TimeformDataModel:
     debug_link: str
     created_at: datetime
     unique_id: str
+
+
+table_string_field_lengths = {
+    "tf_rating": 16,
+    "tf_speed_figure": 16,
+    "draw": 16,
+    "trainer_name": 132,
+    "trainer_id": 32,
+    "jockey_name": 132,
+    "jockey_id": 32,
+    "sire_name": 132,
+    "sire_id": 32,
+    "dam_name": 132,
+    "dam_id": 32,
+    "finishing_position": 16,
+    "horse_name": 132,
+    "horse_id": 32,
+    "horse_name_link": 132,
+    "horse_age": 16,
+    "equipment": 16,
+    "official_rating": 16,
+    "fractional_price": 64,
+    "betfair_win_sp": 16,
+    "betfair_place_sp": 16,
+    "in_play_prices": 16,
+    "race_date": 32,
+    "race_time": 32,
+    "course_id": 32,
+    "race_id": 132,
+    "distance": 32,
+    "going": 16,
+    "prize": 16,
+    "hcap_range": 16,
+    "age_range": 16,
+    "race_type": 16,
+    "unique_id": 132,
+}

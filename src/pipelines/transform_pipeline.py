@@ -1,7 +1,7 @@
+from src.data_models.transform.race_model import RaceDataModel
+from src.data_models.transform.transformed_model import TransformedDataModel
 from src.storage.sql_db import fetch_data, store_data
 from src.transform.transform_data import (
-    RaceDataModel,
-    TransformedDataModel,
     load_transformed_performance_data,
     load_transformed_race_data,
     transform_data,

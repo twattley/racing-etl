@@ -1,72 +1,95 @@
-2024-04-01T12:13:16Z - INFO     logging_config.py:19 - Creating a new headless WebDriver for Timeform: False
-2024-04-01T12:13:16Z - INFO     logging_config.py:19 - Creating a new WebDriver with headless mode set to True
-2024-04-01T12:13:17Z - INFO     logging_config.py:19 - Scrape_links.py execution started.
+2024-04-12T13:23:42Z - INFO     logging_config.py:19 - Creating a new headless WebDriver for Timeform: False
+2024-04-12T13:23:42Z - INFO     logging_config.py:19 - Creating a new WebDriver with headless mode set to True
+2024-04-12T13:23:44Z - INFO     logging_config.py:19 - Clicked on button for date: 2024-04-13
+2024-04-12T13:23:56Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/aintree/2024-04-13/1320/31/1/william-hill-handicap-hurdle
+2024-04-12T13:24:05Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/aintree/2024-04-13/1355/31/2/turners-mersey-novices-hurdle
+2024-04-12T13:24:08Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/aintree/2024-04-13/1430/31/3/william-hill-handicap-chase
+2024-04-12T13:24:13Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/aintree/2024-04-13/1505/31/4/jrl-group-liverpool-hurdle
+2024-04-12T13:24:17Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/aintree/2024-04-13/1600/31/5/randox-grand-national-handicap-chase
+2024-04-12T13:24:27Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/aintree/2024-04-13/1700/31/6/my-pension-expert-maghull-novices-chase
+2024-04-12T13:24:31Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/aintree/2024-04-13/1735/31/7/weatherbys-nhstallionscouk-standard-open-national-hunt-flat
+2024-04-12T13:24:35Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chelmsford-city/2024-04-13/1000/28/1/first-choice-drainage-solutions-maiden-fillies-stakes
+2024-04-12T13:24:36Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chelmsford-city/2024-04-13/1030/28/2/its-never-ordinary-at-bet-365-handicap
+2024-04-12T13:24:41Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chelmsford-city/2024-04-13/1100/28/3/bet-boost-at-bet365-restricted-maiden-stakes
+2024-04-12T13:24:43Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chelmsford-city/2024-04-13/1130/28/4/each-way-extra-at-bet365-handicap
+2024-04-12T13:24:47Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chelmsford-city/2024-04-13/1200/28/5/best-odds-guaranteed-at-bet365-handicap
+2024-04-12T13:24:51Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chelmsford-city/2024-04-13/1230/28/6/download-the-bet365-app-handicap
+2024-04-12T13:24:54Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chelmsford-city/2024-04-13/1305/28/7/6-horses-challenge-at-bet365-handicap
+2024-04-12T13:24:59Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chepstow/2024-04-13/1240/11/1/best-odds-on-welsh-sport-dragonbet-junior-national-hunt-hurdle
+2024-04-12T13:25:01Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chepstow/2024-04-13/1310/11/2/dragonbet-born-from-the-betting-ring-mares-novices-hurdle
+2024-04-12T13:25:03Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chepstow/2024-04-13/1340/11/3/best-odds-guaranteed-with-dragonbet-handicap-hurdle
+2024-04-12T13:25:06Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chepstow/2024-04-13/1415/11/4/dragonbet-the-bookmaker-of-wales-handicap-chase
+2024-04-12T13:25:10Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chepstow/2024-04-13/1450/11/5/dragonbet-8-places-on-the-national-handicap-chase
+2024-04-12T13:25:13Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chepstow/2024-04-13/1532/11/6/bet-20-get-20-with-dragonbet-mares-handicap-hurdle
+2024-04-12T13:25:16Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chepstow/2024-04-13/1640/11/7/on-course-values-online-with-dragonbet-novices-handicap-hurdle
+2024-04-12T13:25:21Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/dundalk/2024-04-13/1620/207/1/irish-stallion-farms-ebf-fillies-maiden
+2024-04-12T13:25:22Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/dundalk/2024-04-13/1650/207/2/dundalk-stadium-gift-vouchers-available-online-handicap
+2024-04-12T13:25:26Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/dundalk/2024-04-13/1720/207/3/book-online-at-dundalkstadiumcom-maiden
+2024-04-12T13:25:27Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/dundalk/2024-04-13/1750/207/4/lucky-dip-has-landed-at-betvictor-fillies-maiden
+2024-04-12T13:25:29Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/dundalk/2024-04-13/1820/207/5/get-best-odds-guaranteed-at-betvictor-handicap
+2024-04-12T13:25:36Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/dundalk/2024-04-13/1850/207/6/get-best-odds-guaranteed-at-betvictor-handicap
+2024-04-12T13:25:42Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/dundalk/2024-04-13/1920/207/7/irish-stallion-farms-ebf-3yo-spring-series-median-auction-fillies-maiden
+2024-04-12T13:25:44Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/dundalk/2024-04-13/1950/207/8/gateway-hotel-dundalk-race--stay-maiden
+2024-04-12T13:25:47Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/newcastle/2024-04-13/1255/35/1/quinnbetcom-conditional-jockeys-training-series-novices-handicap-hurdle
+2024-04-12T13:25:49Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/newcastle/2024-04-13/1330/35/2/free-digital-racecard-at-raceday-readycom-handicap-hurdle
+2024-04-12T13:25:51Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/newcastle/2024-04-13/1405/35/3/newcastle-flooring-company-handicap-chase
+2024-04-12T13:25:54Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/newcastle/2024-04-13/1440/35/4/onethreeone-novices-hurdle
+2024-04-12T13:25:56Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/newcastle/2024-04-13/1525/35/5/acorn-catering-equipment-handicap-hurdle
+2024-04-12T13:26:00Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/newcastle/2024-04-13/1630/35/6/download-the-raceday-ready-app-handicap-chase
+2024-04-12T13:26:03Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/newcastle/2024-04-13/1705/35/7/newcastle-flooring-company-open-national-hunt-flat
+2024-04-12T13:26:04Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-13/1710/58/1/free-digital-racecard-at-raceday-readycom-handicap
+2024-04-12T13:26:08Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-13/1740/58/2/get-the-inside-track-with-raceday-readycom-ebf-maiden-fillies-stakes
+2024-04-12T13:26:10Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-13/1810/58/3/download-the-racecourse-app-raceday-ready-restricted-novice-stakes
+2024-04-12T13:26:13Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-13/1840/58/4/tips-for-every-race-at-raceday-readycom-selling-handicap
+2024-04-12T13:26:16Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-13/1910/58/5/fred-smiths-80th-birthday-celebrations-fillies-handicap
+2024-04-12T13:26:20Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-13/1940/58/6/download-the-racecourse-app-raceday-ready-handicap
+2024-04-12T13:26:22Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-13/2010/58/7/download-the-raceday-ready-app-handicap
+2024-04-12T13:26:25Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/yarmouth/2024-04-13/1540/61/1/bresbet-grand-national-raceday-handicap
+2024-04-12T13:26:30Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/yarmouth/2024-04-13/1625/61/2/great-prices-on-bresbetcom-novice-stakes
+2024-04-12T13:26:33Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/yarmouth/2024-04-13/1655/61/3/bresbet-rewards-loyalty-handicap
+2024-04-12T13:26:39Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/yarmouth/2024-04-13/1730/61/4/download-the-bresbet-app-handicap
+2024-04-12T13:26:44Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/yarmouth/2024-04-13/1800/61/5/follow-bresbet-on-x-handicap
+2024-04-12T13:26:48Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/yarmouth/2024-04-13/1830/61/6/moulton-nurseries-handicap
+2024-04-12T13:26:52Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/yarmouth/2024-04-13/1900/61/7/get-the-inside-track-with-racedayreadycom-handicap
+2024-04-12T13:26:55Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/yarmouth/2024-04-13/1930/61/8/get-the-inside-track-with-racedayreadycom-handicap
+2024-04-12T13:26:59Z - WARNING  logging_config.py:24 - Value of jockey_id that is too long: sign-in?returnUrl=%2Fhorse-racing%2Fracecards%2Fnewcastle%2F2024-04-13%2F1255%2F35%2F1%2Fquinnbetcom-conditional-jockeys-training-series-novices-handicap-hurdle, string length: 160 > 32
+2024-04-12T13:26:59Z - WARNING  logging_config.py:24 - Value of jockey_id that is too long: sign-in?returnUrl=%2Fhorse-racing%2Fracecards%2Fnewcastle%2F2024-04-13%2F1255%2F35%2F1%2Fquinnbetcom-conditional-jockeys-training-series-novices-handicap-hurdle, string length: 160 > 32
+2024-04-12T13:26:59Z - WARNING  logging_config.py:24 - Value of jockey_id that is too long: sign-in?returnUrl=%2Fhorse-racing%2Fracecards%2Fnewcastle%2F2024-04-13%2F1255%2F35%2F1%2Fquinnbetcom-conditional-jockeys-training-series-novices-handicap-hurdle, string length: 160 > 32
+2024-04-12T13:26:59Z - WARNING  logging_config.py:24 - Value of jockey_id that is too long: sign-in?returnUrl=%2Fhorse-racing%2Fracecards%2Fnewcastle%2F2024-04-13%2F1255%2F35%2F1%2Fquinnbetcom-conditional-jockeys-training-series-novices-handicap-hurdle, string length: 160 > 32
+2024-04-12T13:26:59Z - WARNING  logging_config.py:24 - Value of jockey_id that is too long: sign-in?returnUrl=%2Fhorse-racing%2Fracecards%2Fnewcastle%2F2024-04-13%2F1255%2F35%2F1%2Fquinnbetcom-conditional-jockeys-training-series-novices-handicap-hurdle, string length: 160 > 32
+2024-04-12T13:26:59Z - WARNING  logging_config.py:24 - Value of jockey_id that is too long: sign-in?returnUrl=%2Fhorse-racing%2Fracecards%2Fnewcastle%2F2024-04-13%2F1255%2F35%2F1%2Fquinnbetcom-conditional-jockeys-training-series-novices-handicap-hurdle, string length: 160 > 32
+                                           jockey_id  ... miss_trunc
+0  sign-in?returnUrl=%2Fhorse-racing%2Fracecards%...  ...       True
+1  sign-in?returnUrl=%2Fhorse-racing%2Fracecards%...  ...       True
+2  sign-in?returnUrl=%2Fhorse-racing%2Fracecards%...  ...       True
+3  sign-in?returnUrl=%2Fhorse-racing%2Fracecards%...  ...       True
+4  sign-in?returnUrl=%2Fhorse-racing%2Fracecards%...  ...       True
+5  sign-in?returnUrl=%2Fhorse-racing%2Fracecards%...  ...       True
+
+[6 rows x 3 columns]
 Traceback (most recent call last):
   File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/pipelines/daily_pipeline.py", line 13, in <module>
     run_daily_pipeline()
   File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/pipelines/daily_pipeline.py", line 7, in run_daily_pipeline
     run_scraping_pipeline()
-  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/pipelines/scraping_pipeline.py", line 8, in run_scraping_pipeline
-    process_rp_scrape_links()
-  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/raw/racing_post/scrape_links.py", line 33, in process_rp_scrape_links
-    run_scraping_task(task)
-  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/raw/__init__.py", line 118, in run_scraping_task
-    process_scraping_result_links(task)
-  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/raw/__init__.py", line 87, in process_scraping_result_links
-    dates = fetch_data(f"SELECT * FROM {task.schema}.{task.source_table}")
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/storage/sql_db.py", line 68, in fetch_data
-    with storage_connection().begin() as conn:
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/lib/python3.11/contextlib.py", line 137, in __enter__
-    return next(self.gen)
-           ^^^^^^^^^^^^^^
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3233, in begin
-    with self.connect() as conn:
-         ^^^^^^^^^^^^^^
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3269, in connect
-    return self._connection_cls(self)
+  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/pipelines/scraping_pipeline.py", line 37, in run_scraping_pipeline
+    process_tf_scrape_days_data(TOMORROW)
+  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/raw/timeform/scrape_todays_data.py", line 195, in process_tf_scrape_days_data
+    data.pipe(convert_and_validate_data, TimeformDataModel, table_string_field_lengths, "unique_id")
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/pandas/core/generic.py", line 6225, in pipe
+    return common.pipe(self, func, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/pandas/core/common.py", line 500, in pipe
+    return func(obj, *args, **kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 145, in __init__
-    self._dbapi_connection = engine.raw_connection()
-                             ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3293, in raw_connection
-    return self.pool.connect()
-           ^^^^^^^^^^^^^^^^^^^
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 452, in connect
-    return _ConnectionFairy._checkout(self)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 1269, in _checkout
-    fairy = _ConnectionRecord.checkout(pool)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 716, in checkout
-    rec = pool._do_get()
-          ^^^^^^^^^^^^^^
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 169, in _do_get
-    with util.safe_reraise():
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
-    raise exc_value.with_traceback(exc_tb)
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 167, in _do_get
-    return self._create_connection()
-           ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 393, in _create_connection
-    return _ConnectionRecord(self)
-           ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 678, in __init__
-    self.__connect()
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 902, in __connect
-    with util.safe_reraise():
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
-    raise exc_value.with_traceback(exc_tb)
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 898, in __connect
-    self.dbapi_connection = connection = pool._invoke_creator(self)
-                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 645, in connect
-    return dialect.connect(*cargs, **cparams)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 616, in connect
-    return self.loaded_dbapi.connect(*cargs, **cparams)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/psycopg2/__init__.py", line 122, in connect
-    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-KeyboardInterrupt
+  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/data_models/base/base_model.py", line 105, in convert_and_validate_data
+    data.pipe(check_string_field_lengths, string_lengths)
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/pandas/core/generic.py", line 6225, in pipe
+    return common.pipe(self, func, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/pandas/core/common.py", line 500, in pipe
+    return func(obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/data_models/base/base_model.py", line 93, in check_string_field_lengths
+    raise ValueError('Failed value length check')
+ValueError: Failed value length check

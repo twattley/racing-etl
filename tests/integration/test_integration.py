@@ -34,7 +34,7 @@ def test_loads_new_data(load_test_data, fetch_test_data, assert_data_equal):
     assert_data_equal(output_data, new_data_in_raw_expected_data, ["horse_id"])
 
 
-def test_adds_missing_entity(load_test_data, fetch_test_data, assert_data_equal):
+def test_adds_missing_entity(load_test_data, fetch_test_data):
     load_test_data(missing_entity)
     run_matching_pipeline()
     run_transform_pipeline()

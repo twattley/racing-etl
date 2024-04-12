@@ -6,9 +6,16 @@ import pandas as pd
 
 from src.data_models.base.base_model import convert_and_validate_data
 from src.data_models.transform.race_model import RaceDataModel
+from src.data_models.transform.race_model import (
+    table_string_field_lengths as race_string_field_lengths,
+)
 from src.data_models.transform.transformed_model import TransformedDataModel
+from src.data_models.transform.transformed_model import (
+    table_string_field_lengths as transform_string_field_lengths,
+)
 from src.storage.sql_db import call_procedure, fetch_data, store_data
 from src.utils.logging_config import I, W
+from src.utils.processing_utils import execute_stored_procedures
 
 
 def map_race_time_column(data: pd.DataFrame) -> pd.DataFrame:
@@ -239,7 +246,8 @@ def convert_distance_to_float(distance_str):
         "nk": 0.6,
         "dist": 999,
     }
-
+    if pd.isna(distance_str) or not distance_str:
+        return 0.0
     clean_str = distance_str.strip("[]")
 
     if clean_str in text_code_to_numeric:
@@ -314,19 +322,23 @@ def convert_horse_type_to_colour_sex(data: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
-# def create_distance_beaten_data(data: pd.DataFrame) -> pd.DataFrame:
-#     I("Creating distance beaten data")
-#     data = data.assign(
-#         total_distance_beaten_str=data["total_distance_beaten"],
-#         total_distance_beaten=data["total_distance_beaten"].apply(
-#             convert_distance_to_float
-#         ),
-#     )
-#     second_place_mapping = data[data['finishing_position'] == '2'].set_index('race_id')['total_distance_beaten']
-#     condition = data['finishing_position'] == '1'
-#     data.loc[condition, 'total_distance_beaten'] = data[condition]['race_id'].map(second_place_mapping) * -1
+def create_distance_beaten_data(data: pd.DataFrame) -> pd.DataFrame:
+    I("Creating distance beaten data")
+    data = data.assign(
+        total_distance_beaten_str=data["total_distance_beaten"],
+        total_distance_beaten=data["total_distance_beaten"].apply(
+            convert_distance_to_float
+        ),
+    )
+    # second_place_mapping = data[data["finishing_position"] == "2"].set_index("race_id")[
+    #     "total_distance_beaten"
+    # ]
+    # condition = data["finishing_position"] == "1"
+    # data.loc[condition, "total_distance_beaten"] = (
+    #     data[condition]["race_id"].map(second_place_mapping) * -1
+    # )
 
-#     return data
+    return data
 
 
 def clean_race_class_field(data: pd.DataFrame) -> pd.DataFrame:
@@ -411,9 +423,17 @@ def process_data(
         .pipe(convert_tf_rating)
         .pipe(clean_race_class_field)
         .pipe(convert_horse_type_to_colour_sex)
+        .pipe(create_distance_beaten_data)
     )
-    transformed_data = data.pipe(convert_and_validate_data, transform_data_model)
-    race_data = data.pipe(convert_and_validate_data, race_data_model)
+    transformed_data = data.pipe(
+        convert_and_validate_data,
+        transform_data_model,
+        transform_string_field_lengths,
+        "unique_id",
+    )
+    race_data = data.pipe(
+        convert_and_validate_data, race_data_model, race_string_field_lengths, "race_id"
+    )
 
     transformed_data = transformed_data[
         [field.name for field in fields(transform_data_model)]
@@ -484,3 +504,8 @@ if __name__ == "__main__":
         rejected_data, "transformed_performance_data_rejected", "staging", truncate=True
     )
     store_data(race_data, "transformed_race_data", "staging", truncate=True)
+
+    execute_stored_procedures(
+        load_transformed_performance_data,
+        load_transformed_race_data,
+    )

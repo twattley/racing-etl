@@ -6,24 +6,11 @@ import pandas as pd
 from selenium.webdriver.common.by import By
 
 from src.data_models.raw.timeform_model import TimeformDataModel
+from src.data_models.raw.timeform_model import (
+    table_string_field_lengths as tf_string_field_lengths,
+)
 from src.raw import DataScrapingTask, run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
-
-
-def print_dataframe_for_testing(df):
-
-    print("pd.DataFrame({")
-
-    for col in df.columns:
-        value = df[col].iloc[0]
-        if re.match(r"\d{4}-\d{2}-\d{2}", str(value)):
-            str_test = (
-                "[" + " ".join([f"pd.Timestamp('{x}')," for x in list(df[col])]) + "]"
-            )
-            print(f"'{col}':{str_test},")
-        else:
-            print(f"'{col}':{list(df[col])},")
-    print("})")
 
 
 def get_element_text_by_selector(row, css_selector):
@@ -271,9 +258,7 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
 
         data.append(performance_data)
 
-    data = pd.DataFrame(data)
-
-    return data
+    return pd.DataFrame(data)
 
 
 def scrape_data(driver, link):
@@ -290,6 +275,7 @@ def process_tf_scrape_data():
         job_name="tf_scrape_data",
         scraper_func=scrape_data,
         data_model=TimeformDataModel,
+        string_fields=tf_string_field_lengths,
         unique_id="unique_id",
     )
     run_scraping_task(task)

@@ -16,7 +16,7 @@ class TransformedDataModel:
     extra_weight: int
     jockey_claim: str
     finishing_position: str
-    total_distance_beaten: str
+    total_distance_beaten: float
     industry_sp: str
     betfair_win_sp: float
     betfair_place_sp: float
@@ -39,3 +39,15 @@ class TransformedDataModel:
     dam_id: int
     unique_id: str
     created_at: datetime
+
+
+table_string_field_lengths = {
+    "horse_name": 132,
+    "horse_sex": 32,
+    "headgear": 64,
+    "weight_carried": 16,
+    "finishing_position": 6,
+    "industry_sp": 16,
+    "tfr_view": 16,
+    "unique_id": 132,
+}

@@ -31,3 +31,20 @@ class RaceDataModel:
     race_id: str
     course_id: int
     created_at: datetime
+
+
+table_string_field_lengths = {
+    "race_title": 132,
+    "race_type": 32,
+    "distance": 16,
+    "conditions": 32,
+    "going": 32,
+    "hcap_range": 32,
+    "age_range": 32,
+    "surface": 32,
+    "winning_time": 32,
+    "relative_to_standard": 16,
+    "country": 64,
+    "meeting_id": 132,
+    "race_id": 132,
+}
