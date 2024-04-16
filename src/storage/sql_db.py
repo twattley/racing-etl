@@ -67,11 +67,14 @@ def fetch_data(
 ) -> pd.DataFrame:
     query = sqlalchemy.text(query)
 
+    I(f"Fetching data with query: {query}")
+
     with storage_connection().begin() as conn:
         df = pd.read_sql(
             query,
             conn,
         )
+    I(f"Fetched {len(df)} records from ")
     return df
 
 

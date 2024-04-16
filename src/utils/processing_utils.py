@@ -1,14 +1,21 @@
 import concurrent.futures
 
 
-def execute_stored_procedures(*funcs):
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+def pt(*funcs):
+    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
         futures = [executor.submit(func) for func in funcs]
         for future in concurrent.futures.as_completed(futures):
             future.result()
 
 
-def run_parallel_jobs(*func_args):
+def ptr(*funcs):
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        futures = [executor.submit(func) for func in funcs]
+        results = [future.result() for future in futures]
+    return results
+
+
+def pp(*func_args):
     with concurrent.futures.ProcessPoolExecutor(max_workers=2) as executor:
         for i in range(0, len(func_args), 2):
             futures = [

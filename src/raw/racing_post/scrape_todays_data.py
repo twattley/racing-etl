@@ -111,7 +111,7 @@ def get_race_time(driver: webdriver.Chrome, date: str) -> datetime:
     hours, minutes = time.split(":")
     return {
         "race_timestamp": datetime.strptime(
-            f"{date} {int(hours) + 12}:{minutes}", "%Y-%m-%d %H:%M"
+            f"{date} {int(hours)}:{minutes}", "%Y-%m-%d %H:%M"
         )
     }
 
@@ -303,90 +303,110 @@ def get_horse_data(driver: webdriver.Chrome) -> pd.DataFrame:
     return pd.DataFrame(horse_data)
 
 
-def process_rp_scrape_days_data(date: datetime):
+def get_links(
+    driver: webdriver.Chrome, course_country: pd.DataFrame, date: str
+) -> list[str]:
+    hrefs = [
+        element.get_attribute("href")
+        for element in driver.find_elements(By.XPATH, "//a")
+    ]
+    trimmed_hrefs = []
+    for href in hrefs:
+        if href.endswith("/"):
+            href = href[:-1]
+        trimmed_hrefs.append(href)
 
+    patterns = []
+    for i in course_country.itertuples():
+        pattern = rf"https://www.racingpost.com/racecards/{i.rp_id}/{i.rp_name}/{date}/\d{{1,10}}$"
+        patterns.append(pattern)
+
+    if not patterns:
+        raise ValueError(f"No patterns found on date: {date}")
+
+    return sorted(
+        {url for url in hrefs for pattern in patterns if re.search(pattern, url)}
+    )
+
+
+def process_rp_scrape_days_data(dates: list[str]):
     base_link = "https://www.racingpost.com/racecards"
-    link = f"{base_link}/{date}"
     data = []
     course_country = fetch_course_data()
     course_ids = course_country["rp_id"].to_list()
     country_map = dict(zip(course_country["rp_id"], course_country["country_name"]))
     driver = get_headless_driver()
-    driver.get(link)
-    hrefs = [
-        element.get_attribute("href")
-        for element in driver.find_elements(By.XPATH, "//a")
-    ]
-    pattern = (
-        rf"https://www.racingpost.com/racecards/\d+/[a-zA-Z-]+/{TODAYS_DATE_FILTER}/\d+"
-    )
-    matches = sorted({url for url in hrefs if re.search(pattern, url)})
-    urls = return_urls_for_courses_covered(matches, course_ids)
-    driver.get(urls[0])
-    toggle_buttons(driver)
-    for url in urls:
-        I(f"Scraping data from: {url}")
-        driver.get(url)
-        race_data = get_data_from_url(url)
-        race_time = get_race_time(driver, race_data["race_date"])
-        header_data = get_race_details(driver)
-        horse_data = get_horse_data(driver)
-        horse_data = horse_data.assign(
-            **race_data,
-            **race_time,
-            **header_data,
-            race_time=None,
-            horse_price=None,
-            finishing_position=None,
-            rpr_value=None,
-            debug_link=None,
-            total_distance_beaten=None,
-            ts_value=None,
-            total_prize_money=None,
-            currency=None,
-            winning_time=None,
-            dams_sire_id=None,
-            extra_weight=None,
-            dams_sire=None,
-            comment=None,
-            country=country_map.get(race_data["course_id"]),
-            created_at=datetime.now(),
+    for date in dates:
+        link = f"{base_link}/{date}"
+        driver.get(link)
+        urls = get_links(driver, course_country, date)
+
+        # get the first url just to toggle the pedigree and owner settings
+        driver.get(urls[0])
+        toggle_buttons(driver)
+
+        for url in urls:
+            I(f"Scraping data from: {url}")
+            driver.get(url)
+            race_data = get_data_from_url(url)
+            race_time = get_race_time(driver, race_data["race_date"])
+            header_data = get_race_details(driver)
+            horse_data = get_horse_data(driver)
+            horse_data = horse_data.assign(
+                **race_data,
+                **race_time,
+                **header_data,
+                race_time=None,
+                horse_price=None,
+                finishing_position=None,
+                rpr_value=None,
+                debug_link=url,
+                total_distance_beaten=None,
+                ts_value=None,
+                total_prize_money=None,
+                currency=None,
+                winning_time=None,
+                dams_sire_id=None,
+                extra_weight=None,
+                dams_sire=None,
+                comment=None,
+                country=country_map.get(race_data["course_id"]),
+                created_at=datetime.now(),
+            )
+
+            horse_data = horse_data.assign(
+                unique_id=lambda x: x.apply(
+                    lambda y: hashlib.sha512(
+                        f"racing_post{y['horse_id']}{y['horse_weight']}{y['race_title']}".encode()
+                    ).hexdigest(),
+                    axis=1,
+                ),
+                meeting_id=lambda x: x.apply(
+                    lambda y: hashlib.sha512(
+                        f"{y['course_id']}{y['race_date']}".encode()
+                    ).hexdigest(),
+                    axis=1,
+                ),
+            ).drop(columns=["distance_yards"])
+            data.append(horse_data)
+
+        data = pd.concat(data)
+        data.pipe(
+            convert_and_validate_data,
+            RacingPostDataModel,
+            table_string_field_lengths,
+            "unique_id",
         )
-
-        horse_data = horse_data.assign(
-            unique_id=lambda x: x.apply(
-                lambda y: hashlib.sha512(
-                    f"racing_post{y['horse_id']}{y['horse_weight']}{y['race_title']}".encode()
-                ).hexdigest(),
-                axis=1,
-            ),
-            meeting_id=lambda x: x.apply(
-                lambda y: hashlib.sha512(
-                    f"{y['course_id']}{y['race_date']}".encode()
-                ).hexdigest(),
-                axis=1,
-            ),
-        ).drop(columns=["distance_yards"])
-        data.append(horse_data)
-
-    data = pd.concat(data)
-    data.pipe(
-        convert_and_validate_data,
-        RacingPostDataModel,
-        table_string_field_lengths,
-        "unique_id",
-    )
-    processed_data = fetch_data("SELECT * FROM rp_raw.todays_performance_data")
-    data = (
-        pd.concat([data, processed_data])
-        .sort_values(by="created_at", ascending=False)
-        .drop_duplicates(subset=["unique_id"])
-    )
-    data = data[data["race_date"] >= datetime.now().strftime("%Y-%m-%d")]
-    store_data(data, "todays_performance_data", "rp_raw")
+        processed_data = fetch_data("SELECT * FROM rp_raw.todays_performance_data")
+        data = (
+            pd.concat([data, processed_data])
+            .sort_values(by="created_at", ascending=False)
+            .drop_duplicates(subset=["unique_id"])
+        )
+        data = data[data["race_date"] >= datetime.now().strftime("%Y-%m-%d")]
+        store_data(data, "todays_performance_data", "rp_raw")
     driver.quit()
 
 
 if __name__ == "__main__":
-    process_rp_scrape_days_data(datetime.now().strftime("%Y-%m-%d"))
-    process_rp_scrape_days_data(datetime.now().strftime("%Y-%m-%d") + timedelta(days=1))
+    process_rp_scrape_days_data([TODAYS_DATE_FILTER, TOMORROWS_DATE_FILTER])

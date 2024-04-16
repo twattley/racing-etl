@@ -7,7 +7,7 @@ from src.transform.transform_data import (
     transform_data,
 )
 from src.utils.logging_config import I
-from src.utils.processing_utils import execute_stored_procedures
+from src.utils.processing_utils import pt
 
 
 def run_transform_pipeline():
@@ -26,7 +26,7 @@ def run_transform_pipeline():
     )
     store_data(race_data, "transformed_race_data", "staging", truncate=True)
 
-    execute_stored_procedures(
+    pt(
         load_transformed_performance_data,
         load_transformed_race_data,
     )

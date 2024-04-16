@@ -15,7 +15,7 @@ from src.data_models.transform.transformed_model import (
 )
 from src.storage.sql_db import call_procedure, fetch_data, store_data
 from src.utils.logging_config import I, W
-from src.utils.processing_utils import execute_stored_procedures
+from src.utils.processing_utils import pt
 
 
 def map_race_time_column(data: pd.DataFrame) -> pd.DataFrame:
@@ -505,7 +505,7 @@ if __name__ == "__main__":
     )
     store_data(race_data, "transformed_race_data", "staging", truncate=True)
 
-    execute_stored_procedures(
+    pt(
         load_transformed_performance_data,
         load_transformed_race_data,
     )

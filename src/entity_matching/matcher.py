@@ -1,37 +1,39 @@
 from typing import Literal, Tuple
+from src.storage.sql_db import store_data
+
 
 import pandas as pd
 from fuzzywuzzy import fuzz
 
 from src.utils.logging_config import I
+from dataclasses import dataclass
 
-BREAK_CONDITION = {
-    "horse": 1,
-    "jockey": 5,
-    "trainer": 5,
-    "sire": 5,
-    "dam": 5,
-}
+
+@dataclass
+class MatchingData:
+    base_set: str
+    base_data: pd.DataFrame
+    entities_sets: list[
+        tuple[str, pd.DataFrame],
+        tuple[str, pd.DataFrame],
+        tuple[str, pd.DataFrame],
+        tuple[str, pd.DataFrame],
+        tuple[str, pd.DataFrame],
+    ]
 
 
 def format_names(
-    matching: pd.DataFrame, base: pd.DataFrame
+    data: pd.DataFrame,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
 
-    matching["jockey_last_name"] = (
-        matching["jockey_name"]
+    data["jockey_last_name"] = (
+        data["jockey_name"]
         .apply(lambda x: x.split(" ")[-1])
         .str.lower()
         .str.replace(" ", "")
     )
-    base["jockey_last_name"] = (
-        base["jockey_name"]
-        .apply(lambda x: x.split(" ")[-1])
-        .str.lower()
-        .str.replace(" ", "")
-    )
-    matching["trainer_last_name"] = (
-        matching["trainer_name"]
+    data["trainer_last_name"] = (
+        data["trainer_name"]
         .apply(lambda x: x.split(" ")[-1])
         .str.lower()
         .str.replace(
@@ -42,219 +44,138 @@ def format_names(
         .str.lower()
         .str.replace(r"\s+", "", regex=True)
     )
-    base["trainer_last_name"] = (
-        base["trainer_name"]
-        .apply(lambda x: x.split(" ")[-1])
-        .str.lower()
-        .str.replace(
-            r"\s*\([^)]*\)|''|, Ireland$|, USA$|, Canada$|, France$|, Germany$",
-            "",
-            regex=True,
+    data["filtered_horse_name"] = (
+        data["filtered_horse_name"]
+        .str.replace("'", "")
+        .str.replace(r"\(.*?\)", "", regex=True)
+        .str.strip()
+    )
+    for i in ["horse_name", "sire_name", "dam_name", "jockey_name", "trainer_name"]:
+        data[i] = (
+            data[i]
+            .str.replace("'", "")
+            .str.replace(r"\(.*?\)", "", regex=True)
+            .str.strip()
+            .str.title()
         )
-        .str.lower()
-        .str.replace(r"\s+", "", regex=True)
-    )
-    matching["filtered_horse_name"] = (
-        matching["filtered_horse_name"].str.replace("'", "").str.strip()
-    )
-    base["filtered_horse_name"] = (
-        base["filtered_horse_name"].str.replace("'", "").str.strip()
-    )
 
-    return matching, base
+    return data
 
 
-def fuzzy_match_entities(
-    matching: pd.DataFrame,
-    base: pd.DataFrame,
-    entity: str,
-    matching_set: Literal["rp", "tf"],
-    base_set: Literal["rp", "tf"],
+def create_fuzz_scores(
+    base_set: pd.DataFrame, matching_set: pd.DataFrame
 ) -> pd.DataFrame:
+    
+    base_set.to_csv('~/Desktop/base_set.csv', index=False)
+    matching_set.to_csv('~/Desktop/matching_set.csv', index=False)
+    base_set = base_set.assign(
+        fuzz_horse=base_set["filtered_horse_name"].apply(
+            lambda x: fuzz.ratio(x, matching_set["filtered_horse_name"].iloc[0])
+        ),
+        fuzz_trainer=base_set["trainer_last_name"].apply(
+            lambda x: fuzz.ratio(x, matching_set["trainer_last_name"].iloc[0])
+        ),
+        fuzz_jockey=base_set["jockey_last_name"].apply(
+            lambda x: fuzz.ratio(x, matching_set["jockey_last_name"].iloc[0])
+        ),
+        fuzz_sire=base_set["filtered_sire_name"].apply(
+            lambda x: fuzz.ratio(x, matching_set["filtered_sire_name"].iloc[0])
+        ),
+        fuzz_dam=base_set["filtered_dam_name"].apply(
+            lambda x: fuzz.ratio(x, matching_set["filtered_dam_name"].iloc[0])
+        ),
+    ).assign(
+        total_fuzz=lambda x: x["fuzz_horse"]
+        + x["fuzz_trainer"]
+        + x["fuzz_sire"]
+        + x["fuzz_dam"]
+        + x["fuzz_jockey"],
+    )
+
+    base_set.to_csv('~/Desktop/pre_processing_base_set.csv', index=False)
+    data = base_set[base_set["total_fuzz"] > 480].sort_values(
+        by="total_fuzz", ascending=False
+    )
+
+    data.to_csv('~/Desktop/post_processing.csv', index=False)
+
+    return data
+
+
+def fuzzy_match_entities(data: MatchingData) -> pd.DataFrame:
+    unmatched = []
     matches = []
-    number_of_entities = len(matching[f"filtered_{entity}_name"].unique())
-    for i, v in enumerate(matching[f"filtered_{entity}_name"].unique()):
-        hits = 0
-        I(f"{i}/{number_of_entities}")
-        I(f"Entity name: {v}")
-        sub_matching = matching[matching[f"filtered_{entity}_name"] == v]
-        sub_base = base[base["race_date"].isin(sub_matching["race_date"])]
-        if sub_base.empty:
-            I(f"No {base_set.upper()} data found for {entity} {v}")
+    base_set, base_data = data.base_set, data.base_data
+    matching_set = "TF"
+    base_data = base_data.pipe(format_names)
+    for entity_set in data.entities_sets:
+        entity, entity_data = entity_set
+        if entity_data.empty:
+            I(f"No {matching_set} data to match for {entity}")
             continue
-        for date in sub_matching["race_date"].unique():
-            sub_date_matching = sub_matching[(sub_matching["race_date"] == date)].copy()
-            I(f"Matching {entity} {v} on {date}")
-            I(f'Course ID: {sub_date_matching["course_id"].iloc[0]}')
-            sub_date_base = sub_base[
-                (sub_base["race_date"] == date)
-                & (sub_base["course_id"] == sub_date_matching["course_id"].iloc[0])
-            ].copy()
-            if sub_date_base.empty:
-                I(f"No {base_set.upper()} data found for {entity} {v} on {date}")
+        entity_data = entity_data.pipe(format_names)
+        I(f"Matching {matching_set} {entity}s to {base_set}")
+        number_of_entities = len(entity_data[f"filtered_{entity}_name"].unique())
+        I(f"Number of missing {entity}s: {number_of_entities}")
+        for entity_name in entity_data[f"filtered_{entity}_name"].unique():
+            I(f"Entity name: {entity_name}")
+            sub_entity_data = entity_data[
+                entity_data[f"filtered_{entity}_name"] == entity_name
+            ]
+            sub_entity_data .to_csv('~/Desktop/sub_entity_data.csv', index=False)
+            sub_base_data = base_data[
+                base_data["race_date"].isin(sub_entity_data["race_date"])
+            ]
+            if sub_base_data.empty:
+                I(f"No {base_set.upper()} data found for {entity} {entity_name}")
                 continue
-            sub_date_base = sub_date_base.assign(
-                fuzz_horse=sub_date_base["filtered_horse_name"].apply(
-                    lambda x: fuzz.ratio(
-                        x, sub_date_matching["filtered_horse_name"].iloc[0]
-                    )
-                ),
-                fuzz_trainer=sub_date_base["trainer_last_name"].apply(
-                    lambda x: fuzz.ratio(
-                        x, sub_date_matching["trainer_last_name"].iloc[0]
-                    )
-                ),
-                fuzz_jockey=sub_date_base["jockey_last_name"].apply(
-                    lambda x: fuzz.ratio(
-                        x, sub_date_matching["jockey_last_name"].iloc[0]
-                    )
-                ),
-                fuzz_sire=sub_date_base["filtered_sire_name"].apply(
-                    lambda x: fuzz.ratio(
-                        x, sub_date_matching["filtered_sire_name"].iloc[0]
-                    )
-                ),
-                fuzz_dam=sub_date_base["filtered_dam_name"].apply(
-                    lambda x: fuzz.ratio(
-                        x, sub_date_matching["filtered_dam_name"].iloc[0]
-                    )
-                ),
-            ).assign(
-                total_fuzz=lambda x: x["fuzz_horse"]
-                + x["fuzz_trainer"]
-                + x["fuzz_sire"]
-                + x["fuzz_dam"]
-                + x["fuzz_jockey"],
-                jockey_fuzz=lambda x: x["fuzz_horse"]
-                + x["fuzz_sire"]
-                + x["fuzz_dam"]
-                + x["fuzz_jockey"],
-                trainer_fuzz=lambda x: x["fuzz_horse"]
-                + x["fuzz_sire"]
-                + x["fuzz_dam"]
-                + x["fuzz_trainer"],
-            )
-            best_match = sub_date_base[sub_date_base["total_fuzz"] >= 480].sort_values(
+            sub_base_data = create_fuzz_scores(sub_base_data, sub_entity_data)
+            best_match = sub_base_data.sort_values(
                 by="total_fuzz", ascending=False
-            )
+            ).head(1)
             if not best_match.empty:
-                I(f"Found match for {entity} {v} on {date}")
+                I(f"Found match for {entity} {entity_name}")
                 matches.append(
                     {
-                        f"{matching_set}_{entity}_name": sub_matching[
-                            f"{entity}_name"
-                        ].iloc[0],
-                        f"{matching_set}_{entity}_id": sub_matching[
-                            f"{entity}_id"
-                        ].iloc[0],
-                        f"{base_set}_{entity}_name": best_match[f"{entity}_name"].iloc[
+                        "entity_name": f"{entity}",
+                        f"{base_set.lower()}_id": sub_entity_data[f"{entity}_id"].iloc[
                             0
                         ],
-                        f"{base_set}_{entity}_id": best_match[f"{entity}_id"].iloc[0],
-                        "fuzz_score": best_match["total_fuzz"].iloc[0],
+                        "name": sub_entity_data[f"{entity}_name"].iloc[0],
+                        f"{matching_set.lower()}_id": best_match[f"{entity}_id"].iloc[
+                            0
+                        ],
                     }
                 )
-                hits += 1
-                if hits != BREAK_CONDITION[entity]:
-                    continue
-            except_trainer = sub_date_base[
-                sub_date_base["jockey_fuzz"] == 400
-            ].sort_values(by="jockey_fuzz", ascending=False)
-            if not except_trainer.empty:
-                I(f"Found match for {entity} {v} on {date} except trainer")
-                matches.append(
+            else:
+                unmatched.append(
                     {
-                        f"{matching_set}_{entity}_name": sub_matching[
-                            f"{entity}_name"
-                        ].iloc[0],
-                        f"{matching_set}_{entity}_id": sub_matching[
-                            f"{entity}_id"
-                        ].iloc[0],
-                        f"{base_set}_{entity}_name": except_trainer[
-                            f"{entity}_name"
-                        ].iloc[0],
-                        f"{base_set}_{entity}_id": except_trainer[f"{entity}_id"].iloc[
-                            0
-                        ],
-                        "fuzz_score": except_trainer["jockey_fuzz"].iloc[0],
+                        "entity": f"{entity}",
+                        'race_timestamp': sub_entity_data['race_timestamp'].iloc[0],
+                        "name": sub_entity_data[f"{entity}_name"].iloc[0],
+                        'debug_link': sub_entity_data['debug_link'].iloc[0]
                     }
-                )
-                hits += 1
-                if hits != BREAK_CONDITION[entity]:
-                    continue
-            except_jockey = sub_date_base[
-                sub_date_base["trainer_fuzz"] == 400
-            ].sort_values(by="trainer_fuzz", ascending=False)
-            if not except_jockey.empty:
-                I(f"Found match for {entity} {v} on {date} except jockey")
-                matches.append(
-                    {
-                        f"{matching_set}_{entity}_name": sub_matching[
-                            f"{entity}_name"
-                        ].iloc[0],
-                        f"{matching_set}_{entity}_id": sub_matching[
-                            f"{entity}_id"
-                        ].iloc[0],
-                        f"{base_set}_{entity}_name": except_jockey[
-                            f"{entity}_name"
-                        ].iloc[0],
-                        f"{base_set}_{entity}_id": except_jockey[f"{entity}_id"].iloc[
-                            0
-                        ],
-                        "fuzz_score": except_jockey["trainer_fuzz"].iloc[0],
-                    }
-                )
-                hits += 1
-                if hits != BREAK_CONDITION[entity]:
-                    continue
-            hits = 0
-            I(f"{BREAK_CONDITION[entity]} attempts, breaking loop")
-            break
+                    )
+    
+    matched = pd.DataFrame(matches)
+    unmatched = pd.DataFrame(unmatched)
 
-    matches_df = pd.DataFrame(matches)
-    if matches_df.empty:
-        I(f"No matches found for {entity}")
-        return pd.DataFrame()
-
-    matches = matches_df.drop_duplicates(subset=[f"tf_{entity}_id", f"rp_{entity}_id"])
-
-    matches = matches.rename(
-        columns={
-            f"tf_{entity}_id": "tf_id",
-            f"rp_{entity}_name": "name",
-            f"rp_{entity}_id": "rp_id",
-        }
-    )
-    matches = matches.assign(
-        name=lambda x: x["name"]
-        .str.replace(r"\s*\([^)]*\)", "", regex=True)
-        .str.title()
-        .str.strip(),
-        id=lambda x: x["rp_id"].astype(int),
-    )
-
-    I(f"Found {len(matches)} matches")
-
-    return matches[["rp_id", "name", "tf_id"]]
+    return matched, unmatched
 
 
-def entity_match(
-    entity: str,
-    matching_data: pd.DataFrame,
-    base_data: pd.DataFrame,
-    matching_set: str,
-    base_set: str,
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def store_matches(matches: pd.DataFrame):
+    entities = matches["entity_name"].unique()
+    for entity in entities:
+        entity_matches = matches[matches["entity_name"] == entity].drop_duplicates(
+            subset=["rp_id", "tf_id"]
+        )
+        I(f"Storing {len(entity_matches)} matches for {entity}")
+        store_data(entity_matches, entity, "matches")
 
-    I(f"Matching {entity}s")
-    if matching_data.empty:
-        I(f"No unmatched {entity}s found")
-        return
+
+def entity_match(entity_maching_data: MatchingData):
     matching_data, base_data = format_names(matching_data, base_data)
-    matches = fuzzy_match_entities(
-        matching_data, base_data, entity, matching_set, base_set
-    )
-    return pd.DataFrame() if matches.empty else matches
+    matches = fuzzy_match_entities(entity_maching_data)
 
 
 if __name__ == "__main__":

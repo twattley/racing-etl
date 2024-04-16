@@ -4,16 +4,17 @@ import traceback
 from dataclasses import dataclass
 
 import pandas as pd
+from selenium import webdriver
 
 from src.data_models.base.base_model import BaseDataModel, convert_and_validate_data
-from src.raw.webdriver_base import WebDriverBuilder, select_source_driver
+from src.raw.webdriver_base import select_source_driver
 from src.storage.sql_db import fetch_data, store_data
 from src.utils.logging_config import E, I
 
 
 @dataclass
 class DataScrapingTask:
-    driver: WebDriverBuilder
+    driver: webdriver.Chrome
     schema: str
     table: str
     job_name: str
@@ -25,18 +26,12 @@ class DataScrapingTask:
 
 @dataclass
 class LinkScrapingTask:
-    driver: WebDriverBuilder
+    driver: webdriver.Chrome
     base_url: str
     schema: str
     source_table: str
     destination_table: str
     filter_func: callable
-
-
-def shuffle_dates(dates):
-    dates_list = dates["date"].tolist()
-    random.shuffle(dates_list)
-    return [i.strftime("%Y-%m-%d") for i in dates_list]
 
 
 def process_scraping_data(task: DataScrapingTask) -> None:
