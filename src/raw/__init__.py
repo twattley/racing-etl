@@ -1,4 +1,3 @@
-import random
 import time
 import traceback
 from dataclasses import dataclass

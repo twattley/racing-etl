@@ -1,12 +1,10 @@
-from typing import Literal, Tuple
-from src.storage.sql_db import store_data
-
+from dataclasses import dataclass
 
 import pandas as pd
 from fuzzywuzzy import fuzz
 
+from src.storage.sql_db import store_data
 from src.utils.logging_config import I
-from dataclasses import dataclass
 
 
 @dataclass
@@ -65,9 +63,7 @@ def format_names(
 def create_fuzz_scores(
     base_set: pd.DataFrame, matching_set: pd.DataFrame
 ) -> pd.DataFrame:
-    
-    base_set.to_csv('~/Desktop/base_set.csv', index=False)
-    matching_set.to_csv('~/Desktop/matching_set.csv', index=False)
+
     base_set = base_set.assign(
         fuzz_horse=base_set["filtered_horse_name"].apply(
             lambda x: fuzz.ratio(x, matching_set["filtered_horse_name"].iloc[0])
@@ -92,17 +88,15 @@ def create_fuzz_scores(
         + x["fuzz_jockey"],
     )
 
-    base_set.to_csv('~/Desktop/pre_processing_base_set.csv', index=False)
     data = base_set[base_set["total_fuzz"] > 480].sort_values(
         by="total_fuzz", ascending=False
     )
-
-    data.to_csv('~/Desktop/post_processing.csv', index=False)
 
     return data
 
 
 def fuzzy_match_entities(data: MatchingData) -> pd.DataFrame:
+
     unmatched = []
     matches = []
     base_set, base_data = data.base_set, data.base_data
@@ -122,7 +116,6 @@ def fuzzy_match_entities(data: MatchingData) -> pd.DataFrame:
             sub_entity_data = entity_data[
                 entity_data[f"filtered_{entity}_name"] == entity_name
             ]
-            sub_entity_data .to_csv('~/Desktop/sub_entity_data.csv', index=False)
             sub_base_data = base_data[
                 base_data["race_date"].isin(sub_entity_data["race_date"])
             ]
@@ -151,16 +144,13 @@ def fuzzy_match_entities(data: MatchingData) -> pd.DataFrame:
                 unmatched.append(
                     {
                         "entity": f"{entity}",
-                        'race_timestamp': sub_entity_data['race_timestamp'].iloc[0],
+                        "race_timestamp": sub_entity_data["race_timestamp"].iloc[0],
                         "name": sub_entity_data[f"{entity}_name"].iloc[0],
-                        'debug_link': sub_entity_data['debug_link'].iloc[0]
+                        "debug_link": sub_entity_data["debug_link"].iloc[0],
                     }
-                    )
-    
-    matched = pd.DataFrame(matches)
-    unmatched = pd.DataFrame(unmatched)
+                )
 
-    return matched, unmatched
+    return pd.DataFrame(matches), pd.DataFrame(unmatched)
 
 
 def store_matches(matches: pd.DataFrame):
@@ -175,7 +165,7 @@ def store_matches(matches: pd.DataFrame):
 
 def entity_match(entity_maching_data: MatchingData):
     matching_data, base_data = format_names(matching_data, base_data)
-    matches = fuzzy_match_entities(entity_maching_data)
+    fuzzy_match_entities(entity_maching_data)
 
 
 if __name__ == "__main__":

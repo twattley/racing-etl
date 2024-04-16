@@ -333,7 +333,7 @@ def process_rp_scrape_days_data(dates: list[str]):
     base_link = "https://www.racingpost.com/racecards"
     data = []
     course_country = fetch_course_data()
-    course_ids = course_country["rp_id"].to_list()
+    course_country["rp_id"].to_list()
     country_map = dict(zip(course_country["rp_id"], course_country["country_name"]))
     driver = get_headless_driver()
     for date in dates:

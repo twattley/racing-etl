@@ -1,14 +1,13 @@
-from dataclasses import dataclass
+from datetime import datetime
 from typing import Literal
+
 import pandas as pd
-from src.entity_matching.matcher import entity_match
-from src.storage.sql_db import call_procedure, fetch_data, store_data
+
+from src.entity_matching.matcher import MatchingData, entity_match
+from src.storage.sql_db import call_procedure, fetch_data
+from src.utils.file_utils import delete_files_in_directory
 from src.utils.logging_config import E, I
 from src.utils.processing_utils import pt, ptr
-from datetime import datetime
-from src.utils.file_utils import delete_files_in_directory
-from src.entity_matching.matcher import MatchingData
-
 
 MATCHING_DATA_FOLDER = "./src/data"
 STRING_DATE_NOW = datetime.now().strftime("%Y-%m-%d")

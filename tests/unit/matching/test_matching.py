@@ -1,7 +1,7 @@
 import pandas as pd
-from src.entity_matching.matcher import fuzzy_match_entities, MatchingData
-
 import pytest
+
+from src.entity_matching.matcher import MatchingData, fuzzy_match_entities
 
 
 @pytest.fixture
@@ -60,7 +60,7 @@ def base_matching_data():
             "race_date": [
                 pd.Timestamp("2010-01-01"),
             ],
-            "debug_link": ['http://www.test_debug_link.com'],
+            "debug_link": ["http://www.test_debug_link.com"],
         }
     )
 
@@ -470,7 +470,7 @@ def test_different_jockeys(base_data, base_empty_matching_data, base_matching_da
     base_matching_data = base_matching_data.assign(
         jockey_name="Jockey B",
         filtered_jockey_name="jockeyb",
-        debug_link='http://www.missing_jockeyb.com',
+        debug_link="http://www.missing_jockeyb.com",
     )
     matched, unmatched = fuzzy_match_entities(
         MatchingData(
@@ -491,17 +491,18 @@ def test_different_jockeys(base_data, base_empty_matching_data, base_matching_da
             "entity": ["jockey"],
             "race_timestamp": [pd.Timestamp("2010-01-01 12:00:00")],
             "name": ["Jockey B"],
-            "debug_link": ['http://www.missing_jockeyb.com'],
+            "debug_link": ["http://www.missing_jockeyb.com"],
         }
     )
     pd.testing.assert_frame_equal(unmatched, expected_unmatched)
     assert matched.empty
 
+
 def test_different_trainers(base_data, base_empty_matching_data, base_matching_data):
     base_matching_data = base_matching_data.assign(
         trainer_name="Trainer B",
         filtered_trainer_name="trainerb",
-        debug_link='http://www.missing_trainerb.com',
+        debug_link="http://www.missing_trainerb.com",
     )
     matched, unmatched = fuzzy_match_entities(
         MatchingData(
@@ -522,16 +523,14 @@ def test_different_trainers(base_data, base_empty_matching_data, base_matching_d
             "entity": ["trainer"],
             "race_timestamp": [pd.Timestamp("2010-01-01 12:00:00")],
             "name": ["Trainer B"],
-            "debug_link": ['http://www.missing_trainerb.com'],
+            "debug_link": ["http://www.missing_trainerb.com"],
         }
     )
     pd.testing.assert_frame_equal(unmatched, expected_unmatched)
     assert matched.empty
 
 
-
-
-def test_multiple_matched(base_data, base_matching_data, base_empty_matching_data): 
+def test_multiple_matched(base_data, base_matching_data, base_empty_matching_data):
     matched, unmatched = fuzzy_match_entities(
         MatchingData(
             base_set="RP",
@@ -558,16 +557,16 @@ def test_multiple_matched(base_data, base_matching_data, base_empty_matching_dat
     assert unmatched.empty
 
 
-def test_multiple_unmatched(base_data, base_matching_data, base_empty_matching_data): 
+def test_multiple_unmatched(base_data, base_matching_data, base_empty_matching_data):
     trainer_base_matching_data = base_matching_data.assign(
         trainer_name="Trainer B",
         filtered_trainer_name="trainerb",
-        debug_link='http://www.missing_trainerb.com',
+        debug_link="http://www.missing_trainerb.com",
     )
     sire_base_matching_data = base_matching_data.assign(
         sire_name="Sire B",
         filtered_sire_name="sireb",
-        debug_link='http://www.missing_sireb.com',
+        debug_link="http://www.missing_sireb.com",
     )
     matched, unmatched = fuzzy_match_entities(
         MatchingData(
@@ -586,12 +585,16 @@ def test_multiple_unmatched(base_data, base_matching_data, base_empty_matching_d
     expected_unmatched = pd.DataFrame(
         {
             "entity": ["trainer", "sire"],
-            "race_timestamp": [pd.Timestamp("2010-01-01 12:00:00"), pd.Timestamp("2010-01-01 12:00:00")],
+            "race_timestamp": [
+                pd.Timestamp("2010-01-01 12:00:00"),
+                pd.Timestamp("2010-01-01 12:00:00"),
+            ],
             "name": ["Trainer B", "Sire B"],
-            "debug_link": ['http://www.missing_trainerb.com', 'http://www.missing_sireb.com'],
+            "debug_link": [
+                "http://www.missing_trainerb.com",
+                "http://www.missing_sireb.com",
+            ],
         }
     )
     pd.testing.assert_frame_equal(unmatched, expected_unmatched)
     assert matched.empty
-
-
