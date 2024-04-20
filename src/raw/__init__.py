@@ -1,7 +1,6 @@
 import time
 import traceback
 from dataclasses import dataclass
-from src.utils.processing_utils import register_job_completion
 
 import pandas as pd
 from selenium import webdriver
@@ -10,6 +9,7 @@ from src.data_models.base.base_model import BaseDataModel, convert_and_validate_
 from src.raw.webdriver_base import select_source_driver
 from src.storage.sql_db import fetch_data, store_data
 from src.utils.logging_config import E, I
+from src.utils.processing_utils import register_job_completion
 
 
 @dataclass

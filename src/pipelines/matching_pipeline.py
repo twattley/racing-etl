@@ -9,7 +9,7 @@ from src.entity_matching.matcher import (
     store_matching_results,
     store_owner_data,
 )
-from src.storage.sql_db import fetch_data, call_procedure, insert_records
+from src.storage.sql_db import call_procedure, fetch_data, insert_records
 from src.utils.logging_config import I, W
 from src.utils.processing_utils import ptr
 
@@ -20,7 +20,14 @@ STRING_DATE_NOW = datetime.now().strftime("%Y-%m-%d")
 def run_matching_pipeline():
 
     I("Loading direct matches")
-    rp_sire_data, rp_dam_data, rp_horse_data, rp_jockey_data, rp_trainer_data, rp_owner_data = ptr(
+    (
+        rp_sire_data,
+        rp_dam_data,
+        rp_horse_data,
+        rp_jockey_data,
+        rp_trainer_data,
+        rp_owner_data,
+    ) = ptr(
         lambda: fetch_data("SELECT * FROM rp_raw.unmatched_sires;"),
         lambda: fetch_data("SELECT * FROM rp_raw.unmatched_dams;"),
         lambda: fetch_data("SELECT * FROM rp_raw.unmatched_horses;"),
@@ -34,7 +41,7 @@ def run_matching_pipeline():
     )
 
     missing_dates = tuple(missing_data["race_date"].unique())
-    if len (missing_dates) == 1:
+    if len(missing_dates) == 1:
         missing_dates = f"('{missing_dates[0]}')"
 
     if not missing_dates:

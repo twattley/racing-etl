@@ -162,6 +162,7 @@ def insert_latest_records(
     )
     store_data(data[~data[unique_id].isin(current_data[unique_id])], table, schema)
 
+
 def insert_records(
     table: str, schema: str, data: pd.DataFrame, unique_id: Union[str, List[str]]
 ):

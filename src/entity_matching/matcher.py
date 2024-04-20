@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from typing import Union
-from src.utils.processing_utils import pt
 
 import pandas as pd
 from fuzzywuzzy import fuzz
 
 from src.storage.sql_db import fetch_data, insert_records, store_data
-from src.utils.logging_config import I, W, E
+from src.utils.logging_config import E, I, W
+from src.utils.processing_utils import pt
 
 
 @dataclass
@@ -108,9 +108,7 @@ def fuzzy_match_entities(data: MatchingData) -> pd.DataFrame:
                 rp_data[f"filtered_{rp_entity}_name"] == filtered_entity_name
             ]
             entity_name = sub_rp_data[f"{rp_entity}_name"].iloc[0]
-            sub_tf_data = tf_data[
-                tf_data["race_date"].isin(sub_rp_data["race_date"])
-            ]
+            sub_tf_data = tf_data[tf_data["race_date"].isin(sub_rp_data["race_date"])]
             if sub_tf_data.empty:
                 W(
                     f"No TF data found for {rp_entity}: {entity_name} on dates {sub_rp_data['race_date'].to_list()}"
@@ -118,9 +116,9 @@ def fuzzy_match_entities(data: MatchingData) -> pd.DataFrame:
                 continue
 
             sub_tf_data = create_fuzz_scores(sub_tf_data, sub_rp_data)
-            best_match = sub_tf_data.sort_values(
-                by="total_fuzz", ascending=False
-            ).head(1)
+            best_match = sub_tf_data.sort_values(by="total_fuzz", ascending=False).head(
+                1
+            )
             if best_match.empty:
                 unmatched.append(
                     {
@@ -146,7 +144,6 @@ def fuzzy_match_entities(data: MatchingData) -> pd.DataFrame:
 
 def entity_match(entity_matching_data: MatchingData):
     return fuzzy_match_entities(entity_matching_data)
-
 
 
 def store_owner_data(owner_data: pd.DataFrame) -> None:
