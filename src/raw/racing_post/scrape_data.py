@@ -532,7 +532,7 @@ def process_rp_scrape_data():
         driver=get_headless_driver,
         schema="rp_raw",
         table="performance_data",
-        job_name="rp_scrape_data",
+        job_name="scrape_rp_data",
         scraper_func=scrape_data,
         data_model=RacingPostDataModel,
         string_fields=rp_string_field_lengths,

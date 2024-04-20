@@ -1,17 +1,18 @@
 from dataclasses import dataclass
+from typing import Union
+from src.utils.processing_utils import pt
 
 import pandas as pd
 from fuzzywuzzy import fuzz
 
-from src.storage.sql_db import store_data
-from src.utils.logging_config import I
+from src.storage.sql_db import fetch_data, insert_records, store_data
+from src.utils.logging_config import I, W, E
 
 
 @dataclass
 class MatchingData:
-    base_set: str
-    base_data: pd.DataFrame
-    entities_sets: list[
+    tf_data: pd.DataFrame
+    rp_data: list[
         tuple[str, pd.DataFrame],
         tuple[str, pd.DataFrame],
         tuple[str, pd.DataFrame],
@@ -42,19 +43,19 @@ def format_names(
         .str.lower()
         .str.replace(r"\s+", "", regex=True)
     )
-    data["filtered_horse_name"] = (
-        data["filtered_horse_name"]
-        .str.replace("'", "")
-        .str.replace(r"\(.*?\)", "", regex=True)
-        .str.strip()
-    )
-    for i in ["horse_name", "sire_name", "dam_name", "jockey_name", "trainer_name"]:
-        data[i] = (
-            data[i]
+    for i in ["horse", "sire", "dam", "jockey", "trainer"]:
+        data[f"{i}_name"] = (
+            data[f"{i}_name"]
             .str.replace("'", "")
             .str.replace(r"\(.*?\)", "", regex=True)
             .str.strip()
             .str.title()
+        )
+        data[f"filtered_{i}_name"] = (
+            data[f"{i}_name"]
+            .str.replace("'", "")
+            .str.replace(r"\(.*?\)", "", regex=True)
+            .str.strip()
         )
 
     return data
@@ -88,85 +89,103 @@ def create_fuzz_scores(
         + x["fuzz_jockey"],
     )
 
-    data = base_set[base_set["total_fuzz"] > 480].sort_values(
+    return base_set[base_set["total_fuzz"] > 480].sort_values(
         by="total_fuzz", ascending=False
     )
 
-    return data
-
 
 def fuzzy_match_entities(data: MatchingData) -> pd.DataFrame:
-
     unmatched = []
     matches = []
-    base_set, base_data = data.base_set, data.base_data
-    matching_set = "TF"
-    base_data = base_data.pipe(format_names)
-    for entity_set in data.entities_sets:
-        entity, entity_data = entity_set
-        if entity_data.empty:
-            I(f"No {matching_set} data to match for {entity}")
+    tf_data = data.tf_data.pipe(format_names)
+    for rp_entity, rp_data in data.rp_data:
+        if rp_data.empty:
+            I(f"No missing {rp_entity} rp data!")
             continue
-        entity_data = entity_data.pipe(format_names)
-        I(f"Matching {matching_set} {entity}s to {base_set}")
-        number_of_entities = len(entity_data[f"filtered_{entity}_name"].unique())
-        I(f"Number of missing {entity}s: {number_of_entities}")
-        for entity_name in entity_data[f"filtered_{entity}_name"].unique():
-            I(f"Entity name: {entity_name}")
-            sub_entity_data = entity_data[
-                entity_data[f"filtered_{entity}_name"] == entity_name
+        rp_data = rp_data.pipe(format_names)
+        for filtered_entity_name in rp_data[f"filtered_{rp_entity}_name"].unique():
+            sub_rp_data = rp_data[
+                rp_data[f"filtered_{rp_entity}_name"] == filtered_entity_name
             ]
-            sub_base_data = base_data[
-                base_data["race_date"].isin(sub_entity_data["race_date"])
+            entity_name = sub_rp_data[f"{rp_entity}_name"].iloc[0]
+            sub_tf_data = tf_data[
+                tf_data["race_date"].isin(sub_rp_data["race_date"])
             ]
-            if sub_base_data.empty:
-                I(f"No {base_set.upper()} data found for {entity} {entity_name}")
+            if sub_tf_data.empty:
+                W(
+                    f"No TF data found for {rp_entity}: {entity_name} on dates {sub_rp_data['race_date'].to_list()}"
+                )
                 continue
-            sub_base_data = create_fuzz_scores(sub_base_data, sub_entity_data)
-            best_match = sub_base_data.sort_values(
+
+            sub_tf_data = create_fuzz_scores(sub_tf_data, sub_rp_data)
+            best_match = sub_tf_data.sort_values(
                 by="total_fuzz", ascending=False
             ).head(1)
-            if not best_match.empty:
-                I(f"Found match for {entity} {entity_name}")
-                matches.append(
+            if best_match.empty:
+                unmatched.append(
                     {
-                        "entity_name": f"{entity}",
-                        f"{base_set.lower()}_id": sub_entity_data[f"{entity}_id"].iloc[
-                            0
-                        ],
-                        "name": sub_entity_data[f"{entity}_name"].iloc[0],
-                        f"{matching_set.lower()}_id": best_match[f"{entity}_id"].iloc[
-                            0
-                        ],
+                        "entity": f"{rp_entity}",
+                        "race_timestamp": sub_rp_data["race_timestamp"].iloc[0],
+                        "name": sub_rp_data[f"{rp_entity}_name"].iloc[0],
+                        "debug_link": sub_rp_data["debug_link"].iloc[0],
                     }
                 )
             else:
-                unmatched.append(
+                I(f"Found match for {entity_name}")
+                matches.append(
                     {
-                        "entity": f"{entity}",
-                        "race_timestamp": sub_entity_data["race_timestamp"].iloc[0],
-                        "name": sub_entity_data[f"{entity}_name"].iloc[0],
-                        "debug_link": sub_entity_data["debug_link"].iloc[0],
+                        "entity": f"{rp_entity}",
+                        "rp_id": sub_rp_data[f"{rp_entity}_id"].iloc[0],
+                        "name": sub_rp_data[f"{rp_entity}_name"].iloc[0],
+                        "tf_id": best_match[f"{rp_entity}_id"].iloc[0],
                     }
                 )
 
     return pd.DataFrame(matches), pd.DataFrame(unmatched)
 
 
-def store_matches(matches: pd.DataFrame):
-    entities = matches["entity_name"].unique()
-    for entity in entities:
-        entity_matches = matches[matches["entity_name"] == entity].drop_duplicates(
-            subset=["rp_id", "tf_id"]
+def entity_match(entity_matching_data: MatchingData):
+    return fuzzy_match_entities(entity_matching_data)
+
+
+
+def store_owner_data(owner_data: pd.DataFrame) -> None:
+    if not owner_data.empty:
+        insert_records("owner", "public", owner_data, ["rp_id"])
+
+
+def store_matched_data(matched: pd.DataFrame, entity: str) -> None:
+    if not matched.empty:
+        insert_records(
+            entity,
+            "public",
+            matched[matched["entity"] == entity][["rp_id", "name", "tf_id"]],
+            ["rp_id", "name", "tf_id"],
         )
-        I(f"Storing {len(entity_matches)} matches for {entity}")
-        store_data(entity_matches, entity, "matches")
 
 
-def entity_match(entity_maching_data: MatchingData):
-    matching_data, base_data = format_names(matching_data, base_data)
-    fuzzy_match_entities(entity_maching_data)
+def store_unmatched_data(unmatched: pd.DataFrame, entity: str) -> None:
+    if not unmatched.empty:
+        insert_records(
+            "staging_entity_unmatched",
+            "errors",
+            unmatched[unmatched["entity"] == entity],
+            ["entity", "race_timestamp", "name", "debug_link"],
+        )
 
 
-if __name__ == "__main__":
-    entity_match("dam")
+def store_matching_results(matched: pd.DataFrame, unmatched: pd.DataFrame) -> None:
+    pt(
+        lambda: store_matched_data(matched, "horse"),
+        lambda: store_matched_data(matched, "sire"),
+        lambda: store_matched_data(matched, "dam"),
+        lambda: store_matched_data(matched, "jockey"),
+        lambda: store_matched_data(matched, "trainer"),
+    )
+    pt(
+        lambda: store_unmatched_data(unmatched, "horse"),
+        lambda: store_unmatched_data(unmatched, "sire"),
+        lambda: store_unmatched_data(unmatched, "dam"),
+        lambda: store_unmatched_data(unmatched, "jockey"),
+        lambda: store_unmatched_data(unmatched, "trainer"),
+    )

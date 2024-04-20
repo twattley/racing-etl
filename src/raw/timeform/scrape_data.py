@@ -272,7 +272,7 @@ def process_tf_scrape_data():
         driver=get_headless_driver,
         schema="tf_raw",
         table="performance_data",
-        job_name="tf_scrape_data",
+        job_name="scrape_tf_data",
         scraper_func=scrape_data,
         data_model=TimeformDataModel,
         string_fields=tf_string_field_lengths,

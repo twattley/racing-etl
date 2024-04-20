@@ -1,6 +1,7 @@
 import time
 import traceback
 from dataclasses import dataclass
+from src.utils.processing_utils import register_job_completion
 
 import pandas as pd
 from selenium import webdriver
@@ -37,6 +38,9 @@ def process_scraping_data(task: DataScrapingTask) -> None:
     driver = select_source_driver(task)
     dataframes_list = []
     filtered_links_df = fetch_data(f"SELECT * FROM {task.schema}.missing_links")
+    if filtered_links_df.empty:
+        I("No missing links found. Ending the script.")
+        return
     I(f"Number of missing links: {len(filtered_links_df)}")
     for link in filtered_links_df.link:
         try:
@@ -48,11 +52,15 @@ def process_scraping_data(task: DataScrapingTask) -> None:
             traceback.print_exc()
             continue
 
+    if not dataframes_list:
+        I("No data scraped. Ending the script.")
+        return
     data = pd.concat(dataframes_list)
     data = data.pipe(
         convert_and_validate_data, task.data_model, task.string_fields, task.unique_id
     )
     store_data(data, task.table, task.schema)
+    register_job_completion(task.job_name)
     driver.quit()
 
 

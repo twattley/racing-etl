@@ -153,7 +153,7 @@ def base_data():
             "sire",
             pd.DataFrame(
                 {
-                    "entity_name": ["sire"],
+                    "entity": ["sire"],
                     "rp_id": ["1"],
                     "name": ["Sire A"],
                     "tf_id": ["1"],
@@ -164,7 +164,7 @@ def base_data():
             "dam",
             pd.DataFrame(
                 {
-                    "entity_name": ["dam"],
+                    "entity": ["dam"],
                     "rp_id": ["1"],
                     "name": ["Dam A"],
                     "tf_id": ["1"],
@@ -175,7 +175,7 @@ def base_data():
             "horse",
             pd.DataFrame(
                 {
-                    "entity_name": ["horse"],
+                    "entity": ["horse"],
                     "rp_id": ["1"],
                     "name": ["Horse A"],
                     "tf_id": ["1"],
@@ -186,7 +186,7 @@ def base_data():
             "jockey",
             pd.DataFrame(
                 {
-                    "entity_name": ["jockey"],
+                    "entity": ["jockey"],
                     "rp_id": ["1"],
                     "name": ["Jockey A"],
                     "tf_id": ["1"],
@@ -197,7 +197,7 @@ def base_data():
             "trainer",
             pd.DataFrame(
                 {
-                    "entity_name": ["trainer"],
+                    "entity": ["trainer"],
                     "rp_id": ["1"],
                     "name": ["Trainer A"],
                     "tf_id": ["1"],
@@ -288,7 +288,7 @@ def test_sire_mispelled(base_empty_matching_data):
 
     expected = pd.DataFrame(
         {
-            "entity_name": ["sire"],
+            "entity": ["sire"],
             "rp_id": ["1"],
             "name": ["Sires A"],
             "tf_id": ["1"],
@@ -344,7 +344,7 @@ def test_dam_mispelled(base_empty_matching_data):
 
     expected = pd.DataFrame(
         {
-            "entity_name": ["dam"],
+            "entity": ["dam"],
             "rp_id": ["1"],
             "name": ["Dams A"],
             "tf_id": ["1"],
@@ -400,7 +400,7 @@ def test_trainer_mispelled(base_empty_matching_data):
 
     expected = pd.DataFrame(
         {
-            "entity_name": ["trainer"],
+            "entity": ["trainer"],
             "rp_id": ["1"],
             "name": ["Trainers A"],
             "tf_id": ["1"],
@@ -456,7 +456,7 @@ def test_jockey_mispelled(base_empty_matching_data):
 
     expected = pd.DataFrame(
         {
-            "entity_name": ["jockey"],
+            "entity": ["jockey"],
             "rp_id": ["1"],
             "name": ["Jockeys A"],
             "tf_id": ["1"],
@@ -547,7 +547,7 @@ def test_multiple_matched(base_data, base_matching_data, base_empty_matching_dat
 
     expected = pd.DataFrame(
         {
-            "entity_name": ["trainer", "sire"],
+            "entity": ["trainer", "sire"],
             "rp_id": ["1", "1"],
             "name": ["Trainer A", "Sire A"],
             "tf_id": ["1", "1"],

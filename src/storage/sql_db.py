@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import List, Optional, Union
 
 import pandas as pd
 import sqlalchemy
@@ -74,7 +74,7 @@ def fetch_data(
             query,
             conn,
         )
-    I(f"Fetched {len(df)} records from ")
+
     return df
 
 
@@ -149,3 +149,22 @@ def delete_duplicates_from_table(schema: str, table: str, unique_id: str):
             """
         )
     I(f"Duplicates deleted from {schema}.{table}")
+
+
+def insert_latest_records(
+    table: str, schema: str, data: pd.DataFrame, unique_id: Union[str, List[str]]
+):
+    current_data = fetch_data(f"SELECT * FROM {schema}.{table}")
+    data = (
+        data.sort_values(by="created_at", ascending=False)
+        .drop_duplicates(subset=unique_id, keep="first")
+        .reset_index(drop=True)
+    )
+    store_data(data[~data[unique_id].isin(current_data[unique_id])], table, schema)
+
+def insert_records(
+    table: str, schema: str, data: pd.DataFrame, unique_id: Union[str, List[str]]
+):
+    current_data = fetch_data(f"SELECT * FROM {schema}.{table}")
+    data = data.drop_duplicates(subset=unique_id).reset_index(drop=True)
+    store_data(data[~data[unique_id].isin(current_data[unique_id])], table, schema)

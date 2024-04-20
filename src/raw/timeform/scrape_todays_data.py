@@ -16,7 +16,8 @@ from src.data_models.raw.timeform_model import (
 )
 from src.raw.webdriver_base import get_headless_driver
 from src.storage.sql_db import fetch_data, store_data
-from src.utils.logging_config import I
+from src.utils.logging_config import E, I, W
+from src.utils.processing_utils import register_job_completion
 
 TODAYS_DATE_FILTER = datetime.now().strftime("%Y-%m-%d")
 TOMORROWS_DATE_FILTER = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
@@ -81,6 +82,7 @@ def get_horse_data(driver):
     WebDriverWait(driver, 10).until(
         EC.presence_of_all_elements_located((By.CSS_SELECTOR, "tbody.rp-horse-row"))
     )
+
     horse_entries = driver.find_elements(By.CSS_SELECTOR, "tbody.rp-horse-row")
     horse_data = []
     trainer_pattern = (
@@ -163,7 +165,7 @@ def get_links(
 def process_tf_scrape_days_data(dates: list[str]):
 
     base_link = "https://www.timeform.com/horse-racing/racecards"
-
+    errors = []
     data = []
     course_country = fetch_course_data()
     driver = get_headless_driver()
@@ -172,54 +174,64 @@ def process_tf_scrape_days_data(dates: list[str]):
         click_for_racecards(driver, date)
         urls = get_links(driver, course_country, date)
         for url in urls:
-            I(f"Scraping data from: {url}")
-            driver.get(url)
-            race_data = get_data_from_url(url)
-            age_range = get_optional_element_text(
-                driver, "span.rp-header-text[title='Horse age range']"
-            )
-            bha_rating_range = get_optional_element_text(
-                driver, "span.rp-header-text.pr3[title='BHA rating range']"
-            )
-            prize_money = get_optional_element_text(
-                driver, "span.rp-header-text.pr3[title='Prize money to winner']"
-            )
-            horse_data = get_horse_data(driver)
-            data.append(
-                horse_data.assign(
-                    **race_data,
-                    age_range=age_range,
-                    hcap_range=bha_rating_range,
-                    prize=prize_money,
-                    unique_id=lambda x: x.apply(
-                        lambda y: hashlib.sha512(
-                            f"timeform{y['horse_id']}{y['race_date']}".encode()
-                        ).hexdigest(),
-                        axis=1,
-                    ),
-                    finishing_position=None,
-                    fractional_price=None,
-                    main_race_comment=None,
-                    draw=None,
-                    tf_rating=None,
-                    tf_speed_figure=None,
-                    betfair_win_sp=None,
-                    going=None,
-                    in_play_prices=None,
-                    debug_link=url,
-                    equipment=None,
-                    official_rating=None,
-                    race_id=None,
-                    betfair_place_sp=None,
-                    distance=None,
-                    horse_name_link=None,
-                    race_type=None,
-                    tf_comment=None,
-                    horse_age=None,
-                    race_time=None,
-                    created_at=datetime.now(),
+            try:
+                I(f"Scraping data from: {url}")
+                driver.get(url)
+                race_data = get_data_from_url(url)
+                age_range = get_optional_element_text(
+                    driver, "span.rp-header-text[title='Horse age range']"
                 )
-            )
+                bha_rating_range = get_optional_element_text(
+                    driver, "span.rp-header-text.pr3[title='BHA rating range']"
+                )
+                prize_money = get_optional_element_text(
+                    driver, "span.rp-header-text.pr3[title='Prize money to winner']"
+                )
+                horse_data = get_horse_data(driver)
+                data.append(
+                    horse_data.assign(
+                        **race_data,
+                        age_range=age_range,
+                        hcap_range=bha_rating_range,
+                        prize=prize_money,
+                        unique_id=lambda x: x.apply(
+                            lambda y: hashlib.sha512(
+                                f"timeform{y['horse_id']}{y['race_date']}".encode()
+                            ).hexdigest(),
+                            axis=1,
+                        ),
+                        finishing_position=None,
+                        fractional_price=None,
+                        main_race_comment=None,
+                        draw=None,
+                        tf_rating=None,
+                        tf_speed_figure=None,
+                        betfair_win_sp=None,
+                        going=None,
+                        in_play_prices=None,
+                        debug_link=url,
+                        equipment=None,
+                        official_rating=None,
+                        race_id=None,
+                        betfair_place_sp=None,
+                        distance=None,
+                        horse_name_link=None,
+                        race_type=None,
+                        tf_comment=None,
+                        horse_age=None,
+                        race_time=None,
+                        created_at=datetime.now(),
+                    )
+                )
+            except Exception as e:
+                E(f"Error processing data for url: {url}")
+                errors.append(
+                    {
+                        "error_url": url,
+                        "error_message": str(e),
+                        "error_processing_time": datetime.now(),
+                    }
+                )
         data = pd.concat(data)
         data.pipe(
             convert_and_validate_data,
@@ -233,10 +245,24 @@ def process_tf_scrape_days_data(dates: list[str]):
             .sort_values(by="created_at", ascending=False)
             .drop_duplicates(subset=["unique_id"])
         )
+        if errors:
+            errors = pd.DataFrame(errors)
+            E(
+                f'there were errors processing the following urls: {errors["error_url"].tolist()}'
+            )
+            processed_error_data = fetch_data(
+                "SELECT * FROM errors.todays_performance_data"
+            )
+            non_duplicated_errors = errors[
+                ~errors["error_url"].isin(processed_error_data["error_url"])
+            ].drop_duplicates(subset=["error_url"])
+            store_data(non_duplicated_errors, "todays_performance_data", "errors")
+
         data = data[data["race_date"] >= datetime.now().strftime("%Y-%m-%d")]
         store_data(data, "todays_performance_data", "tf_raw")
 
     driver.quit()
+    register_job_completion("scrape_todays_tf_data")
 
 
 if __name__ == "__main__":

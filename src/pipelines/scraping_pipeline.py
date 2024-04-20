@@ -26,7 +26,6 @@ def post_results_scraping_checks():
     I("All RP data scraped successfully")
     if not tf_links.empty:
         W("Not all TF data has been scraped.")
-    I("All TF data scraped successfully")
 
 
 def post_racecards_scraping_checks():
@@ -46,7 +45,6 @@ def post_racecards_scraping_checks():
         W(f"RP racecards for {TODAY} not found in database.")
     if TOMORROW not in rp_race_dates:
         W(f"RP racecards for {TOMORROW} not found in database.")
-    I("All RP racecards found in database")
 
     tf_race_dates = tf_racecards["race_date"].unique()
     tf_race_times = tf_racecards["race_time"].unique()
@@ -97,17 +95,21 @@ def todays_pipeline():
     pp(
         (
             process_rp_scrape_days_data,
-            (
-                TODAY,
-                TOMORROW,
-            ),
+            ([TODAY],),
         ),
         (
             process_tf_scrape_days_data,
-            (
-                TODAY,
-                TOMORROW,
-            ),
+            ([TODAY],),
+        ),
+    )
+    pp(
+        (
+            process_rp_scrape_days_data,
+            ([TOMORROW],),
+        ),
+        (
+            process_tf_scrape_days_data,
+            ([TOMORROW],),
         ),
     )
 
@@ -122,4 +124,4 @@ def run_scraping_pipeline(historical=True, todays=True):
 
 
 if __name__ == "__main__":
-    run_scraping_pipeline(historical=False)
+    run_scraping_pipeline()

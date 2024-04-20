@@ -7,7 +7,7 @@ def get_logging_config(log_type):
 
     """
     logging.basicConfig(
-        format="%(asctime)s - %(levelname)-8s %(filename)s:%(lineno)s - %(message)s",
+        format="%(asctime)s | %(levelname)-2s - %(message)s",
         level=log_type,
         datefmt="%Y-%m-%dT%H:%M:%SZ",
     )

@@ -22,7 +22,7 @@ def run_transform_pipeline():
     )
     store_data(accepted_data, "transformed_performance_data", "staging", truncate=True)
     store_data(
-        rejected_data, "transformed_performance_data_rejected", "staging", truncate=True
+        rejected_data, "staging_transformed_performance_data_rejected", "errors", truncate=True
     )
     store_data(race_data, "transformed_race_data", "staging", truncate=True)
 

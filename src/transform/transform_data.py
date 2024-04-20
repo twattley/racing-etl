@@ -466,7 +466,9 @@ def validate_data(data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     rejected_df = data[~valid_rows]
 
     if not rejected_df.empty:
-        W(f"Rejected {len(rejected_df)} rows due to missing null values.")
+        for index, row in rejected_df.iterrows():
+            missing_fields = [field for field in non_null_fields if pd.isna(row[field])]
+            W(f"Row {index} rejected due to missing values in: {', '.join(missing_fields)}")
 
     return accepted_df, rejected_df
 

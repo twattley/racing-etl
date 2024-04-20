@@ -16,7 +16,8 @@ from src.data_models.raw.racing_post_model import (
 )
 from src.raw.webdriver_base import get_headless_driver
 from src.storage.sql_db import fetch_data, store_data
-from src.utils.logging_config import I, W
+from src.utils.logging_config import E, I, W
+from src.utils.processing_utils import register_job_completion
 
 BASE_LINK = "https://www.racingpost.com/racecards"
 TODAYS_DATE_FILTER = datetime.now().strftime("%Y-%m-%d")
@@ -109,9 +110,12 @@ def get_race_time(driver: webdriver.Chrome, date: str) -> datetime:
     )
     time = element.text.strip()
     hours, minutes = time.split(":")
+    hours = int(hours)
+    if hours < 10:
+        hours += 12
     return {
         "race_timestamp": datetime.strptime(
-            f"{date} {int(hours)}:{minutes}", "%Y-%m-%d %H:%M"
+            f"{date} {hours}:{minutes}", "%Y-%m-%d %H:%M"
         )
     }
 
@@ -331,6 +335,7 @@ def get_links(
 
 def process_rp_scrape_days_data(dates: list[str]):
     base_link = "https://www.racingpost.com/racecards"
+    pipeline_errors = []
     data = []
     course_country = fetch_course_data()
     course_country["rp_id"].to_list()
@@ -346,50 +351,61 @@ def process_rp_scrape_days_data(dates: list[str]):
         toggle_buttons(driver)
 
         for url in urls:
-            I(f"Scraping data from: {url}")
-            driver.get(url)
-            race_data = get_data_from_url(url)
-            race_time = get_race_time(driver, race_data["race_date"])
-            header_data = get_race_details(driver)
-            horse_data = get_horse_data(driver)
-            horse_data = horse_data.assign(
-                **race_data,
-                **race_time,
-                **header_data,
-                race_time=None,
-                horse_price=None,
-                finishing_position=None,
-                rpr_value=None,
-                debug_link=url,
-                total_distance_beaten=None,
-                ts_value=None,
-                total_prize_money=None,
-                currency=None,
-                winning_time=None,
-                dams_sire_id=None,
-                extra_weight=None,
-                dams_sire=None,
-                comment=None,
-                country=country_map.get(race_data["course_id"]),
-                created_at=datetime.now(),
-            )
+            try:
+                I(f"Scraping data from: {url}")
+                driver.get(url)
+                race_data = get_data_from_url(url)
+                race_time = get_race_time(driver, race_data["race_date"])
+                header_data = get_race_details(driver)
+                horse_data = get_horse_data(driver)
+                horse_data = horse_data.assign(
+                    **race_data,
+                    **race_time,
+                    **header_data,
+                    race_time=None,
+                    horse_price=None,
+                    finishing_position=None,
+                    rpr_value=None,
+                    debug_link=url,
+                    total_distance_beaten=None,
+                    ts_value=None,
+                    total_prize_money=None,
+                    currency=None,
+                    winning_time=None,
+                    dams_sire_id=None,
+                    extra_weight=None,
+                    dams_sire=None,
+                    comment=None,
+                    country=country_map.get(race_data["course_id"]),
+                    created_at=datetime.now(),
+                )
 
-            horse_data = horse_data.assign(
-                unique_id=lambda x: x.apply(
-                    lambda y: hashlib.sha512(
-                        f"racing_post{y['horse_id']}{y['horse_weight']}{y['race_title']}".encode()
-                    ).hexdigest(),
-                    axis=1,
-                ),
-                meeting_id=lambda x: x.apply(
-                    lambda y: hashlib.sha512(
-                        f"{y['course_id']}{y['race_date']}".encode()
-                    ).hexdigest(),
-                    axis=1,
-                ),
-            ).drop(columns=["distance_yards"])
-            data.append(horse_data)
-
+                horse_data = horse_data.assign(
+                    unique_id=lambda x: x.apply(
+                        lambda y: hashlib.sha512(
+                            f"racing_post{y['horse_id']}{y['horse_weight']}{y['race_title']}".encode()
+                        ).hexdigest(),
+                        axis=1,
+                    ),
+                    meeting_id=lambda x: x.apply(
+                        lambda y: hashlib.sha512(
+                            f"{y['course_id']}{y['race_date']}".encode()
+                        ).hexdigest(),
+                        axis=1,
+                    ),
+                ).drop(columns=["distance_yards"])
+                data.append(horse_data)
+            except Exception as e:
+                E(f"Error processing data for url: {url} - {str(e)}")
+                pipeline_errors.append(
+                    {
+                        "error_url": url,
+                        "error_message": str(e),
+                        "error_processing_time": datetime.now(),
+                    }
+                )
+        if not data:
+            raise ValueError(f"No data found on date: {date} for Racing Post")
         data = pd.concat(data)
         data.pipe(
             convert_and_validate_data,
@@ -403,10 +419,24 @@ def process_rp_scrape_days_data(dates: list[str]):
             .sort_values(by="created_at", ascending=False)
             .drop_duplicates(subset=["unique_id"])
         )
+        if pipeline_errors:
+            errors = pd.DataFrame(pipeline_errors)
+            E(
+                f'there were errors processing the following urls: {errors["error_url"].tolist()}'
+            )
+            processed_error_data = fetch_data(
+                "SELECT * FROM errors.todays_performance_data"
+            )
+            non_duplicated_errors = errors[
+                ~errors["error_url"].isin(processed_error_data["error_url"])
+            ].drop_duplicates(subset=["error_url"])
+            store_data(non_duplicated_errors, "todays_performance_data", "errors")
+
         data = data[data["race_date"] >= datetime.now().strftime("%Y-%m-%d")]
         store_data(data, "todays_performance_data", "rp_raw")
     driver.quit()
+    register_job_completion("scrape_todays_rp_data")
 
 
 if __name__ == "__main__":
-    process_rp_scrape_days_data([TODAYS_DATE_FILTER, TOMORROWS_DATE_FILTER])
+    process_rp_scrape_days_data([TOMORROWS_DATE_FILTER])
