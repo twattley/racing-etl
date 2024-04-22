@@ -4,7 +4,6 @@ from typing import Literal
 import pandas as pd
 
 from src.entity_matching.matcher import (
-    MatchingData,
     entity_match,
     store_matching_results,
     store_owner_data,
@@ -15,6 +14,20 @@ from src.utils.processing_utils import ptr
 
 MATCHING_DATA_FOLDER = "./src/data"
 STRING_DATE_NOW = datetime.now().strftime("%Y-%m-%d")
+
+def post_matching_data_checks():
+    todays_rp_raw, todays_staging = ptr(
+            lambda: fetch_data("SELECT * FROM rp_raw.performance_data;"),
+            lambda: fetch_data("SELECT * FROM staging.joined_todays_performance_data;"),
+        )
+    
+    number_of_raw_records = len(todays_rp_raw)
+    number_of_staging_records = len(todays_staging)
+
+    if number_of_raw_records != number_of_staging_records:
+        W(f"Number of records in staging ({number_of_staging_records}) does not match number of records in raw ({number_of_raw_records})")
+    else:
+        I(f"Number of records in staging ({number_of_staging_records}) matches number of records in raw ({number_of_raw_records})")
 
 def missing_timeform_query(table, missing_dates):
     return f"""
@@ -93,11 +106,17 @@ def run_matching_pipeline():
     )
 
     I(f"Loading matching data for {len(missing_dates)} dates")
-    I(f"Found {len(tf_matching_data)} records")
+    I(f"Found {len(tf_matching_data)} records for dates :{tf_matching_data['race_date'].unique()}")
 
     matched, unmatched = entity_match(tf_matching_data, rp_matching_data)
     store_matching_results(matched, unmatched)
-    call_procedure("insert_into_joined_performance_data", "staging")
+    ptr(
+        lambda: call_procedure("insert_into_joined_performance_data", "staging"),
+        lambda: call_procedure("insert_into_joined_todays_performance_data", "staging"),
+    )
+    post_matching_data_checks()
+
+
 
 
 if __name__ == "__main__":

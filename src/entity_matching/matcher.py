@@ -147,6 +147,8 @@ def store_matched_data(matched: pd.DataFrame, entity: str) -> None:
 
 def store_unmatched_data(unmatched: pd.DataFrame, entity: str) -> None:
     if not unmatched.empty:
+        W(f"Unmatched {entity} data found")
+        W(unmatched[unmatched["entity"] == entity])
         insert_records(
             "staging_entity_unmatched",
             "errors",

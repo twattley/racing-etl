@@ -433,7 +433,7 @@ def process_rp_scrape_days_data(dates: list[str]):
             store_data(non_duplicated_errors, "todays_performance_data", "errors")
 
         data = data[data["race_date"] >= datetime.now().strftime("%Y-%m-%d")]
-        store_data(data, "todays_performance_data", "rp_raw")
+        store_data(data, "todays_performance_data", "rp_raw", truncate=True)
     driver.quit()
     register_job_completion("scrape_todays_rp_data")
 

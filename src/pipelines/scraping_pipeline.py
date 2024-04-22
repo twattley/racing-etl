@@ -30,50 +30,15 @@ def post_results_scraping_checks():
 
 def post_racecards_scraping_checks():
     I("Checking for missing data...")
-
-    rp_racecards, tf_racecards = ptr(
-        lambda: fetch_data(
-            "SELECT race_time, race_date FROM rp_raw.todays_performance_data;"
-        ),
-        lambda: fetch_data(
-            "SELECT race_time, race_date FROM tf_raw.todays_performance_data;"
-        ),
+    missing_racecards = fetch_data(
+        """
+        SELECT * 
+        FROM errors.missing_todays_racecards 
+        WHERE both_sets = false;
+        """
     )
-    rp_race_dates = rp_racecards["race_date"].unique()
-    rp_race_times = rp_racecards["race_time"].unique()
-    if TODAY not in rp_race_dates:
-        W(f"RP racecards for {TODAY} not found in database.")
-    if TOMORROW not in rp_race_dates:
-        W(f"RP racecards for {TOMORROW} not found in database.")
-
-    tf_race_dates = tf_racecards["race_date"].unique()
-    tf_race_times = tf_racecards["race_time"].unique()
-    if TODAY not in tf_race_dates:
-        W(f"TF racecards for {TODAY} not found in database.")
-    if TOMORROW not in tf_race_dates:
-        W(f"TF racecards for {TOMORROW} not found in database.")
-    I("All TF racecards found in database")
-
-    missing_tf_racetimes = set(rp_race_times) - set(tf_race_times)
-    missing_rp_racetimes = set(tf_race_times) - set(rp_race_times)
-    if missing_tf_racetimes:
-        W(f"TF racecards missing the following RP race times: {missing_tf_racetimes}")
-    if missing_rp_racetimes:
-        W(f"RP racecards missing the following TF race times: {missing_rp_racetimes}")
-
-    todays_rp_counts = rp_racecards[rp_racecards["race_date"] == TODAY].shape[0]
-    tomorrows_rp_counts = rp_racecards[rp_racecards["race_date"] == TOMORROW].shape[0]
-    todays_tf_counts = tf_racecards[tf_racecards["race_date"] == TODAY].shape[0]
-    tomorrows_tf_counts = tf_racecards[tf_racecards["race_date"] == TOMORROW].shape[0]
-
-    if todays_rp_counts != todays_tf_counts:
-        W(
-            f"Racecard counts for {TODAY} do not match between RP: {len(rp_racecards)} and TF: {len(tf_racecards)}"
-        )
-    if tomorrows_rp_counts != tomorrows_tf_counts:
-        W(
-            f"Racecard counts for {TOMORROW} do not match between RP: {len(rp_racecards)} and TF: {len(tf_racecards)}"
-        )
+    if not missing_racecards.empty:
+        W(f"Missing racecards found: {missing_racecards['race_timestamp'].tolist()}")
 
 
 def historical_pipeline():

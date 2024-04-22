@@ -11,15 +11,17 @@ from src.utils.processing_utils import pt
 
 
 def run_transform_pipeline():
-    data = fetch_data("SELECT * FROM public.missing_performance_data_vw;")
-    if data.empty:
-        I("No missing data to transform.")
-        return
+    results_data = fetch_data("SELECT * FROM public.missing_performance_data_vw;")
+    todays_data  = fetch_data("SELECT * FROM public.todays_missing_performance_data_vw;")
+    if results_data.empty:
+        I("No missing historical data to transform.")
     accepted_data, rejected_data, race_data = transform_data(
-        data=data,
+        data=results_data,
         transform_data_model=TransformedDataModel,
         race_data_model=RaceDataModel,
     )
+
+
     store_data(accepted_data, "transformed_performance_data", "staging", truncate=True)
     store_data(
         rejected_data,
