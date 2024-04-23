@@ -39,8 +39,8 @@ def print_critical(msg):
     logger.critical(msg)
 
 
-I = print_information
-W = print_warning
-E = print_error
-D = print_debug
-C = print_critical
+I = print_information  # noqa
+W = print_warning  # noqa
+E = print_error  # noqa
+D = print_debug  # noqa
+C = print_critical  # noqa

@@ -7,9 +7,7 @@ def pt(*funcs):
     with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
         futures = [executor.submit(func) for func in funcs]
         for future in concurrent.futures.as_completed(futures):
-            result = (
-                future.result()
-            )  # This will raise an exception if the future encountered one.
+            future.result()
 
 
 def ptr(*funcs):
@@ -33,9 +31,7 @@ def pp(*func_args):
             ]
             concurrent.futures.wait(futures)
             for future in futures:
-                result = (
-                    future.result()
-                )  # This will raise an exception if the future encountered one.
+                future.result()
 
 
 def register_job_completion(job_name):

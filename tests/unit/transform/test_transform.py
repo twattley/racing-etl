@@ -276,7 +276,7 @@ def test_create_headgear_data():
     pd.testing.assert_frame_equal(output_df, expected_df)
 
 
-def test_create_distance_data():
+def test_distance_beaten_data():
     input_df = pd.DataFrame(
         {
             "race_id": ["1", "1", "1", "2", "2", "2", "3", "3", "3", "3"],
@@ -350,7 +350,7 @@ def test_convert_horse_type_to_colour_sex():
         }
     )
 
-    input_df.pipe(convert_horse_type_to_colour_sex)
+    output_df = input_df.pipe(convert_horse_type_to_colour_sex)
 
     expected_df = pd.DataFrame(
         {
@@ -380,3 +380,5 @@ def test_convert_horse_type_to_colour_sex():
             ],
         }
     )
+
+    pd.testing.assert_frame_equal(output_df, expected_df)
