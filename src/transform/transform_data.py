@@ -13,7 +13,7 @@ from src.data_models.transform.transformed_model import TransformedDataModel
 from src.data_models.transform.transformed_model import (
     table_string_field_lengths as transform_string_field_lengths,
 )
-from src.storage.sql_db import call_procedure, fetch_data, store_data
+from src.storage.sql_db import fetch_data, store_data
 from src.utils.logging_config import I, W
 from src.utils.processing_utils import pt
 

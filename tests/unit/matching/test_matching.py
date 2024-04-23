@@ -1,6 +1,6 @@
 from datetime import datetime
+
 import pandas as pd
-import pytest
 
 from src.entity_matching.matcher import entity_match
 

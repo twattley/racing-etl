@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Literal
 
 import pandas as pd
 
@@ -8,7 +7,7 @@ from src.entity_matching.matcher import (
     store_matching_results,
     store_owner_data,
 )
-from src.storage.sql_db import call_procedure, fetch_data, insert_records
+from src.storage.sql_db import call_procedure, fetch_data
 from src.utils.logging_config import I, W
 from src.utils.processing_utils import ptr
 
@@ -16,10 +15,21 @@ MATCHING_DATA_FOLDER = "./src/data"
 STRING_DATE_NOW = datetime.now().strftime("%Y-%m-%d")
 
 
+def insert_into_performance_data():
+    ptr(
+        lambda: call_procedure("insert_into_joined_performance_data", "staging"),
+        lambda: call_procedure("insert_into_todays_joined_performance_data", "staging"),
+    )
+
+
 def post_matching_data_checks():
     todays_rp_raw, todays_staging = ptr(
-        lambda: fetch_data("SELECT * FROM rp_raw.performance_data;"),
-        lambda: fetch_data("SELECT * FROM staging.joined_todays_performance_data;"),
+        lambda: fetch_data(
+            "SELECT DISTINCT unique_id FROM rp_raw.todays_performance_data;"
+        ),
+        lambda: fetch_data(
+            "SELECT DISTINCT unique_id FROM staging.todays_joined_performance_data;"
+        ),
     )
 
     number_of_raw_records = len(todays_rp_raw)
@@ -27,11 +37,7 @@ def post_matching_data_checks():
 
     if number_of_raw_records != number_of_staging_records:
         W(
-            f"Number of records in staging ({number_of_staging_records}) does not match number of records in raw ({number_of_raw_records})"
-        )
-    else:
-        I(
-            f"Number of records in staging ({number_of_staging_records}) matches number of records in raw ({number_of_raw_records})"
+            f"MISSING DATA RAW: {number_of_raw_records} STAGING: {number_of_staging_records}"
         )
 
 
@@ -95,8 +101,8 @@ def run_matching_pipeline():
         missing_dates = f"('{missing_dates[0]}')"
 
     if not missing_dates:
-        call_procedure("insert_into_joined_performance_data", "staging")
         W("No missing data to match")
+        insert_into_performance_data()
         return
 
     tf_hist_data, tf_present_data = ptr(
@@ -116,10 +122,7 @@ def run_matching_pipeline():
 
     matched, unmatched = entity_match(tf_matching_data, rp_matching_data)
     store_matching_results(matched, unmatched)
-    ptr(
-        lambda: call_procedure("insert_into_joined_performance_data", "staging"),
-        lambda: call_procedure("insert_into_todays_joined_performance_data", "staging"),
-    )
+    insert_into_performance_data()
     post_matching_data_checks()
 
 

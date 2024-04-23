@@ -16,7 +16,7 @@ from src.data_models.raw.timeform_model import (
 )
 from src.raw.webdriver_base import get_headless_driver
 from src.storage.sql_db import fetch_data, store_data
-from src.utils.logging_config import E, I, W
+from src.utils.logging_config import E, I
 from src.utils.processing_utils import register_job_completion
 
 TODAYS_DATE_FILTER = datetime.now().strftime("%Y-%m-%d")

@@ -1,11 +1,8 @@
-from dataclasses import dataclass
-from typing import Union
-
 import pandas as pd
 from fuzzywuzzy import fuzz
 
-from src.storage.sql_db import fetch_data, insert_records, store_data
-from src.utils.logging_config import E, I, W
+from src.storage.sql_db import insert_records
+from src.utils.logging_config import I, W
 from src.utils.processing_utils import pt
 
 
@@ -75,11 +72,35 @@ def create_fuzz_scores(
         + x["fuzz_sire"]
         + x["fuzz_dam"]
         + x["fuzz_jockey"],
+        jockey_fuzz=lambda x: x["fuzz_horse"]
+        + x["fuzz_sire"]
+        + x["fuzz_dam"]
+        + x["fuzz_jockey"],
+        trainer_fuzz=lambda x: x["fuzz_horse"]
+        + x["fuzz_sire"]
+        + x["fuzz_dam"]
+        + x["fuzz_trainer"],
     )
 
-    return base_set[base_set["total_fuzz"] > 480].sort_values(
+    total_fuzz = base_set[base_set["total_fuzz"] > 480].sort_values(
         by="total_fuzz", ascending=False
     )
+    if not total_fuzz.empty:
+        return total_fuzz.head(1)
+
+    jockey_fuzz = base_set[base_set["jockey_fuzz"] == 400].sort_values(
+        by="jockey_fuzz", ascending=False
+    )
+    if not jockey_fuzz.empty:
+        return jockey_fuzz.head(1)
+
+    trainer_fuzz = base_set[base_set["trainer_fuzz"] == 400].sort_values(
+        by="trainer_fuzz", ascending=False
+    )
+    if not trainer_fuzz.empty:
+        return trainer_fuzz.head(1)
+
+    return pd.DataFrame()
 
 
 def entity_match(
@@ -90,6 +111,7 @@ def entity_match(
     tf_data = tf_matching_data.pipe(format_names)
     rp_data = rp_matching_data.pipe(format_names)
     missing_entities = rp_matching_data["entity_type"].unique()
+    I(f"Missing entities: {missing_entities}")
     for entity in missing_entities:
         entity_data = rp_data[rp_data["entity_type"] == entity]
         for filtered_entity_name in entity_data[f"filtered_{entity}_name"].unique():
@@ -97,6 +119,7 @@ def entity_match(
                 entity_data[f"filtered_{entity}_name"] == filtered_entity_name
             ]
             entity_name = sub_rp_data[f"{entity}_name"].iloc[0]
+            I(f"Matching {entity_name}")
             sub_tf_data = tf_data[tf_data["race_date"].isin(sub_rp_data["race_date"])]
             if sub_tf_data.empty:
                 W(
@@ -104,10 +127,7 @@ def entity_match(
                 )
                 continue
 
-            sub_tf_data = create_fuzz_scores(sub_tf_data, sub_rp_data)
-            best_match = sub_tf_data.sort_values(by="total_fuzz", ascending=False).head(
-                1
-            )
+            best_match = create_fuzz_scores(sub_tf_data, sub_rp_data)
             if best_match.empty:
                 unmatched.append(
                     {

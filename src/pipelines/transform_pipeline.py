@@ -8,7 +8,7 @@ from src.utils.processing_utils import pt
 
 def run_transform_pipeline():
     results_data = fetch_data("SELECT * FROM public.missing_performance_data_vw;")
-    todays_data = fetch_data("SELECT * FROM public.todays_missing_performance_data_vw;")
+    # todays_data = fetch_data("SELECT * FROM public.todays_missing_performance_data_vw;")
 
     if results_data.empty:
         I("No missing historical data to transform.")

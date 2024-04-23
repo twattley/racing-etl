@@ -841,9 +841,398 @@ $$;
 
 ALTER PROCEDURE staging.insert_into_joined_performance_data() OWNER TO doadmin;
 
+--
+-- Name: insert_into_todays_joined_performance_data(); Type: PROCEDURE; Schema: staging; Owner: doadmin
+--
+
+CREATE PROCEDURE staging.insert_into_todays_joined_performance_data()
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    INSERT INTO staging.todays_joined_performance_data (
+		horse_name,
+		horse_age,
+		jockey_name,
+		jockey_claim,
+		trainer_name,
+		owner_name,
+		weight_carried,
+		draw,
+		finishing_position,
+		total_distance_beaten,
+		age,
+		official_rating,
+		ts,
+		rpr,
+		industry_sp,
+		extra_weight,
+		headgear,
+		in_race_comment,
+		sire_name,
+		dam_name,
+		dams_sire,
+		race_date,
+		race_title,
+		race_time,
+		race_timestamp,
+		race_class,
+		conditions,
+		distance,
+		distance_full,
+		going,
+		winning_time,
+		horse_type,
+		number_of_runners,
+		total_prize_money,
+		first_place_prize_money,
+		currency,
+		country,
+		surface,
+		tfr,
+		tfig,
+		betfair_win_sp,
+		betfair_place_sp,
+		in_play_prices,
+		tf_comment,
+		hcap_range,
+		age_range,
+		race_type,
+		main_race_comment,
+		meeting_id,
+		course_id,
+		horse_id,
+		sire_id,
+		dam_id,
+		trainer_id,
+		jockey_id,
+		owner_id,
+		race_id,
+		unique_id,
+		created_at
+	)
+WITH unique_course AS (
+    SELECT DISTINCT ON (rp_id) *
+    FROM course
+),
+unique_horse AS (
+    SELECT DISTINCT ON (rp_id) *
+    FROM horse
+),
+unique_sire AS (
+    SELECT DISTINCT ON (rp_id) *
+    FROM sire
+),
+unique_dam AS (
+    SELECT DISTINCT ON (rp_id) *
+    FROM dam
+),
+unique_trainer AS (
+    SELECT DISTINCT ON (rp_id) *
+    FROM trainer
+),
+unique_jockey AS (
+    SELECT DISTINCT ON (rp_id) *
+    FROM jockey
+),
+unique_owner AS (
+    SELECT DISTINCT ON (rp_id) *
+    FROM owner
+),
+joined_data AS (
+    SELECT 
+		trp.horse_name as horse_name,
+		trp.horse_age as horse_age,
+		trp.jockey_name as jockey_name,
+		trp.jockey_claim as jockey_claim,
+		trp.trainer_name as trainer_name,
+		trp.owner_name as owner_name,
+		trp.horse_weight as weight_carried,
+		trp.draw,
+		COALESCE(trp.finishing_position, ttf.finishing_position) AS finishing_position,
+		trp.total_distance_beaten,
+		COALESCE(trp.horse_age, ttf.horse_age) AS age,
+		COALESCE(trp.official_rating, ttf.official_rating) AS official_rating,
+		trp.ts_value as ts,
+		trp.rpr_value as rpr,
+		trp.horse_price as industry_sp,
+		trp.extra_weight as extra_weight,
+		trp.headgear,
+		trp.comment as in_race_comment,
+		trp.sire_name as sire_name,
+		trp.dam_name as dam_name,
+		trp.dams_sire as dams_sire,
+		trp.race_date as race_date,
+		trp.race_title as race_title,
+		trp.race_time as race_time,
+		trp.race_timestamp as race_timestamp,
+		trp.race_class as race_class,
+		trp.conditions as conditions,
+		trp.distance as distance,
+		trp.distance_full as distance_full,
+		trp.going as going,
+		trp.winning_time as winning_time,
+		trp.horse_type as horse_type,
+		trp.number_of_runners as number_of_runners,
+		trp.total_prize_money as total_prize_money,
+		trp.first_place_prize_money,
+		trp.currency,
+		trp.course_name as course_name,
+		trp.country as country,
+		trp.surface as surface,
+		ttf.tf_rating as tfr,
+		ttf.tf_speed_figure as tfig,
+		ttf.betfair_win_sp as betfair_win_sp,
+		ttf.betfair_place_sp as betfair_place_sp,
+		ttf.in_play_prices as in_play_prices,
+		ttf.tf_comment as tf_comment,
+		ttf.hcap_range as hcap_range,
+		ttf.age_range as age_range,
+		ttf.race_type as race_type,
+		ttf.main_race_comment as main_race_comment,
+		trp.meeting_id as meeting_id,
+		c.id as course_id,
+		h.id as horse_id,
+		s.id as sire_id,
+		d.id as dam_id,
+		t.id as trainer_id,
+		j.id as jockey_id,
+		o.id as owner_id,
+		trp.race_id as race_id,
+		trp.unique_id as unique_id,
+        ROW_NUMBER() OVER(PARTITION BY trp.unique_id ORDER BY trp.unique_id) AS rn
+    FROM rp_raw.todays_performance_data trp
+	LEFT JOIN course c ON trp.course_id = c.rp_id
+	LEFT JOIN horse h ON trp.horse_id = h.rp_id
+	LEFT JOIN sire s ON trp.sire_id = s.rp_id
+	LEFT JOIN dam d ON trp.dam_id = d.rp_id
+	LEFT JOIN trainer t ON trp.trainer_id = t.rp_id
+	LEFT JOIN jockey j ON trp.jockey_id = j.rp_id
+	LEFT JOIN owner o ON trp.owner_id = o.rp_id
+    LEFT JOIN tf_raw.todays_performance_data ttf ON ttf.horse_id = h.tf_id
+		AND ttf.course_id = c.tf_id
+		AND ttf.race_timestamp = trp.race_timestamp
+    WHERE ttf.unique_id IS NOT NULL 
+)
+SELECT 	horse_name,
+		horse_age,
+		jockey_name,
+		jockey_claim,
+		trainer_name,
+		owner_name,
+		weight_carried,
+		draw,
+		finishing_position,
+		total_distance_beaten,
+		age,
+		official_rating,
+		ts,
+		rpr,
+		industry_sp,
+		extra_weight,
+		headgear,
+		in_race_comment,
+		sire_name,
+		dam_name,
+		dams_sire,
+		race_date,
+		race_title,
+		race_time,
+		race_timestamp,
+		race_class,
+		conditions,
+		distance,
+		distance_full,
+		going,
+		winning_time,
+		horse_type,
+		number_of_runners,
+		total_prize_money,
+		first_place_prize_money,
+		currency,
+		country,
+		surface,
+		tfr,
+		tfig,
+		betfair_win_sp,
+		betfair_place_sp,
+		in_play_prices,
+		tf_comment,
+		hcap_range,
+		age_range,
+		race_type,
+		main_race_comment,
+		meeting_id,
+		course_id,
+		horse_id,
+		sire_id,
+		dam_id,
+		trainer_id,
+		jockey_id,
+		owner_id,
+		race_id,
+		unique_id,
+		now()
+	FROM joined_data WHERE rn = 1;
+END;
+$$;
+
+
+ALTER PROCEDURE staging.insert_into_todays_joined_performance_data() OWNER TO doadmin;
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: todays_performance_data; Type: TABLE; Schema: rp_raw; Owner: doadmin
+--
+
+CREATE TABLE rp_raw.todays_performance_data (
+    race_timestamp timestamp without time zone,
+    race_date character varying(32),
+    course_name character varying(132),
+    race_class character varying(132),
+    horse_name character varying(132),
+    horse_type character varying(16),
+    horse_age character varying(16),
+    headgear character varying(16),
+    conditions character varying(32),
+    horse_price character varying(16),
+    race_title text,
+    distance character varying(32),
+    distance_full character varying(32),
+    going character varying(32),
+    number_of_runners character varying(32),
+    total_prize_money integer,
+    first_place_prize_money integer,
+    winning_time character varying(32),
+    official_rating character varying(16),
+    horse_weight character varying(16),
+    draw character varying(16),
+    country character varying(16),
+    surface character varying(16),
+    finishing_position character varying(16),
+    total_distance_beaten character varying(32),
+    ts_value character varying(16),
+    rpr_value character varying(16),
+    extra_weight numeric(10,2),
+    comment text,
+    race_time character varying(32),
+    currency character varying(16),
+    course character varying(132),
+    jockey_name character varying(132),
+    jockey_claim character varying(16),
+    trainer_name character varying(132),
+    sire_name character varying(132),
+    dam_name character varying(132),
+    dams_sire character varying(132),
+    owner_name character varying(132),
+    horse_id character varying(32),
+    trainer_id character varying(32),
+    jockey_id character varying(32),
+    sire_id character varying(32),
+    dam_id character varying(32),
+    dams_sire_id character varying(32),
+    owner_id character varying(32),
+    race_id character varying(32),
+    course_id character varying(32),
+    meeting_id character varying(132),
+    unique_id character varying(132),
+    debug_link text,
+    created_at timestamp without time zone
+);
+
+
+ALTER TABLE rp_raw.todays_performance_data OWNER TO doadmin;
+
+--
+-- Name: todays_performance_data; Type: TABLE; Schema: tf_raw; Owner: doadmin
+--
+
+CREATE TABLE tf_raw.todays_performance_data (
+    tf_rating character varying(16),
+    tf_speed_figure character varying(16),
+    draw character varying(16),
+    trainer_name character varying(132),
+    trainer_id character varying(32),
+    jockey_name character varying(132),
+    jockey_id character varying(32),
+    sire_name character varying(132),
+    sire_id character varying(32),
+    dam_name character varying(132),
+    dam_id character varying(32),
+    finishing_position character varying(16),
+    horse_name character varying(132),
+    horse_id character varying(32),
+    horse_name_link character varying(132),
+    horse_age character varying(16),
+    equipment character varying(16),
+    official_rating character varying(16),
+    fractional_price character varying(64),
+    betfair_win_sp character varying(16),
+    betfair_place_sp character varying(16),
+    in_play_prices character varying(16),
+    tf_comment text,
+    course text,
+    race_date character varying(32),
+    race_time character varying(32),
+    race_timestamp timestamp without time zone,
+    course_id character varying(32),
+    race text,
+    race_id character varying(132),
+    distance character varying(32),
+    going character varying(16),
+    prize character varying(16),
+    hcap_range character varying(16),
+    age_range character varying(16),
+    race_type character varying(16),
+    main_race_comment text,
+    debug_link text,
+    created_at timestamp without time zone,
+    unique_id character varying(132)
+);
+
+
+ALTER TABLE tf_raw.todays_performance_data OWNER TO doadmin;
+
+--
+-- Name: missing_todays_races; Type: VIEW; Schema: errors; Owner: postgres
+--
+
+CREATE VIEW errors.missing_todays_races AS
+ WITH rp_data AS (
+         SELECT DISTINCT todays_performance_data.race_date,
+            todays_performance_data.course,
+            todays_performance_data.race_timestamp
+           FROM rp_raw.todays_performance_data
+          WHERE ((todays_performance_data.race_date)::date >= CURRENT_DATE)
+          ORDER BY todays_performance_data.race_date, todays_performance_data.course, todays_performance_data.race_timestamp
+        ), tf_data AS (
+         SELECT DISTINCT todays_performance_data.race_date,
+            todays_performance_data.course,
+            todays_performance_data.race_timestamp
+           FROM tf_raw.todays_performance_data
+          WHERE ((todays_performance_data.race_date)::date >= CURRENT_DATE)
+        ), ordered AS (
+         SELECT rp.race_date,
+            rp.course,
+            rp.race_timestamp,
+                CASE
+                    WHEN ((rp.race_timestamp IS NOT NULL) AND (tf.race_timestamp IS NOT NULL)) THEN true
+                    ELSE false
+                END AS both_sets
+           FROM (rp_data rp
+             LEFT JOIN tf_data tf ON ((rp.race_timestamp = tf.race_timestamp)))
+          ORDER BY rp.race_date, rp.course, rp.race_timestamp
+        )
+ SELECT race_date,
+    course,
+    race_timestamp,
+    both_sets
+   FROM ordered;
+
+
+ALTER VIEW errors.missing_todays_races OWNER TO postgres;
 
 --
 -- Name: staging_entity_unmatched; Type: TABLE; Schema: errors; Owner: doadmin
@@ -1780,6 +2169,191 @@ CREATE VIEW public.missing_race_data_vw AS
 ALTER VIEW public.missing_race_data_vw OWNER TO doadmin;
 
 --
+-- Name: todays_performance_data; Type: TABLE; Schema: public; Owner: doadmin
+--
+
+CREATE TABLE public.todays_performance_data (
+    race_time timestamp without time zone NOT NULL,
+    race_date date NOT NULL,
+    horse_name character varying(132) NOT NULL,
+    age integer,
+    horse_sex character varying(32),
+    draw integer,
+    headgear character varying(64),
+    weight_carried character varying(16),
+    weight_carried_lbs smallint,
+    extra_weight smallint,
+    jockey_claim smallint,
+    finishing_position character varying(6),
+    total_distance_beaten numeric(10,2),
+    industry_sp character varying(16),
+    betfair_win_sp numeric(6,2),
+    betfair_place_sp numeric(6,2),
+    official_rating smallint,
+    ts smallint,
+    rpr smallint,
+    tfr smallint,
+    tfig smallint,
+    in_play_high numeric(6,2),
+    in_play_low numeric(6,2),
+    in_race_comment text,
+    tf_comment text,
+    tfr_view character varying(16),
+    course_id smallint NOT NULL,
+    horse_id integer NOT NULL,
+    jockey_id integer NOT NULL,
+    trainer_id integer NOT NULL,
+    owner_id integer NOT NULL,
+    sire_id integer NOT NULL,
+    dam_id integer NOT NULL,
+    unique_id character varying(132) NOT NULL,
+    created_at timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE public.todays_performance_data OWNER TO doadmin;
+
+--
+-- Name: todays_joined_performance_data; Type: TABLE; Schema: staging; Owner: doadmin
+--
+
+CREATE TABLE staging.todays_joined_performance_data (
+    horse_name character varying(132),
+    horse_age character varying(16),
+    jockey_name character varying(132),
+    jockey_claim character varying(16),
+    trainer_name character varying(132),
+    owner_name character varying(132),
+    weight_carried character varying(16),
+    draw character varying(16),
+    finishing_position character varying(16),
+    total_distance_beaten character varying(16),
+    age character varying(16),
+    official_rating character varying(16),
+    ts character varying(16),
+    rpr character varying(16),
+    industry_sp character varying(16),
+    extra_weight numeric,
+    headgear character varying(16),
+    in_race_comment text,
+    sire_name character varying(132),
+    dam_name character varying(132),
+    dams_sire character varying(132),
+    race_date character varying(32),
+    race_title text,
+    race_time character varying(32),
+    race_timestamp timestamp without time zone,
+    race_class character varying(32),
+    conditions character varying(32),
+    distance character varying(32),
+    distance_full character varying(32),
+    going character varying(32),
+    winning_time character varying(32),
+    horse_type character varying(32),
+    number_of_runners character varying(32),
+    total_prize_money integer,
+    first_place_prize_money integer,
+    currency character varying(16),
+    country character varying(16),
+    surface character varying(16),
+    tfr character varying(16),
+    tfig character varying(16),
+    betfair_win_sp character varying(16),
+    betfair_place_sp character varying(16),
+    in_play_prices character varying(16),
+    tf_comment text,
+    hcap_range character varying(16),
+    age_range character varying(16),
+    race_type character varying(16),
+    main_race_comment text,
+    meeting_id character varying(132),
+    course_id smallint,
+    horse_id integer,
+    sire_id integer,
+    dam_id integer,
+    trainer_id integer,
+    jockey_id integer,
+    owner_id integer,
+    race_id character varying(32),
+    unique_id character varying(132),
+    created_at timestamp without time zone
+);
+
+
+ALTER TABLE staging.todays_joined_performance_data OWNER TO doadmin;
+
+--
+-- Name: missing_todays_performance_data_vw; Type: VIEW; Schema: public; Owner: doadmin
+--
+
+CREATE VIEW public.missing_todays_performance_data_vw AS
+ SELECT spd.horse_name,
+    spd.horse_age,
+    spd.jockey_name,
+    spd.jockey_claim,
+    spd.trainer_name,
+    spd.owner_name,
+    spd.weight_carried,
+    spd.draw,
+    spd.finishing_position,
+    spd.total_distance_beaten,
+    spd.age,
+    spd.official_rating,
+    spd.ts,
+    spd.rpr,
+    spd.industry_sp,
+    spd.extra_weight,
+    spd.headgear,
+    spd.in_race_comment,
+    spd.sire_name,
+    spd.dam_name,
+    spd.dams_sire,
+    spd.race_date,
+    spd.race_title,
+    spd.race_time,
+    spd.race_timestamp,
+    spd.race_class,
+    spd.conditions,
+    spd.distance,
+    spd.distance_full,
+    spd.going,
+    spd.winning_time,
+    spd.horse_type,
+    spd.number_of_runners,
+    spd.total_prize_money,
+    spd.first_place_prize_money,
+    spd.currency,
+    spd.country,
+    spd.surface,
+    spd.tfr,
+    spd.tfig,
+    spd.betfair_win_sp,
+    spd.betfair_place_sp,
+    spd.in_play_prices,
+    spd.tf_comment,
+    spd.hcap_range,
+    spd.age_range,
+    spd.race_type,
+    spd.main_race_comment,
+    spd.meeting_id,
+    spd.course_id,
+    spd.horse_id,
+    spd.sire_id,
+    spd.dam_id,
+    spd.trainer_id,
+    spd.jockey_id,
+    spd.owner_id,
+    spd.race_id,
+    spd.unique_id,
+    spd.created_at
+   FROM (staging.todays_joined_performance_data spd
+     LEFT JOIN public.todays_performance_data pd ON (((spd.unique_id)::text = (pd.unique_id)::text)))
+  WHERE (pd.unique_id IS NULL);
+
+
+ALTER VIEW public.missing_todays_performance_data_vw OWNER TO doadmin;
+
+--
 -- Name: owner; Type: TABLE; Schema: public; Owner: doadmin
 --
 
@@ -1962,66 +2536,19 @@ CREATE VIEW rp_raw.missing_links AS
 ALTER VIEW rp_raw.missing_links OWNER TO doadmin;
 
 --
--- Name: todays_performance_data; Type: TABLE; Schema: rp_raw; Owner: doadmin
+-- Name: todays_races; Type: VIEW; Schema: rp_raw; Owner: postgres
 --
 
-CREATE TABLE rp_raw.todays_performance_data (
-    race_timestamp timestamp without time zone,
-    race_date character varying(32),
-    course_name character varying(132),
-    race_class character varying(132),
-    horse_name character varying(132),
-    horse_type character varying(16),
-    horse_age character varying(16),
-    headgear character varying(16),
-    conditions character varying(32),
-    horse_price character varying(16),
-    race_title text,
-    distance character varying(32),
-    distance_full character varying(32),
-    going character varying(32),
-    number_of_runners character varying(32),
-    total_prize_money integer,
-    first_place_prize_money integer,
-    winning_time character varying(32),
-    official_rating character varying(16),
-    horse_weight character varying(16),
-    draw character varying(16),
-    country character varying(16),
-    surface character varying(16),
-    finishing_position character varying(16),
-    total_distance_beaten character varying(32),
-    ts_value character varying(16),
-    rpr_value character varying(16),
-    extra_weight numeric(10,2),
-    comment text,
-    race_time character varying(32),
-    currency character varying(16),
-    course character varying(132),
-    jockey_name character varying(132),
-    jockey_claim character varying(16),
-    trainer_name character varying(132),
-    sire_name character varying(132),
-    dam_name character varying(132),
-    dams_sire character varying(132),
-    owner_name character varying(132),
-    horse_id character varying(32),
-    trainer_id character varying(32),
-    jockey_id character varying(32),
-    sire_id character varying(32),
-    dam_id character varying(32),
-    dams_sire_id character varying(32),
-    owner_id character varying(32),
-    race_id character varying(32),
-    course_id character varying(32),
-    meeting_id character varying(132),
-    unique_id character varying(132),
-    debug_link text,
-    created_at timestamp without time zone
-);
+CREATE VIEW rp_raw.todays_races AS
+ SELECT DISTINCT race_date,
+    course,
+    race_timestamp
+   FROM rp_raw.todays_performance_data
+  WHERE ((race_date)::date >= CURRENT_DATE)
+  ORDER BY race_date, course, race_timestamp;
 
 
-ALTER TABLE rp_raw.todays_performance_data OWNER TO doadmin;
+ALTER VIEW rp_raw.todays_races OWNER TO postgres;
 
 --
 -- Name: unmatched_dams; Type: VIEW; Schema: rp_raw; Owner: doadmin
@@ -2067,7 +2594,7 @@ CREATE VIEW rp_raw.unmatched_dams AS
             pd.debug_link
            FROM (rp_raw.todays_performance_data pd
              LEFT JOIN public.dam ON (((pd.dam_id)::text = (dam.rp_id)::text)))
-          WHERE (dam.rp_id IS NULL)
+          WHERE ((dam.rp_id IS NULL) AND ((pd.race_date)::date >= CURRENT_DATE))
         ), unioned_data AS (
          SELECT historical_data.horse_name,
             historical_data.horse_id,
@@ -2171,7 +2698,7 @@ CREATE VIEW rp_raw.unmatched_horses AS
             pd.debug_link
            FROM (rp_raw.todays_performance_data pd
              LEFT JOIN public.horse ON (((pd.horse_id)::text = (horse.rp_id)::text)))
-          WHERE (horse.rp_id IS NULL)
+          WHERE ((horse.rp_id IS NULL) AND ((pd.race_date)::date >= CURRENT_DATE))
         ), unioned_data AS (
          SELECT historical_data.horse_name,
             historical_data.horse_id,
@@ -2275,7 +2802,7 @@ CREATE VIEW rp_raw.unmatched_jockeys AS
             pd.debug_link
            FROM (rp_raw.todays_performance_data pd
              LEFT JOIN public.jockey ON (((pd.jockey_id)::text = (jockey.rp_id)::text)))
-          WHERE (jockey.rp_id IS NULL)
+          WHERE ((jockey.rp_id IS NULL) AND ((pd.race_date)::date >= CURRENT_DATE))
         ), unioned_data AS (
          SELECT historical_data.horse_name,
             historical_data.horse_id,
@@ -2351,7 +2878,7 @@ CREATE VIEW rp_raw.unmatched_owners AS
             pd.owner_id
            FROM (rp_raw.todays_performance_data pd
              LEFT JOIN public.owner ON (((pd.owner_id)::text = (owner.rp_id)::text)))
-          WHERE (owner.rp_id IS NULL)
+          WHERE ((owner.rp_id IS NULL) AND ((pd.race_date)::date >= CURRENT_DATE))
         ), unioned_data AS (
          SELECT historical_data.owner_name,
             historical_data.owner_id
@@ -2412,7 +2939,7 @@ CREATE VIEW rp_raw.unmatched_sires AS
             pd.debug_link
            FROM (rp_raw.todays_performance_data pd
              LEFT JOIN public.sire ON (((pd.sire_id)::text = (sire.rp_id)::text)))
-          WHERE (sire.rp_id IS NULL)
+          WHERE ((sire.rp_id IS NULL) AND ((pd.race_date)::date >= CURRENT_DATE))
         ), unioned_data AS (
          SELECT historical_data.horse_name,
             historical_data.horse_id,
@@ -2516,7 +3043,7 @@ CREATE VIEW rp_raw.unmatched_trainers AS
             pd.debug_link
            FROM (rp_raw.todays_performance_data pd
              LEFT JOIN public.trainer ON (((pd.trainer_id)::text = (trainer.rp_id)::text)))
-          WHERE (trainer.rp_id IS NULL)
+          WHERE ((trainer.rp_id IS NULL) AND ((pd.race_date)::date >= CURRENT_DATE))
         ), unioned_data AS (
          SELECT historical_data.horse_name,
             historical_data.horse_id,
@@ -2788,56 +3315,6 @@ CREATE VIEW tf_raw.missing_links AS
 ALTER VIEW tf_raw.missing_links OWNER TO doadmin;
 
 --
--- Name: todays_performance_data; Type: TABLE; Schema: tf_raw; Owner: doadmin
---
-
-CREATE TABLE tf_raw.todays_performance_data (
-    tf_rating character varying(16),
-    tf_speed_figure character varying(16),
-    draw character varying(16),
-    trainer_name character varying(132),
-    trainer_id character varying(32),
-    jockey_name character varying(132),
-    jockey_id character varying(32),
-    sire_name character varying(132),
-    sire_id character varying(32),
-    dam_name character varying(132),
-    dam_id character varying(32),
-    finishing_position character varying(16),
-    horse_name character varying(132),
-    horse_id character varying(32),
-    horse_name_link character varying(132),
-    horse_age character varying(16),
-    equipment character varying(16),
-    official_rating character varying(16),
-    fractional_price character varying(64),
-    betfair_win_sp character varying(16),
-    betfair_place_sp character varying(16),
-    in_play_prices character varying(16),
-    tf_comment text,
-    course text,
-    race_date character varying(32),
-    race_time character varying(32),
-    race_timestamp timestamp without time zone,
-    course_id character varying(32),
-    race text,
-    race_id character varying(132),
-    distance character varying(32),
-    going character varying(16),
-    prize character varying(16),
-    hcap_range character varying(16),
-    age_range character varying(16),
-    race_type character varying(16),
-    main_race_comment text,
-    debug_link text,
-    created_at timestamp without time zone,
-    unique_id character varying(132)
-);
-
-
-ALTER TABLE tf_raw.todays_performance_data OWNER TO doadmin;
-
---
 -- Name: dam id; Type: DEFAULT; Schema: public; Owner: doadmin
 --
 
@@ -2989,6 +3466,14 @@ ALTER TABLE ONLY public.trainer
 
 ALTER TABLE ONLY public.sire
     ADD CONSTRAINT sire_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: todays_performance_data todays_unique_id_pd; Type: CONSTRAINT; Schema: public; Owner: doadmin
+--
+
+ALTER TABLE ONLY public.todays_performance_data
+    ADD CONSTRAINT todays_unique_id_pd UNIQUE (unique_id);
 
 
 --
@@ -3217,6 +3702,69 @@ CREATE INDEX idx_tf_sire_id ON public.sire USING btree (tf_id);
 --
 
 CREATE INDEX idx_tf_trainer_id ON public.trainer USING btree (tf_id);
+
+
+--
+-- Name: idx_todays_performance_data_course_id; Type: INDEX; Schema: public; Owner: doadmin
+--
+
+CREATE INDEX idx_todays_performance_data_course_id ON public.performance_data USING btree (course_id);
+
+
+--
+-- Name: idx_todays_performance_data_dam_id; Type: INDEX; Schema: public; Owner: doadmin
+--
+
+CREATE INDEX idx_todays_performance_data_dam_id ON public.performance_data USING btree (dam_id);
+
+
+--
+-- Name: idx_todays_performance_data_horse_id; Type: INDEX; Schema: public; Owner: doadmin
+--
+
+CREATE INDEX idx_todays_performance_data_horse_id ON public.performance_data USING btree (horse_id);
+
+
+--
+-- Name: idx_todays_performance_data_jockey_id; Type: INDEX; Schema: public; Owner: doadmin
+--
+
+CREATE INDEX idx_todays_performance_data_jockey_id ON public.performance_data USING btree (jockey_id);
+
+
+--
+-- Name: idx_todays_performance_data_owner_id; Type: INDEX; Schema: public; Owner: doadmin
+--
+
+CREATE INDEX idx_todays_performance_data_owner_id ON public.performance_data USING btree (owner_id);
+
+
+--
+-- Name: idx_todays_performance_data_race_date; Type: INDEX; Schema: public; Owner: doadmin
+--
+
+CREATE INDEX idx_todays_performance_data_race_date ON public.performance_data USING btree (race_date);
+
+
+--
+-- Name: idx_todays_performance_data_sire_id; Type: INDEX; Schema: public; Owner: doadmin
+--
+
+CREATE INDEX idx_todays_performance_data_sire_id ON public.performance_data USING btree (sire_id);
+
+
+--
+-- Name: idx_todays_performance_data_trainer_id; Type: INDEX; Schema: public; Owner: doadmin
+--
+
+CREATE INDEX idx_todays_performance_data_trainer_id ON public.performance_data USING btree (trainer_id);
+
+
+--
+-- Name: idx_todays_performance_data_unique_id; Type: INDEX; Schema: public; Owner: doadmin
+--
+
+CREATE INDEX idx_todays_performance_data_unique_id ON public.performance_data USING btree (unique_id);
 
 
 --
