@@ -15,19 +15,25 @@ from src.utils.processing_utils import ptr
 MATCHING_DATA_FOLDER = "./src/data"
 STRING_DATE_NOW = datetime.now().strftime("%Y-%m-%d")
 
+
 def post_matching_data_checks():
     todays_rp_raw, todays_staging = ptr(
-            lambda: fetch_data("SELECT * FROM rp_raw.performance_data;"),
-            lambda: fetch_data("SELECT * FROM staging.joined_todays_performance_data;"),
-        )
-    
+        lambda: fetch_data("SELECT * FROM rp_raw.performance_data;"),
+        lambda: fetch_data("SELECT * FROM staging.joined_todays_performance_data;"),
+    )
+
     number_of_raw_records = len(todays_rp_raw)
     number_of_staging_records = len(todays_staging)
 
     if number_of_raw_records != number_of_staging_records:
-        W(f"Number of records in staging ({number_of_staging_records}) does not match number of records in raw ({number_of_raw_records})")
+        W(
+            f"Number of records in staging ({number_of_staging_records}) does not match number of records in raw ({number_of_raw_records})"
+        )
     else:
-        I(f"Number of records in staging ({number_of_staging_records}) matches number of records in raw ({number_of_raw_records})")
+        I(
+            f"Number of records in staging ({number_of_staging_records}) matches number of records in raw ({number_of_raw_records})"
+        )
+
 
 def missing_timeform_query(table, missing_dates):
     return f"""
@@ -94,9 +100,7 @@ def run_matching_pipeline():
         return
 
     tf_hist_data, tf_present_data = ptr(
-        lambda: fetch_data(
-            missing_timeform_query("performance_data", missing_dates)
-        ),
+        lambda: fetch_data(missing_timeform_query("performance_data", missing_dates)),
         lambda: fetch_data(
             missing_timeform_query("todays_performance_data", missing_dates)
         ),
@@ -106,17 +110,17 @@ def run_matching_pipeline():
     )
 
     I(f"Loading matching data for {len(missing_dates)} dates")
-    I(f"Found {len(tf_matching_data)} records for dates :{tf_matching_data['race_date'].unique()}")
+    I(
+        f"Found {len(tf_matching_data)} records for dates :{tf_matching_data['race_date'].unique()}"
+    )
 
     matched, unmatched = entity_match(tf_matching_data, rp_matching_data)
     store_matching_results(matched, unmatched)
     ptr(
         lambda: call_procedure("insert_into_joined_performance_data", "staging"),
-        lambda: call_procedure("insert_into_joined_todays_performance_data", "staging"),
+        lambda: call_procedure("insert_into_todays_joined_performance_data", "staging"),
     )
     post_matching_data_checks()
-
-
 
 
 if __name__ == "__main__":

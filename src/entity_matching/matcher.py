@@ -8,6 +8,7 @@ from src.storage.sql_db import fetch_data, insert_records, store_data
 from src.utils.logging_config import E, I, W
 from src.utils.processing_utils import pt
 
+
 def format_names(
     data: pd.DataFrame,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -88,7 +89,7 @@ def entity_match(
     matches = []
     tf_data = tf_matching_data.pipe(format_names)
     rp_data = rp_matching_data.pipe(format_names)
-    missing_entities = rp_matching_data['entity_type'].unique()
+    missing_entities = rp_matching_data["entity_type"].unique()
     for entity in missing_entities:
         entity_data = rp_data[rp_data["entity_type"] == entity]
         for filtered_entity_name in entity_data[f"filtered_{entity}_name"].unique():

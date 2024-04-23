@@ -151,7 +151,7 @@ def get_links(
 
     patterns = []
     for i in course_country.itertuples():
-        pattern = rf"https://www.timeform.com/horse-racing/racecards/{i.tf_name}/{date}/([01]\d|2[0-3])[0-5]\d\/{i.tf_id}/(10|[1-9])/[a-zA-Z-]+"
+        pattern = rf"https://www.timeform.com/horse-racing/racecards/{i.tf_name}/{date}/([01]\d|2[0-3])[0-5]\d\/{i.tf_id}/(10|[1-9])/(.*)"
         patterns.append(pattern)
 
     if not patterns:

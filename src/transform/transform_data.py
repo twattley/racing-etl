@@ -398,14 +398,6 @@ def create_headgear_data(data: pd.DataFrame) -> pd.DataFrame:
     return data.assign(headgear=lambda x: x["headgear"].apply(convert_headgear))
 
 
-def load_transformed_performance_data():
-    call_procedure("insert_transformed_performance_data", "public")
-
-
-def load_transformed_race_data():
-    call_procedure("insert_transformed_race_data", "public")
-
-
 def process_data(
     data: pd.DataFrame,
     transform_data_model: TransformedDataModel,

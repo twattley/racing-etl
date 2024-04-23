@@ -4,6 +4,7 @@ import pytest
 
 from src.entity_matching.matcher import entity_match
 
+
 def test_simple_pass():
     rp_entity_data = pd.DataFrame(
         {
@@ -137,7 +138,7 @@ def test_simple_fail():
     expected = pd.DataFrame(
         {
             "entity": ["horse"],
-            "race_timestamp": [ datetime(2021, 1, 1, 12, 0)],
+            "race_timestamp": [datetime(2021, 1, 1, 12, 0)],
             "name": ["Horse_A"],
             "debug_link": ["https://www.racingpost.com/horses/1/horse_a"],
         }
@@ -179,7 +180,7 @@ def test_horse_mispelled():
 
     tf_matching_data = pd.DataFrame(
         {
-            "horse_name": ["house_a"], # Mispelled
+            "horse_name": ["house_a"],  # Mispelled
             "horse_id": [1],
             "horse_age": [3],
             "jockey_id": [1],
@@ -251,7 +252,7 @@ def test_dam_mispelled():
 
     tf_matching_data = pd.DataFrame(
         {
-            "horse_name": ["horse_a"], 
+            "horse_name": ["horse_a"],
             "horse_id": [1],
             "horse_age": [3],
             "jockey_id": [1],
@@ -260,7 +261,7 @@ def test_dam_mispelled():
             "trainer_name": ["trainer_a"],
             "sire_name": ["sire_a"],
             "sire_id": [1],
-            "dam_name": ["dam'_a"], # Mispelled
+            "dam_name": ["dam'_a"],  # Mispelled
             "dam_id": [1],
             "race_timestamp": [
                 datetime(2021, 1, 1, 12, 0),
@@ -343,13 +344,13 @@ def test_multiple_matchings_wrong_date():
             "race_timestamp": [
                 datetime(2021, 1, 1, 12, 0),
                 datetime(2021, 1, 2, 12, 0),
-                datetime(2021, 1, 4, 12, 0), # Different date
+                datetime(2021, 1, 4, 12, 0),  # Different date
             ],
             "unique_id": [4, 5, 6],
             "race_date": [
                 datetime(2021, 1, 1),
                 datetime(2021, 1, 2),
-                datetime(2021, 1, 4), # Different date
+                datetime(2021, 1, 4),  # Different date
             ],
             "debug_link": [
                 "https://www.timeform.com/horses/1/horse_a",
@@ -358,7 +359,6 @@ def test_multiple_matchings_wrong_date():
             ],
             "course_id": [1, 2, 3],
         }
-
     )
 
     expected = pd.DataFrame(
@@ -375,6 +375,7 @@ def test_multiple_matchings_wrong_date():
     pd.testing.assert_frame_equal(matched, expected)
 
     assert unmatched.empty
+
 
 def test_multiple_matchings_date():
     rp_entity_data = pd.DataFrame(
@@ -422,7 +423,7 @@ def test_multiple_matchings_date():
             "trainer_name": ["trainer_a", "trainer_b", "trainer_c"],
             "sire_name": ["sire_a", "sire_b", "sire_c"],
             "sire_id": [1, 2, 3],
-            "dam_name": ["dam_a", "dam_b", "wrong_name"], # Wrong name
+            "dam_name": ["dam_a", "dam_b", "wrong_name"],  # Wrong name
             "dam_id": [1, 2, 3],
             "race_timestamp": [
                 datetime(2021, 1, 1, 12, 0),
@@ -433,7 +434,7 @@ def test_multiple_matchings_date():
             "race_date": [
                 datetime(2021, 1, 1),
                 datetime(2021, 1, 2),
-                datetime(2021, 1, 3), 
+                datetime(2021, 1, 3),
             ],
             "debug_link": [
                 "https://www.timeform.com/horses/1/horse_a",
@@ -442,7 +443,6 @@ def test_multiple_matchings_date():
             ],
             "course_id": [1, 2, 3],
         }
-
     )
 
     expected = pd.DataFrame(
@@ -457,7 +457,7 @@ def test_multiple_matchings_date():
     expected_unmatched = pd.DataFrame(
         {
             "entity": ["dam"],
-            "race_timestamp": [ datetime(2021, 1, 3, 12, 0)],
+            "race_timestamp": [datetime(2021, 1, 3, 12, 0)],
             "name": ["Dam_C"],
             "debug_link": ["https://www.racingpost.com/horses/3/horse_c"],
         }
