@@ -82,8 +82,8 @@ def todays_pipeline():
 
 
 def run_scraping_pipeline(historical=True, todays=True):
-    # if historical:
-    #     historical_pipeline()
+    if historical:
+        historical_pipeline()
     if todays:
         todays_pipeline()
 

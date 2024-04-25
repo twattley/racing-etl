@@ -13,17 +13,42 @@ from src.data_models.transform.transformed_model import TransformedDataModel
 from src.data_models.transform.transformed_model import (
     table_string_field_lengths as transform_string_field_lengths,
 )
-from src.storage.sql_db import fetch_data, store_data
 from src.utils.logging_config import I, W
-from src.utils.processing_utils import pt
 
+COLOUR_MAP = {
+    "b": "Bay",
+    "ch": "Chestnut",
+    "bb": "Blood Bay",
+    "bl": "Blue",
+    "br": "Brown",
+    "gr": "Grey",
+    "rg": "Roan",
+    "ro": "Roan",
+    "bg": "Bay",
+    "gb": "Grey Bay",
+    "bz": "Bronze",
+    "bk": "Black",
+    "sk": "Skewbald",
+    "wh": "White",
+}
+SEX_MAP = {
+    "c": "Colt",
+    "f": "Filly",
+    "g": "Gelding",
+    "h": "Horse",
+    "m": "Mare",
+    "r": "Ridgling",
+}
+
+def check_todays_data(data: pd.DataFrame) -> bool:
+    return data.data_type.unique() == ["today"]
 
 def map_race_time_column(data: pd.DataFrame) -> pd.DataFrame:
     I("Mapping race time column")
     data = data.rename(
         columns={"race_time": "race_time_original", "race_timestamp": "race_time"}
     )
-    return data
+    return data.assign(race_time=pd.to_datetime(data["race_time"]))
 
 
 def time_to_seconds(time_str):
@@ -92,9 +117,10 @@ def get_tf_rating_view(rating: str) -> str:
 
 
 def get_tf_rating_values(data: pd.DataFrame) -> pd.DataFrame:
+    if check_todays_data(data):
+        return data.assign(tfr_view=None)
     I("Getting tf rating values")
-    data["tfr_view"] = data["tfr"].apply(get_tf_rating_view)
-    return data
+    return data.assign(tfr_view=data["tfr"].apply(get_tf_rating_view))
 
 
 def get_surface_type(rating: str) -> str:
@@ -113,9 +139,10 @@ def get_surface_type(rating: str) -> str:
 
 
 def get_surfaces_from_tf_rating(data: pd.DataFrame) -> pd.DataFrame:
+    if check_todays_data(data):
+        return data.assign(surface=None)
     I("Getting surfaces from tf rating")
-    data["surface"] = data["tfr"].apply(get_surface_type)
-    return data
+    return data.assign(surface=data["tfr"].apply(get_surface_type))
 
 
 def convert_distances(distance: str) -> tuple:
@@ -189,14 +216,16 @@ def convert_distances_full(distance: str) -> tuple:
     return total_yards, round(total_meters, 2), round(total_kilometers, 2)
 
 
-def get_inplay_high_and_low(df: pd.DataFrame) -> pd.DataFrame:
+def get_inplay_high_and_low(data: pd.DataFrame) -> pd.DataFrame:
+    if check_todays_data(data):
+        return data.assign(in_play_low=np.nan, in_play_high=np.nan)
     I("Getting inplay high and low")
-    return df.assign(
+    return data.assign(
         in_play_low=pd.to_numeric(
-            df["in_play_prices"].str.split("/").str.get(1), errors="coerce"
+            data["in_play_prices"].str.split("/").str.get(1), errors="coerce"
         ).astype(float),
         in_play_high=pd.to_numeric(
-            df["in_play_prices"].str.split("/").str.get(0), errors="coerce"
+            data["in_play_prices"].str.split("/").str.get(0), errors="coerce"
         ).astype(float),
     )
 
@@ -285,44 +314,34 @@ def convert_distance_to_float(distance_str):
 
 def convert_horse_type_to_colour_sex(data: pd.DataFrame) -> pd.DataFrame:
     I("Converting horse type to colour and sex")
-    colour_map = {
-        "b": "Bay",
-        "ch": "Chestnut",
-        "bb": "Blood Bay",
-        "bl": "Blue",
-        "br": "Brown",
-        "gr": "Grey",
-        "rg": "Roan",
-        "ro": "Roan",
-        "bg": "Bay",
-        "gb": "Grey Bay",
-        "bz": "Bronze",
-        "bk": "Black",
-        "sk": "Skewbald",
-        "wh": "White",
-    }
-    sex_map = {
-        "c": "Colt",
-        "f": "Filly",
-        "g": "Gelding",
-        "h": "Horse",
-        "m": "Mare",
-        "r": "Ridgling",
-    }
+    if check_todays_data(data):
+        return data.assign(
+            horse_colour=data["horse_type"]
+            .str.split(" ")
+            .str.get(0)
+            .str.strip()
+            .map(COLOUR_MAP),
+            horse_sex=data["horse_type"].str.replace('1', '').str.split(" ").str.get(1).str.strip().map(SEX_MAP),
+        ).drop(columns=["horse_type"])
+    else:
+        return data.assign(
+            horse_colour=data["horse_type"]
+            .str.split(",")
+            .str.get(0)
+            .str.strip()
+            .map(COLOUR_MAP),
+            horse_sex=data["horse_type"].str.split(",").str.get(1).str.strip().map(SEX_MAP),
+        ).drop(columns=["horse_type"])
 
-    data = data.assign(
-        horse_colour=data["horse_type"]
-        .str.split(",")
-        .str.get(0)
-        .str.strip()
-        .map(colour_map),
-        horse_sex=data["horse_type"].str.split(",").str.get(1).str.strip().map(sex_map),
-    ).drop(columns=["horse_type"])
 
-    return data
+
 
 
 def create_distance_beaten_data(data: pd.DataFrame) -> pd.DataFrame:
+    if check_todays_data(data):
+        return data.assign(
+            total_distance_beaten=np.nan,
+        )
     I("Creating distance beaten data")
     data = data.assign(
         total_distance_beaten_str=data["total_distance_beaten"],
@@ -330,14 +349,6 @@ def create_distance_beaten_data(data: pd.DataFrame) -> pd.DataFrame:
             convert_distance_to_float
         ),
     )
-    # second_place_mapping = data[data["finishing_position"] == "2"].set_index("race_id")[
-    #     "total_distance_beaten"
-    # ]
-    # condition = data["finishing_position"] == "1"
-    # data.loc[condition, "total_distance_beaten"] = (
-    #     data[condition]["race_id"].map(second_place_mapping) * -1
-    # )
-
     return data
 
 
@@ -381,6 +392,12 @@ def create_distance_data(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def create_time_data(data: pd.DataFrame) -> pd.DataFrame:
+    if check_todays_data(data):
+        return data.assign(
+            time_seconds=np.nan,
+            relative_to_standard=None,
+            relative_time=np.nan,
+        )
     I("Creating time data")
     data[["time_seconds", "relative_to_standard", "relative_time"]] = data[
         "winning_time"
@@ -389,6 +406,8 @@ def create_time_data(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def convert_tf_rating(data: pd.DataFrame) -> pd.DataFrame:
+    if check_todays_data(data):
+        return data
     I("Converting tf rating")
     return data.assign(tfr=data["tfr"].str.extract(r"(\d+)").astype("Int64"))
 
@@ -483,25 +502,3 @@ def transform_data(
 
     return accepted_data, rejected_data, race_data
 
-
-if __name__ == "__main__":
-    data = fetch_data("SELECT * FROM public.missing_performance_data_vw;")
-    if data.empty:
-        I("No missing data to transform.")
-        exit()
-
-    accepted_data, rejected_data, race_data = transform_data(
-        data=data,
-        transform_data_model=TransformedDataModel,
-        race_data_model=RaceDataModel,
-    )
-    store_data(accepted_data, "transformed_performance_data", "staging", truncate=True)
-    store_data(
-        rejected_data, "transformed_performance_data_rejected", "staging", truncate=True
-    )
-    store_data(race_data, "transformed_race_data", "staging", truncate=True)
-
-    pt(
-        load_transformed_performance_data,
-        load_transformed_race_data,
-    )

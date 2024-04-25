@@ -39,6 +39,8 @@ def post_matching_data_checks():
         W(
             f"MISSING DATA RAW: {number_of_raw_records} STAGING: {number_of_staging_records}"
         )
+    else:
+        I(f"SUCCESS: RAW: {number_of_raw_records} STAGING: {number_of_staging_records}")
 
 
 def missing_timeform_query(table, missing_dates):
