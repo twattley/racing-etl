@@ -186,7 +186,7 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
         )
         performance_data["draw"] = return_element_from_css_selector(row, "span.rp-draw")
         performance_data["finishing_position"] = find_element_text_by_selector(
-            row,  'span.rp-entry-number[title="Finishing Position"]'
+            row, 'span.rp-entry-number[title="Finishing Position"]'
         )
         (
             performance_data["horse_name"],

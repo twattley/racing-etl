@@ -40,8 +40,10 @@ SEX_MAP = {
     "r": "Ridgling",
 }
 
+
 def check_todays_data(data: pd.DataFrame) -> bool:
     return data.data_type.unique() == ["today"]
+
 
 def map_race_time_column(data: pd.DataFrame) -> pd.DataFrame:
     I("Mapping race time column")
@@ -321,7 +323,12 @@ def convert_horse_type_to_colour_sex(data: pd.DataFrame) -> pd.DataFrame:
             .str.get(0)
             .str.strip()
             .map(COLOUR_MAP),
-            horse_sex=data["horse_type"].str.replace('1', '').str.split(" ").str.get(1).str.strip().map(SEX_MAP),
+            horse_sex=data["horse_type"]
+            .str.replace("1", "")
+            .str.split(" ")
+            .str.get(1)
+            .str.strip()
+            .map(SEX_MAP),
         ).drop(columns=["horse_type"])
     else:
         return data.assign(
@@ -330,11 +337,12 @@ def convert_horse_type_to_colour_sex(data: pd.DataFrame) -> pd.DataFrame:
             .str.get(0)
             .str.strip()
             .map(COLOUR_MAP),
-            horse_sex=data["horse_type"].str.split(",").str.get(1).str.strip().map(SEX_MAP),
+            horse_sex=data["horse_type"]
+            .str.split(",")
+            .str.get(1)
+            .str.strip()
+            .map(SEX_MAP),
         ).drop(columns=["horse_type"])
-
-
-
 
 
 def create_distance_beaten_data(data: pd.DataFrame) -> pd.DataFrame:
@@ -501,4 +509,3 @@ def transform_data(
     accepted_data, rejected_data = transformed_data.pipe(validate_data)
 
     return accepted_data, rejected_data, race_data
-

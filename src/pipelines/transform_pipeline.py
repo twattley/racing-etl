@@ -25,9 +25,9 @@ def post_transform_today_checks():
             f"MISSING DATA STAGING: {number_of_staging_records} DATA: {number_of_data_records}"
         )
     else:
-        I(f"SUCCESS: STAGING: {number_of_staging_records} DATA: {number_of_data_records}")
-
-
+        I(
+            f"SUCCESS: STAGING: {number_of_staging_records} DATA: {number_of_data_records}"
+        )
 
 
 def run_transform_pipeline():
@@ -36,7 +36,7 @@ def run_transform_pipeline():
         if results_data.empty:
             I("No missing historical data to transform.")
             return
-        
+
         accepted_data, rejected_data, race_data = transform_data(
             data=results_data,
             transform_data_model=TransformedDataModel,
@@ -58,19 +58,24 @@ def run_transform_pipeline():
         )
 
     def process_todays_data():
-        todays_data = fetch_data("SELECT * FROM public.missing_todays_performance_data_vw;")
+        todays_data = fetch_data(
+            "SELECT * FROM public.missing_todays_performance_data_vw;"
+        )
         if todays_data.empty:
             I("No missing today's data to transform.")
             return
-        
+
         todays_accepted_data, todays_rejected_data, todays_race_data = transform_data(
-                data=todays_data,
-                transform_data_model=TransformedDataModel,
-                race_data_model=RaceDataModel,
-            )
+            data=todays_data,
+            transform_data_model=TransformedDataModel,
+            race_data_model=RaceDataModel,
+        )
         pt(
             lambda: store_data(
-                todays_accepted_data, "todays_transformed_performance_data", "staging", truncate=True
+                todays_accepted_data,
+                "todays_transformed_performance_data",
+                "staging",
+                truncate=True,
             ),
             lambda: store_data(
                 todays_rejected_data,
@@ -79,7 +84,10 @@ def run_transform_pipeline():
                 # truncate=True,
             ),
             lambda: store_data(
-                todays_race_data, "todays_transformed_race_data", "staging", truncate=True
+                todays_race_data,
+                "todays_transformed_race_data",
+                "staging",
+                truncate=True,
             ),
         )
 
