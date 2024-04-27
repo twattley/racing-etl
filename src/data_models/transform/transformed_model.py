@@ -30,6 +30,7 @@ class TransformedDataModel:
     in_race_comment: str
     tf_comment: str
     tfr_view: str
+    race_id: int
     course_id: int
     horse_id: int
     jockey_id: int

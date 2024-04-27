@@ -1,95 +1,1535 @@
-2024-04-12T13:23:42Z - INFO     logging_config.py:19 - Creating a new headless WebDriver for Timeform: False
-2024-04-12T13:23:42Z - INFO     logging_config.py:19 - Creating a new WebDriver with headless mode set to True
-2024-04-12T13:23:44Z - INFO     logging_config.py:19 - Clicked on button for date: 2024-04-13
-2024-04-12T13:23:56Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/aintree/2024-04-13/1320/31/1/william-hill-handicap-hurdle
-2024-04-12T13:24:05Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/aintree/2024-04-13/1355/31/2/turners-mersey-novices-hurdle
-2024-04-12T13:24:08Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/aintree/2024-04-13/1430/31/3/william-hill-handicap-chase
-2024-04-12T13:24:13Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/aintree/2024-04-13/1505/31/4/jrl-group-liverpool-hurdle
-2024-04-12T13:24:17Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/aintree/2024-04-13/1600/31/5/randox-grand-national-handicap-chase
-2024-04-12T13:24:27Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/aintree/2024-04-13/1700/31/6/my-pension-expert-maghull-novices-chase
-2024-04-12T13:24:31Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/aintree/2024-04-13/1735/31/7/weatherbys-nhstallionscouk-standard-open-national-hunt-flat
-2024-04-12T13:24:35Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chelmsford-city/2024-04-13/1000/28/1/first-choice-drainage-solutions-maiden-fillies-stakes
-2024-04-12T13:24:36Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chelmsford-city/2024-04-13/1030/28/2/its-never-ordinary-at-bet-365-handicap
-2024-04-12T13:24:41Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chelmsford-city/2024-04-13/1100/28/3/bet-boost-at-bet365-restricted-maiden-stakes
-2024-04-12T13:24:43Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chelmsford-city/2024-04-13/1130/28/4/each-way-extra-at-bet365-handicap
-2024-04-12T13:24:47Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chelmsford-city/2024-04-13/1200/28/5/best-odds-guaranteed-at-bet365-handicap
-2024-04-12T13:24:51Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chelmsford-city/2024-04-13/1230/28/6/download-the-bet365-app-handicap
-2024-04-12T13:24:54Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chelmsford-city/2024-04-13/1305/28/7/6-horses-challenge-at-bet365-handicap
-2024-04-12T13:24:59Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chepstow/2024-04-13/1240/11/1/best-odds-on-welsh-sport-dragonbet-junior-national-hunt-hurdle
-2024-04-12T13:25:01Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chepstow/2024-04-13/1310/11/2/dragonbet-born-from-the-betting-ring-mares-novices-hurdle
-2024-04-12T13:25:03Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chepstow/2024-04-13/1340/11/3/best-odds-guaranteed-with-dragonbet-handicap-hurdle
-2024-04-12T13:25:06Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chepstow/2024-04-13/1415/11/4/dragonbet-the-bookmaker-of-wales-handicap-chase
-2024-04-12T13:25:10Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chepstow/2024-04-13/1450/11/5/dragonbet-8-places-on-the-national-handicap-chase
-2024-04-12T13:25:13Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chepstow/2024-04-13/1532/11/6/bet-20-get-20-with-dragonbet-mares-handicap-hurdle
-2024-04-12T13:25:16Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/chepstow/2024-04-13/1640/11/7/on-course-values-online-with-dragonbet-novices-handicap-hurdle
-2024-04-12T13:25:21Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/dundalk/2024-04-13/1620/207/1/irish-stallion-farms-ebf-fillies-maiden
-2024-04-12T13:25:22Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/dundalk/2024-04-13/1650/207/2/dundalk-stadium-gift-vouchers-available-online-handicap
-2024-04-12T13:25:26Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/dundalk/2024-04-13/1720/207/3/book-online-at-dundalkstadiumcom-maiden
-2024-04-12T13:25:27Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/dundalk/2024-04-13/1750/207/4/lucky-dip-has-landed-at-betvictor-fillies-maiden
-2024-04-12T13:25:29Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/dundalk/2024-04-13/1820/207/5/get-best-odds-guaranteed-at-betvictor-handicap
-2024-04-12T13:25:36Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/dundalk/2024-04-13/1850/207/6/get-best-odds-guaranteed-at-betvictor-handicap
-2024-04-12T13:25:42Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/dundalk/2024-04-13/1920/207/7/irish-stallion-farms-ebf-3yo-spring-series-median-auction-fillies-maiden
-2024-04-12T13:25:44Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/dundalk/2024-04-13/1950/207/8/gateway-hotel-dundalk-race--stay-maiden
-2024-04-12T13:25:47Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/newcastle/2024-04-13/1255/35/1/quinnbetcom-conditional-jockeys-training-series-novices-handicap-hurdle
-2024-04-12T13:25:49Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/newcastle/2024-04-13/1330/35/2/free-digital-racecard-at-raceday-readycom-handicap-hurdle
-2024-04-12T13:25:51Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/newcastle/2024-04-13/1405/35/3/newcastle-flooring-company-handicap-chase
-2024-04-12T13:25:54Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/newcastle/2024-04-13/1440/35/4/onethreeone-novices-hurdle
-2024-04-12T13:25:56Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/newcastle/2024-04-13/1525/35/5/acorn-catering-equipment-handicap-hurdle
-2024-04-12T13:26:00Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/newcastle/2024-04-13/1630/35/6/download-the-raceday-ready-app-handicap-chase
-2024-04-12T13:26:03Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/newcastle/2024-04-13/1705/35/7/newcastle-flooring-company-open-national-hunt-flat
-2024-04-12T13:26:04Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-13/1710/58/1/free-digital-racecard-at-raceday-readycom-handicap
-2024-04-12T13:26:08Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-13/1740/58/2/get-the-inside-track-with-raceday-readycom-ebf-maiden-fillies-stakes
-2024-04-12T13:26:10Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-13/1810/58/3/download-the-racecourse-app-raceday-ready-restricted-novice-stakes
-2024-04-12T13:26:13Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-13/1840/58/4/tips-for-every-race-at-raceday-readycom-selling-handicap
-2024-04-12T13:26:16Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-13/1910/58/5/fred-smiths-80th-birthday-celebrations-fillies-handicap
-2024-04-12T13:26:20Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-13/1940/58/6/download-the-racecourse-app-raceday-ready-handicap
-2024-04-12T13:26:22Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-13/2010/58/7/download-the-raceday-ready-app-handicap
-2024-04-12T13:26:25Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/yarmouth/2024-04-13/1540/61/1/bresbet-grand-national-raceday-handicap
-2024-04-12T13:26:30Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/yarmouth/2024-04-13/1625/61/2/great-prices-on-bresbetcom-novice-stakes
-2024-04-12T13:26:33Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/yarmouth/2024-04-13/1655/61/3/bresbet-rewards-loyalty-handicap
-2024-04-12T13:26:39Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/yarmouth/2024-04-13/1730/61/4/download-the-bresbet-app-handicap
-2024-04-12T13:26:44Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/yarmouth/2024-04-13/1800/61/5/follow-bresbet-on-x-handicap
-2024-04-12T13:26:48Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/yarmouth/2024-04-13/1830/61/6/moulton-nurseries-handicap
-2024-04-12T13:26:52Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/yarmouth/2024-04-13/1900/61/7/get-the-inside-track-with-racedayreadycom-handicap
-2024-04-12T13:26:55Z - INFO     logging_config.py:19 - Scraping data from: https://www.timeform.com/horse-racing/racecards/yarmouth/2024-04-13/1930/61/8/get-the-inside-track-with-racedayreadycom-handicap
-2024-04-12T13:26:59Z - WARNING  logging_config.py:24 - Value of jockey_id that is too long: sign-in?returnUrl=%2Fhorse-racing%2Fracecards%2Fnewcastle%2F2024-04-13%2F1255%2F35%2F1%2Fquinnbetcom-conditional-jockeys-training-series-novices-handicap-hurdle, string length: 160 > 32
-2024-04-12T13:26:59Z - WARNING  logging_config.py:24 - Value of jockey_id that is too long: sign-in?returnUrl=%2Fhorse-racing%2Fracecards%2Fnewcastle%2F2024-04-13%2F1255%2F35%2F1%2Fquinnbetcom-conditional-jockeys-training-series-novices-handicap-hurdle, string length: 160 > 32
-2024-04-12T13:26:59Z - WARNING  logging_config.py:24 - Value of jockey_id that is too long: sign-in?returnUrl=%2Fhorse-racing%2Fracecards%2Fnewcastle%2F2024-04-13%2F1255%2F35%2F1%2Fquinnbetcom-conditional-jockeys-training-series-novices-handicap-hurdle, string length: 160 > 32
-2024-04-12T13:26:59Z - WARNING  logging_config.py:24 - Value of jockey_id that is too long: sign-in?returnUrl=%2Fhorse-racing%2Fracecards%2Fnewcastle%2F2024-04-13%2F1255%2F35%2F1%2Fquinnbetcom-conditional-jockeys-training-series-novices-handicap-hurdle, string length: 160 > 32
-2024-04-12T13:26:59Z - WARNING  logging_config.py:24 - Value of jockey_id that is too long: sign-in?returnUrl=%2Fhorse-racing%2Fracecards%2Fnewcastle%2F2024-04-13%2F1255%2F35%2F1%2Fquinnbetcom-conditional-jockeys-training-series-novices-handicap-hurdle, string length: 160 > 32
-2024-04-12T13:26:59Z - WARNING  logging_config.py:24 - Value of jockey_id that is too long: sign-in?returnUrl=%2Fhorse-racing%2Fracecards%2Fnewcastle%2F2024-04-13%2F1255%2F35%2F1%2Fquinnbetcom-conditional-jockeys-training-series-novices-handicap-hurdle, string length: 160 > 32
-                                           jockey_id  ... miss_trunc
-0  sign-in?returnUrl=%2Fhorse-racing%2Fracecards%...  ...       True
-1  sign-in?returnUrl=%2Fhorse-racing%2Fracecards%...  ...       True
-2  sign-in?returnUrl=%2Fhorse-racing%2Fracecards%...  ...       True
-3  sign-in?returnUrl=%2Fhorse-racing%2Fracecards%...  ...       True
-4  sign-in?returnUrl=%2Fhorse-racing%2Fracecards%...  ...       True
-5  sign-in?returnUrl=%2Fhorse-racing%2Fracecards%...  ...       True
+2024-04-27T04:34:38Z | INFO - Running historical pipeline
+2024-04-27T04:34:40Z | INFO - Creating a new headless WebDriver for Timeform: False
+2024-04-27T04:34:40Z | INFO - Creating a new headless WebDriver for Timeform: False
+2024-04-27T04:34:40Z | INFO - Creating a new WebDriver with headless mode set to True
+2024-04-27T04:34:40Z | INFO - Creating a new WebDriver with headless mode set to True
+2024-04-27T04:34:54Z | INFO - Scrape_links.py execution started.
+2024-04-27T04:34:54Z | INFO - Scrape_links.py execution started.
+2024-04-27T04:34:54Z | INFO - Fetching data with query: SELECT * FROM rp_raw.missing_dates
+2024-04-27T04:34:54Z | INFO - Fetching data with query: SELECT * FROM tf_raw.missing_dates
+2024-04-27T04:34:54Z | INFO - Generated URL for scraping: https://www.racingpost.com/results/2024-04-24
+2024-04-27T04:34:55Z | INFO - Generated URL for scraping: https://www.timeform.com/horse-racing/results/2024-04-24
+2024-04-27T04:35:02Z | INFO - Page load complete. Proceeding to scrape links.
+2024-04-27T04:35:02Z | INFO - Page load complete. Proceeding to scrape links.
+2024-04-27T04:35:03Z | INFO - Found 60 valid links for date 2024-04-24.
+2024-04-27T04:35:03Z | INFO - Inserting 60 links into the database.
+2024-04-27T04:35:03Z | INFO - Storing 60 records in rp_raw.days_results_links
+2024-04-27T04:35:03Z | INFO - Generated URL for scraping: https://www.racingpost.com/results/2024-04-23
+2024-04-27T04:35:09Z | INFO - Page load complete. Proceeding to scrape links.
+2024-04-27T04:35:10Z | INFO - Found 51 valid links for date 2024-04-23.
+2024-04-27T04:35:10Z | INFO - Inserting 51 links into the database.
+2024-04-27T04:35:10Z | INFO - Storing 51 records in rp_raw.days_results_links
+2024-04-27T04:35:10Z | INFO - Scrape_links.py execution completed.
+2024-04-27T04:35:33Z | INFO - Found 118 valid links for date 2024-04-24.
+2024-04-27T04:35:33Z | INFO - Inserting 118 links into the database.
+2024-04-27T04:35:33Z | INFO - Storing 118 records in tf_raw.days_results_links
+2024-04-27T04:35:33Z | INFO - Generated URL for scraping: https://www.timeform.com/horse-racing/results/2024-04-23
+2024-04-27T04:35:40Z | INFO - Page load complete. Proceeding to scrape links.
+2024-04-27T04:36:10Z | INFO - Found 108 valid links for date 2024-04-23.
+2024-04-27T04:36:10Z | INFO - Inserting 108 links into the database.
+2024-04-27T04:36:10Z | INFO - Storing 108 records in tf_raw.days_results_links
+2024-04-27T04:36:11Z | INFO - Scrape_links.py execution completed.
+2024-04-27T04:36:12Z | INFO - Creating a new headless WebDriver for Timeform: False
+2024-04-27T04:36:12Z | INFO - Creating a new headless WebDriver for Timeform: True
+2024-04-27T04:36:12Z | INFO - Creating a new WebDriver with headless mode set to True
+2024-04-27T04:36:12Z | INFO - Creating a new WebDriver with headless mode set to True
+2024-04-27T04:36:13Z | INFO - Logging in to Timeform
+2024-04-27T04:36:13Z | INFO - Fetching data with query: SELECT * FROM rp_raw.missing_links
+2024-04-27T04:36:18Z | INFO - Number of missing links: 94
+2024-04-27T04:36:18Z | INFO - Scraping link: https://www.racingpost.com/results/10/catterick/2024-04-24/864375
+2024-04-27T04:36:25Z | INFO - Scraping link: https://www.racingpost.com/results/10/catterick/2024-04-24/864376
+2024-04-27T04:36:27Z | INFO - Scraping link: https://www.racingpost.com/results/10/catterick/2024-04-24/864377
+2024-04-27T04:36:30Z | INFO - Scraping link: https://www.racingpost.com/results/10/catterick/2024-04-24/864378
+2024-04-27T04:36:33Z | INFO - Scraping link: https://www.racingpost.com/results/10/catterick/2024-04-24/864379
+2024-04-27T04:36:36Z | INFO - Scraping link: https://www.racingpost.com/results/10/catterick/2024-04-24/864380
+2024-04-27T04:36:39Z | INFO - Scraping link: https://www.racingpost.com/results/10/catterick/2024-04-24/864381
+2024-04-27T04:36:39Z | INFO - Log in to Timeform success
+2024-04-27T04:36:39Z | INFO - Fetching data with query: SELECT * FROM tf_raw.missing_links
+2024-04-27T04:36:43Z | INFO - Scraping link: https://www.racingpost.com/results/104/yarmouth/2024-04-23/864368
+2024-04-27T04:36:47Z | INFO - Scraping link: https://www.racingpost.com/results/104/yarmouth/2024-04-23/864369
+2024-04-27T04:36:49Z | INFO - Number of missing links: 94
+2024-04-27T04:36:49Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/bellewstown/2024-04-24/1645/202/1
+2024-04-27T04:36:51Z | INFO - Scraping link: https://www.racingpost.com/results/104/yarmouth/2024-04-23/864370
+2024-04-27T04:36:54Z | INFO - Scraping link: https://www.racingpost.com/results/104/yarmouth/2024-04-23/864371
+2024-04-27T04:36:56Z | INFO - Scraping link: https://www.racingpost.com/results/104/yarmouth/2024-04-23/864372
+2024-04-27T04:36:59Z | INFO - Scraping link: https://www.racingpost.com/results/104/yarmouth/2024-04-23/864373
+2024-04-27T04:37:03Z | INFO - Scraping link: https://www.racingpost.com/results/104/yarmouth/2024-04-23/864374
+2024-04-27T04:37:06Z | INFO - Scraping link: https://www.racingpost.com/results/17/epsom/2024-04-23/864362
+2024-04-27T04:37:08Z | INFO - Scraping link: https://www.racingpost.com/results/17/epsom/2024-04-23/864363
+2024-04-27T04:37:09Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/bellewstown/2024-04-24/1720/202/2
+2024-04-27T04:37:11Z | INFO - Scraping link: https://www.racingpost.com/results/17/epsom/2024-04-23/864364
+2024-04-27T04:37:15Z | INFO - Scraping link: https://www.racingpost.com/results/17/epsom/2024-04-23/864365
+2024-04-27T04:37:20Z | INFO - Scraping link: https://www.racingpost.com/results/17/epsom/2024-04-23/864366
+2024-04-27T04:37:20Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/bellewstown/2024-04-24/1755/202/3
+2024-04-27T04:37:23Z | INFO - Scraping link: https://www.racingpost.com/results/17/epsom/2024-04-23/864367
+2024-04-27T04:37:25Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/bellewstown/2024-04-24/1830/202/4
+2024-04-27T04:37:27Z | INFO - Scraping link: https://www.racingpost.com/results/176/bellewstown/2024-04-24/866263
+2024-04-27T04:37:31Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/bellewstown/2024-04-24/1905/202/5
+2024-04-27T04:37:32Z | INFO - Scraping link: https://www.racingpost.com/results/176/bellewstown/2024-04-24/866264
+2024-04-27T04:37:37Z | INFO - Scraping link: https://www.racingpost.com/results/176/bellewstown/2024-04-24/866265
+2024-04-27T04:37:39Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/bellewstown/2024-04-24/1940/202/6
+2024-04-27T04:37:40Z | INFO - Scraping link: https://www.racingpost.com/results/176/bellewstown/2024-04-24/866266
+2024-04-27T04:37:44Z | INFO - Scraping link: https://www.racingpost.com/results/176/bellewstown/2024-04-24/866267
+2024-04-27T04:37:45Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/bellewstown/2024-04-24/2014/202/7
+2024-04-27T04:37:49Z | INFO - Scraping link: https://www.racingpost.com/results/176/bellewstown/2024-04-24/866268
+2024-04-27T04:37:50Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/catterick-bridge/2024-04-24/1412/9/1
+2024-04-27T04:37:52Z | INFO - Scraping link: https://www.racingpost.com/results/176/bellewstown/2024-04-24/866269
+2024-04-27T04:37:55Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/catterick-bridge/2024-04-24/1447/9/2
+2024-04-27T04:37:55Z | INFO - Scraping link: https://www.racingpost.com/results/184/gowran-park/2024-04-23/866249
+2024-04-27T04:37:58Z | INFO - Scraping link: https://www.racingpost.com/results/184/gowran-park/2024-04-23/866250
+2024-04-27T04:37:59Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/catterick-bridge/2024-04-24/1517/9/3
+2024-04-27T04:38:01Z | INFO - Scraping link: https://www.racingpost.com/results/184/gowran-park/2024-04-23/866251
+2024-04-27T04:38:03Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/catterick-bridge/2024-04-24/1547/9/4
+2024-04-27T04:38:05Z | INFO - Scraping link: https://www.racingpost.com/results/184/gowran-park/2024-04-23/866252
+2024-04-27T04:38:08Z | INFO - Scraping link: https://www.racingpost.com/results/184/gowran-park/2024-04-23/866253
+2024-04-27T04:38:10Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/catterick-bridge/2024-04-24/1617/9/5
+2024-04-27T04:38:13Z | INFO - Scraping link: https://www.racingpost.com/results/184/gowran-park/2024-04-23/866254
+2024-04-27T04:38:14Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/catterick-bridge/2024-04-24/1650/9/6
+2024-04-27T04:38:17Z | INFO - Scraping link: https://www.racingpost.com/results/184/gowran-park/2024-04-23/866255
+2024-04-27T04:38:20Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/catterick-bridge/2024-04-24/1725/9/7
+2024-04-27T04:38:21Z | INFO - Scraping link: https://www.racingpost.com/results/184/gowran-park/2024-04-24/866279
+2024-04-27T04:38:24Z | INFO - Scraping link: https://www.racingpost.com/results/184/gowran-park/2024-04-24/866280
+2024-04-27T04:38:25Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/epsom-downs/2024-04-23/1410/16/1
+2024-04-27T04:38:28Z | INFO - Scraping link: https://www.racingpost.com/results/184/gowran-park/2024-04-24/866281
+2024-04-27T04:38:33Z | INFO - Scraping link: https://www.racingpost.com/results/184/gowran-park/2024-04-24/866282
+2024-04-27T04:38:33Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/epsom-downs/2024-04-23/1445/16/2
+2024-04-27T04:38:36Z | INFO - Scraping link: https://www.racingpost.com/results/184/gowran-park/2024-04-24/866283
+2024-04-27T04:38:40Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/epsom-downs/2024-04-23/1520/16/3
+2024-04-27T04:38:40Z | INFO - Scraping link: https://www.racingpost.com/results/184/gowran-park/2024-04-24/866284
+2024-04-27T04:38:44Z | INFO - Scraping link: https://www.racingpost.com/results/184/gowran-park/2024-04-24/866285
+2024-04-27T04:38:44Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/epsom-downs/2024-04-23/1555/16/4
+2024-04-27T04:38:48Z | INFO - Scraping link: https://www.racingpost.com/results/202/tipperary/2024-04-23/866270
+2024-04-27T04:38:52Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/epsom-downs/2024-04-23/1630/16/5
+2024-04-27T04:38:53Z | INFO - Scraping link: https://www.racingpost.com/results/202/tipperary/2024-04-23/866271
+2024-04-27T04:38:58Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/epsom-downs/2024-04-23/1705/16/6
+2024-04-27T04:38:59Z | INFO - Scraping link: https://www.racingpost.com/results/202/tipperary/2024-04-23/866272
+2024-04-27T04:39:02Z | INFO - Scraping link: https://www.racingpost.com/results/202/tipperary/2024-04-23/866273
+2024-04-27T04:39:05Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/gowran-park/2024-04-23/1600/210/1
+2024-04-27T04:39:06Z | INFO - Scraping link: https://www.racingpost.com/results/202/tipperary/2024-04-23/866274
+2024-04-27T04:39:08Z | INFO - Scraping link: https://www.racingpost.com/results/202/tipperary/2024-04-23/866275
+2024-04-27T04:39:11Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/gowran-park/2024-04-23/1635/210/2
+2024-04-27T04:39:12Z | INFO - Scraping link: https://www.racingpost.com/results/202/tipperary/2024-04-23/866276
+2024-04-27T04:39:14Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/gowran-park/2024-04-23/1710/210/3
+2024-04-27T04:39:16Z | INFO - Scraping link: https://www.racingpost.com/results/34/ludlow/2024-04-24/864262
+2024-04-27T04:39:19Z | INFO - Scraping link: https://www.racingpost.com/results/34/ludlow/2024-04-24/864263
+2024-04-27T04:39:23Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/gowran-park/2024-04-23/1745/210/4
+2024-04-27T04:39:23Z | INFO - Scraping link: https://www.racingpost.com/results/34/ludlow/2024-04-24/864264
+2024-04-27T04:39:27Z | INFO - Scraping link: https://www.racingpost.com/results/34/ludlow/2024-04-24/864265
+2024-04-27T04:39:29Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/gowran-park/2024-04-23/1815/210/5
+2024-04-27T04:39:30Z | INFO - Scraping link: https://www.racingpost.com/results/34/ludlow/2024-04-24/864266
+2024-04-27T04:39:32Z | INFO - Scraping link: https://www.racingpost.com/results/34/ludlow/2024-04-24/864267
+2024-04-27T04:39:37Z | INFO - Scraping link: https://www.racingpost.com/results/34/ludlow/2024-04-24/866384
+2024-04-27T04:39:40Z | INFO - Scraping link: https://www.racingpost.com/results/34/ludlow/2024-04-24/866385
+2024-04-27T04:39:41Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/gowran-park/2024-04-23/1845/210/6
+2024-04-27T04:39:44Z | INFO - Scraping link: https://www.racingpost.com/results/41/perth/2024-04-24/864281
+2024-04-27T04:39:46Z | INFO - Scraping link: https://www.racingpost.com/results/41/perth/2024-04-24/864282
+2024-04-27T04:39:48Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/gowran-park/2024-04-23/1915/210/7
+2024-04-27T04:39:49Z | INFO - Scraping link: https://www.racingpost.com/results/41/perth/2024-04-24/864283
+2024-04-27T04:39:52Z | INFO - Scraping link: https://www.racingpost.com/results/41/perth/2024-04-24/864284
+2024-04-27T04:39:54Z | INFO - Scraping link: https://www.racingpost.com/results/41/perth/2024-04-24/864285
+2024-04-27T04:39:57Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/gowran-park/2024-04-24/1600/210/1
+2024-04-27T04:39:57Z | INFO - Scraping link: https://www.racingpost.com/results/41/perth/2024-04-24/864286
+2024-04-27T04:40:01Z | INFO - Scraping link: https://www.racingpost.com/results/41/perth/2024-04-24/864287
+2024-04-27T04:40:04Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/gowran-park/2024-04-24/1635/210/2
+2024-04-27T04:40:04Z | INFO - Scraping link: https://www.racingpost.com/results/513/wolverhampton-aw/2024-04-23/864593
+2024-04-27T04:40:07Z | INFO - Scraping link: https://www.racingpost.com/results/513/wolverhampton-aw/2024-04-23/864594
+2024-04-27T04:40:10Z | INFO - Scraping link: https://www.racingpost.com/results/513/wolverhampton-aw/2024-04-23/864595
+2024-04-27T04:40:13Z | INFO - Scraping link: https://www.racingpost.com/results/513/wolverhampton-aw/2024-04-23/864596
+2024-04-27T04:40:13Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/gowran-park/2024-04-24/1705/210/3
+2024-04-27T04:40:16Z | INFO - Scraping link: https://www.racingpost.com/results/513/wolverhampton-aw/2024-04-23/864597
+2024-04-27T04:40:19Z | INFO - Scraping link: https://www.racingpost.com/results/513/wolverhampton-aw/2024-04-23/864598
+2024-04-27T04:40:23Z | INFO - Scraping link: https://www.racingpost.com/results/513/wolverhampton-aw/2024-04-23/864599
+2024-04-27T04:40:27Z | INFO - Scraping link: https://www.racingpost.com/results/513/wolverhampton-aw/2024-04-23/866369
+2024-04-27T04:40:31Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/gowran-park/2024-04-24/1740/210/4
+2024-04-27T04:40:31Z | INFO - Scraping link: https://www.racingpost.com/results/61/southwell/2024-04-23/864256
+2024-04-27T04:40:35Z | INFO - Scraping link: https://www.racingpost.com/results/61/southwell/2024-04-23/864257
+2024-04-27T04:40:36Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/gowran-park/2024-04-24/1815/210/5
+2024-04-27T04:40:38Z | INFO - Scraping link: https://www.racingpost.com/results/61/southwell/2024-04-23/864258
+2024-04-27T04:40:42Z | INFO - Scraping link: https://www.racingpost.com/results/61/southwell/2024-04-23/864259
+2024-04-27T04:40:44Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/gowran-park/2024-04-24/1850/210/6
+2024-04-27T04:40:46Z | INFO - Scraping link: https://www.racingpost.com/results/61/southwell/2024-04-23/864260
+2024-04-27T04:40:49Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/gowran-park/2024-04-24/1925/210/7
+2024-04-27T04:40:50Z | INFO - Scraping link: https://www.racingpost.com/results/61/southwell/2024-04-23/864261
+2024-04-27T04:40:54Z | INFO - Scraping link: https://www.racingpost.com/results/61/southwell/2024-04-23/866367
+2024-04-27T04:40:57Z | INFO - Scraping link: https://www.racingpost.com/results/61/southwell/2024-04-23/866368
+2024-04-27T04:40:59Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/ludlow/2024-04-24/1400/32/1
+2024-04-27T04:41:01Z | INFO - Scraping link: https://www.racingpost.com/results/73/taunton/2024-04-24/864268
+2024-04-27T04:41:04Z | INFO - Scraping link: https://www.racingpost.com/results/73/taunton/2024-04-24/864269
+2024-04-27T04:41:06Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/ludlow/2024-04-24/1435/32/2
+2024-04-27T04:41:08Z | INFO - Scraping link: https://www.racingpost.com/results/73/taunton/2024-04-24/864270
+2024-04-27T04:41:12Z | INFO - Scraping link: https://www.racingpost.com/results/73/taunton/2024-04-24/864271
+2024-04-27T04:41:14Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/ludlow/2024-04-24/1505/32/3
+2024-04-27T04:41:16Z | INFO - Scraping link: https://www.racingpost.com/results/73/taunton/2024-04-24/864272
+2024-04-27T04:41:20Z | INFO - Scraping link: https://www.racingpost.com/results/73/taunton/2024-04-24/864273
+2024-04-27T04:41:24Z | INFO - Scraping link: https://www.racingpost.com/results/73/taunton/2024-04-24/866386
+2024-04-27T04:41:27Z | INFO - Scraping link: https://www.racingpost.com/results/84/uttoxeter/2024-04-24/864274
+2024-04-27T04:41:28Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/ludlow/2024-04-24/1535/32/4
+2024-04-27T04:41:31Z | INFO - Scraping link: https://www.racingpost.com/results/84/uttoxeter/2024-04-24/864275
+2024-04-27T04:41:34Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/ludlow/2024-04-24/1605/32/5
+2024-04-27T04:41:34Z | INFO - Scraping link: https://www.racingpost.com/results/84/uttoxeter/2024-04-24/864276
+2024-04-27T04:41:38Z | INFO - Scraping link: https://www.racingpost.com/results/84/uttoxeter/2024-04-24/864277
+2024-04-27T04:41:38Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/ludlow/2024-04-24/1637/32/6
+2024-04-27T04:41:41Z | INFO - Scraping link: https://www.racingpost.com/results/84/uttoxeter/2024-04-24/864278
+2024-04-27T04:41:44Z | INFO - Scraping link: https://www.racingpost.com/results/84/uttoxeter/2024-04-24/864279
+2024-04-27T04:41:45Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/ludlow/2024-04-24/1710/32/7
+2024-04-27T04:41:46Z | INFO - Scraping link: https://www.racingpost.com/results/84/uttoxeter/2024-04-24/864280
+2024-04-27T04:41:48Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/ludlow/2024-04-24/1745/32/8
+2024-04-27T04:41:50Z | INFO - Scraping link: https://www.racingpost.com/results/84/uttoxeter/2024-04-24/866387
+2024-04-27T04:41:53Z | INFO - Data string lengths checked successfully
+2024-04-27T04:41:53Z | INFO - Converting data...
+2024-04-27T04:41:53Z | INFO - Data converted successfully
+2024-04-27T04:41:53Z | INFO - Sorting data...
+2024-04-27T04:41:53Z | INFO - Data Columns Index(['race_timestamp', 'race_date', 'course_name', 'race_class',
+       'horse_name', 'horse_type', 'horse_age', 'headgear', 'conditions',
+       'horse_price', 'race_title', 'distance', 'distance_full', 'going',
+       'number_of_runners', 'total_prize_money', 'first_place_prize_money',
+       'winning_time', 'official_rating', 'horse_weight', 'draw', 'country',
+       'surface', 'finishing_position', 'total_distance_beaten', 'ts_value',
+       'rpr_value', 'extra_weight', 'comment', 'race_time', 'currency',
+       'course', 'jockey_name', 'jockey_claim', 'trainer_name', 'sire_name',
+       'dam_name', 'dams_sire', 'owner_name', 'horse_id', 'trainer_id',
+       'jockey_id', 'sire_id', 'dam_id', 'dams_sire_id', 'owner_id', 'race_id',
+       'course_id', 'meeting_id', 'unique_id', 'debug_link', 'created_at'],
+      dtype='object')
+2024-04-27T04:41:53Z | INFO - Data Sample        race_timestamp  ...          created_at
+0 2024-04-24 16:50:00  ... 2024-04-27 04:36:21
+1 2024-04-24 16:50:00  ... 2024-04-27 04:36:21
+2 2024-04-24 16:50:00  ... 2024-04-27 04:36:21
+3 2024-04-24 16:50:00  ... 2024-04-27 04:36:21
+4 2024-04-24 16:50:00  ... 2024-04-27 04:36:21
+5 2024-04-24 16:50:00  ... 2024-04-27 04:36:21
+6 2024-04-24 16:50:00  ... 2024-04-27 04:36:21
+7 2024-04-24 16:50:00  ... 2024-04-27 04:36:21
+8 2024-04-24 16:50:00  ... 2024-04-27 04:36:21
+9 2024-04-24 16:50:00  ... 2024-04-27 04:36:21
 
-[6 rows x 3 columns]
-Traceback (most recent call last):
-  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/pipelines/daily_pipeline.py", line 13, in <module>
-    run_daily_pipeline()
-  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/pipelines/daily_pipeline.py", line 7, in run_daily_pipeline
-    run_scraping_pipeline()
-  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/pipelines/scraping_pipeline.py", line 37, in run_scraping_pipeline
-    process_tf_scrape_days_data(TOMORROW)
-  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/raw/timeform/scrape_todays_data.py", line 195, in process_tf_scrape_days_data
-    data.pipe(convert_and_validate_data, TimeformDataModel, table_string_field_lengths, "unique_id")
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/pandas/core/generic.py", line 6225, in pipe
-    return common.pipe(self, func, *args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/pandas/core/common.py", line 500, in pipe
-    return func(obj, *args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/data_models/base/base_model.py", line 105, in convert_and_validate_data
-    data.pipe(check_string_field_lengths, string_lengths)
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/pandas/core/generic.py", line 6225, in pipe
-    return common.pipe(self, func, *args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/tom.wattley/.pyenv/versions/3.11.0/envs/racing-etl/lib/python3.11/site-packages/pandas/core/common.py", line 500, in pipe
-    return func(obj, *args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/data_models/base/base_model.py", line 93, in check_string_field_lengths
-    raise ValueError('Failed value length check')
-ValueError: Failed value length check
+[10 rows x 52 columns]
+2024-04-27T04:41:53Z | INFO - Data Sample        race_timestamp  ...          created_at
+8 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+7 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+6 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+5 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+4 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+3 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+2 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+1 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+0 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+4 2024-04-24 19:20:00  ... 2024-04-27 04:41:47
+
+[10 rows x 52 columns]
+2024-04-27T04:41:53Z | INFO - Validating data...
+2024-04-27T04:41:53Z | INFO - Data validated successfully
+2024-04-27T04:41:53Z | INFO - Sorting data...
+2024-04-27T04:41:53Z | INFO - Data Columns Index(['race_timestamp', 'race_date', 'course_name', 'race_class',
+       'horse_name', 'horse_type', 'horse_age', 'headgear', 'conditions',
+       'horse_price', 'race_title', 'distance', 'distance_full', 'going',
+       'number_of_runners', 'total_prize_money', 'first_place_prize_money',
+       'winning_time', 'official_rating', 'horse_weight', 'draw', 'country',
+       'surface', 'finishing_position', 'total_distance_beaten', 'ts_value',
+       'rpr_value', 'extra_weight', 'comment', 'race_time', 'currency',
+       'course', 'jockey_name', 'jockey_claim', 'trainer_name', 'sire_name',
+       'dam_name', 'dams_sire', 'owner_name', 'horse_id', 'trainer_id',
+       'jockey_id', 'sire_id', 'dam_id', 'dams_sire_id', 'owner_id', 'race_id',
+       'course_id', 'meeting_id', 'unique_id', 'debug_link', 'created_at'],
+      dtype='object')
+2024-04-27T04:41:53Z | INFO - Data Sample        race_timestamp  ...          created_at
+8 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+7 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+6 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+5 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+4 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+3 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+2 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+1 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+0 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+4 2024-04-24 19:20:00  ... 2024-04-27 04:41:47
+
+[10 rows x 52 columns]
+2024-04-27T04:41:53Z | INFO - Data Sample        race_timestamp  ...          created_at
+8 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+3 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+0 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+1 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+2 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+7 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+4 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+6 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+5 2024-04-24 19:50:00  ... 2024-04-27 04:41:50
+4 2024-04-24 19:20:00  ... 2024-04-27 04:41:47
+
+[10 rows x 52 columns]
+2024-04-27T04:41:53Z | INFO - Storing 926 records in rp_raw.performance_data
+2024-04-27T04:41:54Z | INFO - Executing query: UPDATE metrics.processing_times SET processed_at = NOW() WHERE job_name = 'scrape_rp_data'
+2024-04-27T04:41:54Z | INFO - Query executed. Number of rows affected: 1
+2024-04-27T04:41:57Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/perth/2024-04-24/1350/39/1
+2024-04-27T04:42:01Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/perth/2024-04-24/1420/39/2
+2024-04-27T04:42:04Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/perth/2024-04-24/1455/39/3
+2024-04-27T04:42:09Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/perth/2024-04-24/1525/39/4
+2024-04-27T04:42:12Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/perth/2024-04-24/1555/39/5
+2024-04-27T04:42:16Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/perth/2024-04-24/1625/39/6
+2024-04-27T04:42:19Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/perth/2024-04-24/1655/39/7
+2024-04-27T04:42:24Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/southwell/2024-04-23/1345/47/1
+2024-04-27T04:42:30Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/southwell/2024-04-23/1418/47/2
+2024-04-27T04:42:36Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/southwell/2024-04-23/1453/47/3
+2024-04-27T04:42:43Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/southwell/2024-04-23/1530/47/4
+2024-04-27T04:42:48Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/southwell/2024-04-23/1605/47/5
+2024-04-27T04:42:53Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/southwell/2024-04-23/1640/47/6
+2024-04-27T04:43:00Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/southwell/2024-04-23/1715/47/7
+2024-04-27T04:43:04Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/southwell/2024-04-23/1750/47/8
+2024-04-27T04:43:10Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/taunton/2024-04-24/1642/49/1
+2024-04-27T04:43:18Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/taunton/2024-04-24/1715/49/2
+2024-04-27T04:43:26Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/taunton/2024-04-24/1750/49/3
+2024-04-27T04:43:32Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/taunton/2024-04-24/1825/49/4
+2024-04-27T04:43:38Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/taunton/2024-04-24/1900/49/5
+2024-04-27T04:43:43Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/taunton/2024-04-24/1935/49/6
+2024-04-27T04:43:49Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/taunton/2024-04-24/2010/49/7
+2024-04-27T04:43:57Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/tipperary/2024-04-23/1350/226/1
+2024-04-27T04:44:06Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/tipperary/2024-04-23/1425/226/2
+2024-04-27T04:44:14Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/tipperary/2024-04-23/1500/226/3
+2024-04-27T04:44:23Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/tipperary/2024-04-23/1535/226/4
+2024-04-27T04:44:34Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/tipperary/2024-04-23/1610/226/5
+2024-04-27T04:44:41Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/tipperary/2024-04-23/1645/226/6
+2024-04-27T04:44:48Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/tipperary/2024-04-23/1720/226/7
+2024-04-27T04:44:55Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/uttoxeter/2024-04-24/1559/53/1
+2024-04-27T04:44:58Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/uttoxeter/2024-04-24/1630/53/2
+2024-04-27T04:45:05Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/uttoxeter/2024-04-24/1700/53/3
+2024-04-27T04:45:10Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/uttoxeter/2024-04-24/1735/53/4
+2024-04-27T04:45:15Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/uttoxeter/2024-04-24/1810/53/5
+2024-04-27T04:45:24Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/uttoxeter/2024-04-24/1845/53/6
+2024-04-27T04:45:27Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/uttoxeter/2024-04-24/1920/53/7
+2024-04-27T04:45:32Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/uttoxeter/2024-04-24/1950/53/8
+2024-04-27T04:45:36Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/wolverhampton/2024-04-23/1730/58/1
+2024-04-27T04:45:42Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/wolverhampton/2024-04-23/1800/58/2
+2024-04-27T04:45:46Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/wolverhampton/2024-04-23/1830/58/3
+2024-04-27T04:45:50Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/wolverhampton/2024-04-23/1900/58/4
+2024-04-27T04:45:56Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/wolverhampton/2024-04-23/1930/58/5
+2024-04-27T04:45:59Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/wolverhampton/2024-04-23/2000/58/6
+2024-04-27T04:46:04Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/wolverhampton/2024-04-23/2030/58/7
+2024-04-27T04:46:11Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/wolverhampton/2024-04-23/2100/58/8
+2024-04-27T04:46:16Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/yarmouth/2024-04-23/1400/61/1
+2024-04-27T04:46:21Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/yarmouth/2024-04-23/1435/61/2
+2024-04-27T04:46:24Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/yarmouth/2024-04-23/1510/61/3
+2024-04-27T04:46:30Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/yarmouth/2024-04-23/1545/61/4
+2024-04-27T04:46:33Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/yarmouth/2024-04-23/1620/61/5
+2024-04-27T04:46:39Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/yarmouth/2024-04-23/1655/61/6
+2024-04-27T04:46:43Z | INFO - Scraping link: https://www.timeform.com/horse-racing/result/yarmouth/2024-04-23/1725/61/7
+2024-04-27T04:46:46Z | INFO - Data string lengths checked successfully
+2024-04-27T04:46:46Z | INFO - Converting data...
+2024-04-27T04:46:46Z | INFO - Data converted successfully
+2024-04-27T04:46:46Z | INFO - Sorting data...
+2024-04-27T04:46:46Z | INFO - Data Columns Index(['tf_rating', 'tf_speed_figure', 'draw', 'finishing_position',
+       'horse_name', 'horse_id', 'horse_name_link', 'sire_name', 'dam_name',
+       'sire_id', 'dam_id', 'trainer_name', 'trainer_id', 'jockey_name',
+       'jockey_id', 'horse_age', 'equipment', 'official_rating',
+       'fractional_price', 'betfair_win_sp', 'betfair_place_sp',
+       'in_play_prices', 'tf_comment', 'course', 'race_date', 'race_time',
+       'race_timestamp', 'course_id', 'race', 'race_id', 'distance', 'going',
+       'prize', 'hcap_range', 'age_range', 'race_type', 'main_race_comment',
+       'debug_link', 'created_at', 'unique_id'],
+      dtype='object')
+2024-04-27T04:46:47Z | INFO - Data Sample   tf_rating  ...                                          unique_id
+0      106+  ...  ecda91a1b32a47a81d6a7be5290d149c2a656db12189aa...
+1       85+  ...  6d7d540eb900f347a1b037cdd533511aaf42eef9c8d4f0...
+2       90+  ...  4c69ca73510cb452569f18aa07c600e6f6c9d794bbc581...
+3        87  ...  588cdf6df6463963e63422ce980a1f256ff0af4f95ca0b...
+4        83  ...  bf66a88e95624588d0f2bb49e29059e212f8ecc4f11dac...
+5        81  ...  ee4e578378a1889be90f8c68b559b674f4a01e8011bfc6...
+6        77  ...  77ad7d4c94c798bd7f53843e7c53d4c8ce816160b6c75a...
+7        69  ...  bc5e1e6fbd0327416436a578ad248d6d5434a8fffc02e2...
+8        76  ...  469d2c0ee9dcde282fd4e3267c7203b5afcba6e2aa98eb...
+9        68  ...  eff03263b1df9a77f5f019a1b915bc1500a683b43068d6...
+
+[10 rows x 40 columns]
+2024-04-27T04:46:47Z | INFO - Data Sample   tf_rating  ...                                          unique_id
+7        39  ...  58607153ffefa6035ada889967680fc24c8a0fb8be7ed4...
+6        46  ...  ed16895d4b6b68bc611d61eb5204bdc6c1976f073bbd7f...
+5        44  ...  66c8cab404ae21b636ce874f7cb4b7aa96aa19145f79dd...
+4        52  ...  cdad4ea2016a9d8ea272ab02db9781f943f5373003ba63...
+3       57+  ...  528aa20ec15a4219bdfe9b9a5696f19fc098c71ff630f9...
+2        51  ...  7eb7b11755861537e9103fdc66d9bb1bf519043ae7b36b...
+1       65+  ...  70822755bd7e7c8c05d6b39ce969e16f2348997edf3caa...
+0        72  ...  6205940d462f18d6cbbdc228002ad8e5a6c612e21c54e7...
+6        61  ...  6f34f70b67914c3512a77390f933f4cf8487dd08583390...
+5        65  ...  b99ea925824f15ace95c9d6c6cb409bf3af359e145e8ec...
+
+[10 rows x 40 columns]
+2024-04-27T04:46:47Z | INFO - Validating data...
+2024-04-27T04:46:47Z | INFO - Data validated successfully
+2024-04-27T04:46:47Z | INFO - Sorting data...
+2024-04-27T04:46:47Z | INFO - Data Columns Index(['tf_rating', 'tf_speed_figure', 'draw', 'trainer_name', 'trainer_id',
+       'jockey_name', 'jockey_id', 'sire_name', 'sire_id', 'dam_name',
+       'dam_id', 'finishing_position', 'horse_name', 'horse_id',
+       'horse_name_link', 'horse_age', 'equipment', 'official_rating',
+       'fractional_price', 'betfair_win_sp', 'betfair_place_sp',
+       'in_play_prices', 'tf_comment', 'course', 'race_date', 'race_time',
+       'race_timestamp', 'course_id', 'race', 'race_id', 'distance', 'going',
+       'prize', 'hcap_range', 'age_range', 'race_type', 'main_race_comment',
+       'debug_link', 'created_at', 'unique_id'],
+      dtype='object')
+2024-04-27T04:46:47Z | INFO - Data Sample   tf_rating  ...                                          unique_id
+7        39  ...  58607153ffefa6035ada889967680fc24c8a0fb8be7ed4...
+6        46  ...  ed16895d4b6b68bc611d61eb5204bdc6c1976f073bbd7f...
+5        44  ...  66c8cab404ae21b636ce874f7cb4b7aa96aa19145f79dd...
+4        52  ...  cdad4ea2016a9d8ea272ab02db9781f943f5373003ba63...
+3       57+  ...  528aa20ec15a4219bdfe9b9a5696f19fc098c71ff630f9...
+2        51  ...  7eb7b11755861537e9103fdc66d9bb1bf519043ae7b36b...
+1       65+  ...  70822755bd7e7c8c05d6b39ce969e16f2348997edf3caa...
+0        72  ...  6205940d462f18d6cbbdc228002ad8e5a6c612e21c54e7...
+6        61  ...  6f34f70b67914c3512a77390f933f4cf8487dd08583390...
+5        65  ...  b99ea925824f15ace95c9d6c6cb409bf3af359e145e8ec...
+
+[10 rows x 40 columns]
+2024-04-27T04:46:47Z | INFO - Data Sample   tf_rating  ...                                          unique_id
+7        39  ...  58607153ffefa6035ada889967680fc24c8a0fb8be7ed4...
+6        46  ...  ed16895d4b6b68bc611d61eb5204bdc6c1976f073bbd7f...
+5        44  ...  66c8cab404ae21b636ce874f7cb4b7aa96aa19145f79dd...
+4        52  ...  cdad4ea2016a9d8ea272ab02db9781f943f5373003ba63...
+3       57+  ...  528aa20ec15a4219bdfe9b9a5696f19fc098c71ff630f9...
+2        51  ...  7eb7b11755861537e9103fdc66d9bb1bf519043ae7b36b...
+1       65+  ...  70822755bd7e7c8c05d6b39ce969e16f2348997edf3caa...
+0        72  ...  6205940d462f18d6cbbdc228002ad8e5a6c612e21c54e7...
+6        61  ...  6f34f70b67914c3512a77390f933f4cf8487dd08583390...
+5        65  ...  b99ea925824f15ace95c9d6c6cb409bf3af359e145e8ec...
+
+[10 rows x 40 columns]
+2024-04-27T04:46:47Z | INFO - Storing 926 records in tf_raw.performance_data
+2024-04-27T04:46:47Z | INFO - Executing query: UPDATE metrics.processing_times SET processed_at = NOW() WHERE job_name = 'scrape_tf_data'
+2024-04-27T04:46:47Z | INFO - Query executed. Number of rows affected: 1
+2024-04-27T04:46:48Z | INFO - Checking for missing data...
+2024-04-27T04:46:48Z | INFO - Fetching data with query: SELECT * FROM rp_raw.missing_links;
+2024-04-27T04:46:48Z | INFO - Fetching data with query: SELECT * FROM tf_raw.missing_links;
+2024-04-27T04:46:55Z | INFO - All RP data scraped successfully
+2024-04-27T04:46:55Z | INFO - Running todays pipeline
+2024-04-27T04:46:56Z | INFO - Fetching data with query: 
+        SELECT * FROM public.course cr
+        left join public.country ct on 
+        cr.country_id::text = ct.country_id::text
+        
+2024-04-27T04:46:56Z | INFO - Fetching data with query: 
+        SELECT * FROM public.course cr
+        left join public.country ct on 
+        cr.country_id::text = ct.country_id::text
+        
+2024-04-27T04:46:56Z | INFO - Creating a new headless WebDriver for Timeform: False
+2024-04-27T04:46:56Z | INFO - Creating a new WebDriver with headless mode set to True
+2024-04-27T04:46:56Z | INFO - Creating a new headless WebDriver for Timeform: False
+2024-04-27T04:46:56Z | INFO - Creating a new WebDriver with headless mode set to True
+2024-04-27T04:46:58Z | INFO - Clicked on button for date: 2024-04-27
+2024-04-27T04:47:02Z | INFO - Toggling settings button
+2024-04-27T04:47:09Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/doncaster/2024-04-27/1705/14/1/trevor-beasley-80-years-old-handicap
+2024-04-27T04:47:11Z | INFO - Scraping data from: https://www.racingpost.com/racecards/15/doncaster/2024-04-27/864403
+2024-04-27T04:47:13Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/doncaster/2024-04-27/1740/14/2/daniel-thwaites-derby-fillies-handicap
+2024-04-27T04:47:16Z | INFO - Scraping data from: https://www.racingpost.com/racecards/15/doncaster/2024-04-27/864404
+2024-04-27T04:47:16Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/doncaster/2024-04-27/1810/14/3/signhouse-uk-and-yorkshire-air-ambulance-novice-stakes
+2024-04-27T04:47:18Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/doncaster/2024-04-27/1840/14/4/park-lodge-hot-shots-handicap
+2024-04-27T04:47:19Z | INFO - Scraping data from: https://www.racingpost.com/racecards/15/doncaster/2024-04-27/864405
+2024-04-27T04:47:23Z | INFO - Scraping data from: https://www.racingpost.com/racecards/15/doncaster/2024-04-27/864406
+2024-04-27T04:47:25Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/doncaster/2024-04-27/1910/14/5/five-rise-contractors-and-bentley-drains-ebf-premier-fillies-handicap
+2024-04-27T04:47:26Z | INFO - Scraping data from: https://www.racingpost.com/racecards/15/doncaster/2024-04-27/864407
+2024-04-27T04:47:28Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/doncaster/2024-04-27/1945/14/6/rbc-brewin-dolphin-handicap
+2024-04-27T04:47:28Z | INFO - Scraping data from: https://www.racingpost.com/racecards/15/doncaster/2024-04-27/864408
+2024-04-27T04:47:31Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/doncaster/2024-04-27/2015/14/7/bee-jay-scaffolding-handicap
+2024-04-27T04:47:33Z | INFO - Scraping data from: https://www.racingpost.com/racecards/15/doncaster/2024-04-27/864409
+2024-04-27T04:47:36Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/haydock-park/2024-04-27/1338/22/1/trustatrader-apply-today-maiden-stakes
+2024-04-27T04:47:38Z | INFO - Scraping data from: https://www.racingpost.com/racecards/193/navan/2024-04-27/866485
+2024-04-27T04:47:38Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/haydock-park/2024-04-27/1410/22/2/trustatrader-fully-vetted-tradespeople-handicap
+2024-04-27T04:47:43Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/haydock-park/2024-04-27/1445/22/3/trustatradercom-handicap
+2024-04-27T04:47:44Z | WARNING - Runner Coco Hill is a reserve
+2024-04-27T04:47:44Z | WARNING - Runner Zig Zag Zyggy is a reserve
+2024-04-27T04:47:44Z | WARNING - Runner Anyothername is a reserve
+2024-04-27T04:47:44Z | INFO - Scraping data from: https://www.racingpost.com/racecards/193/navan/2024-04-27/866486
+2024-04-27T04:47:46Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/haydock-park/2024-04-27/1520/22/4/trustatrader-handicap
+2024-04-27T04:47:48Z | INFO - Scraping data from: https://www.racingpost.com/racecards/193/navan/2024-04-27/866487
+2024-04-27T04:47:49Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/haydock-park/2024-04-27/1553/22/5/trustatrader-ebf-fillies-novice-stakes
+2024-04-27T04:47:50Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/haydock-park/2024-04-27/1628/22/6/trustatrader-you-can-trust-our-traders-handicap
+2024-04-27T04:47:52Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/haydock-park/2024-04-27/1700/22/7/trustatrader-approved-and-reviewed-trades-people-handicap
+2024-04-27T04:47:53Z | INFO - Scraping data from: https://www.racingpost.com/racecards/193/navan/2024-04-27/866488
+2024-04-27T04:47:55Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/leicester/2024-04-27/1330/29/1/british-stallion-studs-ebf-restricted-maiden-stakes
+2024-04-27T04:47:56Z | INFO - Scraping data from: https://www.racingpost.com/racecards/193/navan/2024-04-27/866489
+2024-04-27T04:47:57Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/leicester/2024-04-27/1405/29/2/madri-excepcional-king-richard-iii-cup-handicap
+2024-04-27T04:48:00Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/leicester/2024-04-27/1437/29/3/rekorderlig-premium-fruit-cider-maiden-stakes
+2024-04-27T04:48:01Z | INFO - Scraping data from: https://www.racingpost.com/racecards/193/navan/2024-04-27/866490
+2024-04-27T04:48:02Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/leicester/2024-04-27/1512/29/4/twin-coast-pale-ale-handicap
+2024-04-27T04:48:04Z | INFO - Scraping data from: https://www.racingpost.com/racecards/193/navan/2024-04-27/866491
+2024-04-27T04:48:06Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/leicester/2024-04-27/1545/29/5/atlantic-pale-ale-handicap
+2024-04-27T04:48:08Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/leicester/2024-04-27/1620/29/6/coors-handicap
+2024-04-27T04:48:10Z | WARNING - Runner Hangry is a reserve
+2024-04-27T04:48:10Z | WARNING - Runner Sandyman is a reserve
+2024-04-27T04:48:10Z | WARNING - Runner Glyde Ranger is a reserve
+2024-04-27T04:48:10Z | INFO - Scraping data from: https://www.racingpost.com/racecards/193/navan/2024-04-27/866492
+2024-04-27T04:48:13Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/leicester/2024-04-27/1655/29/7/carling-handicap
+2024-04-27T04:48:15Z | INFO - Scraping data from: https://www.racingpost.com/racecards/23/haydock/2024-04-27/864410
+2024-04-27T04:48:18Z | INFO - Scraping data from: https://www.racingpost.com/racecards/23/haydock/2024-04-27/864412
+2024-04-27T04:48:20Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/navan/2024-04-27/1310/220/1/kilberry-apprentice-handicap
+2024-04-27T04:48:20Z | INFO - Scraping data from: https://www.racingpost.com/racecards/23/haydock/2024-04-27/864414
+2024-04-27T04:48:25Z | INFO - Scraping data from: https://www.racingpost.com/racecards/23/haydock/2024-04-27/864415
+2024-04-27T04:48:26Z | WARNING - Runner Havanarama is a non-runner
+2024-04-27T04:48:27Z | INFO - Scraping data from: https://www.racingpost.com/racecards/23/haydock/2024-04-27/864416
+2024-04-27T04:48:29Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/navan/2024-04-27/1345/220/2/irish-stallion-farms-ebf-maiden
+2024-04-27T04:48:30Z | INFO - Scraping data from: https://www.racingpost.com/racecards/23/haydock/2024-04-27/866345
+2024-04-27T04:48:31Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/navan/2024-04-27/1417/220/3/space-traveller-irish-ebf-committed-stakes
+2024-04-27T04:48:32Z | INFO - Scraping data from: https://www.racingpost.com/racecards/23/haydock/2024-04-27/866346
+2024-04-27T04:48:36Z | INFO - Scraping data from: https://www.racingpost.com/racecards/30/leicester/2024-04-27/864417
+2024-04-27T04:48:36Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/navan/2024-04-27/1452/220/4/irish-stallion-farms-ebf-salsabil-stakes
+2024-04-27T04:48:38Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/navan/2024-04-27/1527/220/5/irish-stallion-farms-ebf-3yo-spring-series-median-auction-maiden
+2024-04-27T04:48:39Z | INFO - Scraping data from: https://www.racingpost.com/racecards/30/leicester/2024-04-27/864418
+2024-04-27T04:48:41Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/navan/2024-04-27/1600/220/6/sbk-vintage-crop-stakes
+2024-04-27T04:48:42Z | INFO - Scraping data from: https://www.racingpost.com/racecards/30/leicester/2024-04-27/864419
+2024-04-27T04:48:44Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/navan/2024-04-27/1635/220/7/sbk-betting-podcast-handicap
+2024-04-27T04:48:45Z | INFO - Scraping data from: https://www.racingpost.com/racecards/30/leicester/2024-04-27/864421
+2024-04-27T04:48:48Z | INFO - Scraping data from: https://www.racingpost.com/racecards/30/leicester/2024-04-27/864422
+2024-04-27T04:48:52Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/navan/2024-04-27/1710/220/8/navan-handicap
+2024-04-27T04:48:52Z | INFO - Scraping data from: https://www.racingpost.com/racecards/30/leicester/2024-04-27/864423
+2024-04-27T04:48:57Z | INFO - Scraping data from: https://www.racingpost.com/racecards/30/leicester/2024-04-27/866347
+2024-04-27T04:48:58Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/ripon/2024-04-27/1605/43/1/black-a-moor-inn-best-pub-food-for-furlongs-ebf-novice-stakes
+2024-04-27T04:49:00Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/ripon/2024-04-27/1640/43/2/michael-foster-memorial-restricted-novice-stakes
+2024-04-27T04:49:00Z | INFO - Scraping data from: https://www.racingpost.com/racecards/49/ripon/2024-04-27/864424
+2024-04-27T04:49:01Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/ripon/2024-04-27/1715/43/3/watch-sky-sports-racing-in-hd-handicap
+2024-04-27T04:49:04Z | INFO - Scraping data from: https://www.racingpost.com/racecards/49/ripon/2024-04-27/864425
+2024-04-27T04:49:04Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/ripon/2024-04-27/1750/43/4/ripon-silver-sprint-trophy-handicap
+2024-04-27T04:49:07Z | INFO - Scraping data from: https://www.racingpost.com/racecards/49/ripon/2024-04-27/864426
+2024-04-27T04:49:08Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/ripon/2024-04-27/1820/43/5/mch-hutchinson-memorial-trophy-handicap
+2024-04-27T04:49:11Z | INFO - Scraping data from: https://www.racingpost.com/racecards/49/ripon/2024-04-27/864427
+2024-04-27T04:49:11Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/ripon/2024-04-27/1850/43/6/visit-attheracescom-handicap
+2024-04-27T04:49:14Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/ripon/2024-04-27/1920/43/7/evening-racing-on-friday-10th-may-handicap
+2024-04-27T04:49:14Z | INFO - Scraping data from: https://www.racingpost.com/racecards/49/ripon/2024-04-27/864428
+2024-04-27T04:49:17Z | INFO - Scraping data from: https://www.racingpost.com/racecards/49/ripon/2024-04-27/864429
+2024-04-27T04:49:17Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/sandown-park/2024-04-27/1350/45/1/bet365-novices-championship-final-handicap-hurdle
+2024-04-27T04:49:21Z | INFO - Scraping data from: https://www.racingpost.com/racecards/49/ripon/2024-04-27/864430
+2024-04-27T04:49:24Z | INFO - Scraping data from: https://www.racingpost.com/racecards/513/wolverhampton-aw/2024-04-27/864613
+2024-04-27T04:49:25Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/sandown-park/2024-04-27/1425/45/2/bet365-oaksey-chase
+2024-04-27T04:49:28Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/sandown-park/2024-04-27/1500/45/3/bet365-celebration-chase
+2024-04-27T04:49:28Z | INFO - Scraping data from: https://www.racingpost.com/racecards/513/wolverhampton-aw/2024-04-27/864614
+2024-04-27T04:49:31Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/sandown-park/2024-04-27/1535/45/4/bet365-gold-cup-handicap-chase
+2024-04-27T04:49:31Z | INFO - Scraping data from: https://www.racingpost.com/racecards/513/wolverhampton-aw/2024-04-27/864615
+2024-04-27T04:49:34Z | INFO - Scraping data from: https://www.racingpost.com/racecards/513/wolverhampton-aw/2024-04-27/864616
+2024-04-27T04:49:38Z | INFO - Scraping data from: https://www.racingpost.com/racecards/513/wolverhampton-aw/2024-04-27/864617
+2024-04-27T04:49:39Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/sandown-park/2024-04-27/1610/45/5/bet365-select-hurdle
+2024-04-27T04:49:41Z | INFO - Scraping data from: https://www.racingpost.com/racecards/513/wolverhampton-aw/2024-04-27/864618
+2024-04-27T04:49:42Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/sandown-park/2024-04-27/1645/45/6/bet365-josh-gifford-novices-handicap-chase
+2024-04-27T04:49:45Z | INFO - Scraping data from: https://www.racingpost.com/racecards/513/wolverhampton-aw/2024-04-27/864619
+2024-04-27T04:49:47Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/sandown-park/2024-04-27/1720/45/7/bet365-handicap-hurdle
+2024-04-27T04:49:49Z | INFO - Scraping data from: https://www.racingpost.com/racecards/54/sandown/2024-04-27/863326
+2024-04-27T04:49:54Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-27/1800/58/1/get-raceday-ready-apprentice-handicap
+2024-04-27T04:49:54Z | INFO - Scraping data from: https://www.racingpost.com/racecards/54/sandown/2024-04-27/864321
+2024-04-27T04:49:57Z | INFO - Scraping data from: https://www.racingpost.com/racecards/54/sandown/2024-04-27/864322
+2024-04-27T04:49:58Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-27/1830/58/2/free-digital-racecard-at-raceday-readycom-novice-stakes
+2024-04-27T04:50:00Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-27/1900/58/3/derek-thomas-richard-butler-80th-birthday-handicap
+2024-04-27T04:50:03Z | INFO - Scraping data from: https://www.racingpost.com/racecards/54/sandown/2024-04-27/864323
+2024-04-27T04:50:03Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-27/1930/58/4/get-the-inside-track-with-raceday-readycom-novice-stakes
+2024-04-27T04:50:05Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-27/2000/58/5/free-digital-racecard-at-raceday-readycom-handicap
+2024-04-27T04:50:06Z | INFO - Scraping data from: https://www.racingpost.com/racecards/54/sandown/2024-04-27/864324
+2024-04-27T04:50:08Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-27/2030/58/6/download-the-raceday-ready-app-handicap
+2024-04-27T04:50:10Z | INFO - Scraping data from: https://www.racingpost.com/racecards/54/sandown/2024-04-27/864325
+2024-04-27T04:50:13Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/wolverhampton/2024-04-27/2100/58/7/tips-for-every-race-at-raceday-readycom-handicap
+2024-04-27T04:50:14Z | WARNING - Runner Invincible Nao is a non-runner
+2024-04-27T04:50:14Z | INFO - Scraping data from: https://www.racingpost.com/racecards/54/sandown/2024-04-27/864326
+2024-04-27T04:50:17Z | INFO - Data string lengths checked successfully
+2024-04-27T04:50:17Z | INFO - Converting data...
+2024-04-27T04:50:17Z | INFO - Data converted successfully
+2024-04-27T04:50:17Z | INFO - Sorting data...
+2024-04-27T04:50:17Z | INFO - Data Columns Index(['horse_name', 'horse_id', 'sire_name', 'sire_id', 'dam_name', 'dam_id',
+       'trainer_name', 'trainer_id', 'jockey_name', 'jockey_id', 'course_id',
+       'course', 'race_date', 'race_timestamp', 'race', 'age_range',
+       'hcap_range', 'prize', 'unique_id', 'finishing_position',
+       'fractional_price', 'main_race_comment', 'draw', 'tf_rating',
+       'tf_speed_figure', 'betfair_win_sp', 'going', 'in_play_prices',
+       'debug_link', 'equipment', 'official_rating', 'race_id',
+       'betfair_place_sp', 'distance', 'horse_name_link', 'race_type',
+       'tf_comment', 'horse_age', 'race_time', 'created_at'],
+      dtype='object')
+2024-04-27T04:50:17Z | INFO - Data Sample         horse_name      horse_id  ... race_time                 created_at
+0  Swinging London  000000541444  ...      None 2024-04-27 04:47:13.464040
+1   A Poets Secret  000000585064  ...      None 2024-04-27 04:47:13.464040
+2           Abraaj  000000543406  ...      None 2024-04-27 04:47:13.464040
+3    Park Paddocks  000000457379  ...      None 2024-04-27 04:47:13.464040
+4     Show No Fear  000000572737  ...      None 2024-04-27 04:47:13.464040
+5          Carlton  000000586310  ...      None 2024-04-27 04:47:13.464040
+6     Can Can Girl  000000532039  ...      None 2024-04-27 04:47:13.464040
+7        Gold Ring  000000547703  ...      None 2024-04-27 04:47:13.464040
+8   Corsican Caper  000000574687  ...      None 2024-04-27 04:47:13.464040
+9     Calshot Spit  000000597456  ...      None 2024-04-27 04:47:13.464040
+
+[10 rows x 40 columns]
+2024-04-27T04:50:17Z | INFO - Data Sample   tf_rating  ...                                          unique_id
+8      None  ...  cbfc1f51d1239aea177a7f49b9c755712ace5c2ff9bbd9...
+7      None  ...  2271ee75c0894bb4ded986563afc90aca74cf8d358ec99...
+6      None  ...  791a4c9ebe24b6e9312f0e02096b6003c3ee4887eb0a8e...
+5      None  ...  00afd88bf94b0fde4a86198d07973670cc8dcbc8ab93ae...
+4      None  ...  3c9494ffc3fbb22ce72f8ff7b37848ead99b4afd058145...
+3      None  ...  af21cc7dd0cb6f10868da207968579041d54d2731fd844...
+2      None  ...  4a282219346d9f0beafbb4336dd12f116d298e700a657a...
+1      None  ...  6bfd2d208ee05e983cdc8d21f70b9c856c1f3da2f6cca9...
+0      None  ...  4fb7ddfc35d2a527d35faf1426254aa927cd902ec84092...
+5      None  ...  d6ceef1adb1ea238e6da37be5043f9f6fcca897b0afbf0...
+
+[10 rows x 40 columns]
+2024-04-27T04:50:17Z | INFO - Validating data...
+2024-04-27T04:50:17Z | INFO - Data validated successfully
+2024-04-27T04:50:17Z | INFO - Sorting data...
+2024-04-27T04:50:17Z | INFO - Data Columns Index(['tf_rating', 'tf_speed_figure', 'draw', 'trainer_name', 'trainer_id',
+       'jockey_name', 'jockey_id', 'sire_name', 'sire_id', 'dam_name',
+       'dam_id', 'finishing_position', 'horse_name', 'horse_id',
+       'horse_name_link', 'horse_age', 'equipment', 'official_rating',
+       'fractional_price', 'betfair_win_sp', 'betfair_place_sp',
+       'in_play_prices', 'tf_comment', 'course', 'race_date', 'race_time',
+       'race_timestamp', 'course_id', 'race', 'race_id', 'distance', 'going',
+       'prize', 'hcap_range', 'age_range', 'race_type', 'main_race_comment',
+       'debug_link', 'created_at', 'unique_id'],
+      dtype='object')
+2024-04-27T04:50:17Z | INFO - Data Sample   tf_rating  ...                                          unique_id
+8      None  ...  cbfc1f51d1239aea177a7f49b9c755712ace5c2ff9bbd9...
+7      None  ...  2271ee75c0894bb4ded986563afc90aca74cf8d358ec99...
+6      None  ...  791a4c9ebe24b6e9312f0e02096b6003c3ee4887eb0a8e...
+5      None  ...  00afd88bf94b0fde4a86198d07973670cc8dcbc8ab93ae...
+4      None  ...  3c9494ffc3fbb22ce72f8ff7b37848ead99b4afd058145...
+3      None  ...  af21cc7dd0cb6f10868da207968579041d54d2731fd844...
+2      None  ...  4a282219346d9f0beafbb4336dd12f116d298e700a657a...
+1      None  ...  6bfd2d208ee05e983cdc8d21f70b9c856c1f3da2f6cca9...
+0      None  ...  4fb7ddfc35d2a527d35faf1426254aa927cd902ec84092...
+5      None  ...  d6ceef1adb1ea238e6da37be5043f9f6fcca897b0afbf0...
+
+[10 rows x 40 columns]
+2024-04-27T04:50:17Z | INFO - Data Sample   tf_rating  ...                                          unique_id
+8      None  ...  cbfc1f51d1239aea177a7f49b9c755712ace5c2ff9bbd9...
+6      None  ...  791a4c9ebe24b6e9312f0e02096b6003c3ee4887eb0a8e...
+5      None  ...  00afd88bf94b0fde4a86198d07973670cc8dcbc8ab93ae...
+4      None  ...  3c9494ffc3fbb22ce72f8ff7b37848ead99b4afd058145...
+3      None  ...  af21cc7dd0cb6f10868da207968579041d54d2731fd844...
+2      None  ...  4a282219346d9f0beafbb4336dd12f116d298e700a657a...
+1      None  ...  6bfd2d208ee05e983cdc8d21f70b9c856c1f3da2f6cca9...
+0      None  ...  4fb7ddfc35d2a527d35faf1426254aa927cd902ec84092...
+7      None  ...  2271ee75c0894bb4ded986563afc90aca74cf8d358ec99...
+1      None  ...  de43bcb1c07a90ab7b081ca303c4e929a2195dfb3fad97...
+
+[10 rows x 40 columns]
+2024-04-27T04:50:17Z | INFO - Fetching data with query: SELECT * FROM tf_raw.todays_performance_data
+2024-04-27T04:50:17Z | INFO - Truncating tf_raw.todays_performance_data
+2024-04-27T04:50:17Z | INFO - Executing query: TRUNCATE TABLE tf_raw.todays_performance_data
+2024-04-27T04:50:17Z | INFO - Query executed. Number of rows affected: -1
+2024-04-27T04:50:17Z | INFO - Storing 509 records in tf_raw.todays_performance_data
+2024-04-27T04:50:18Z | INFO - Executing query: UPDATE metrics.processing_times SET processed_at = NOW() WHERE job_name = 'scrape_todays_tf_data'
+2024-04-27T04:50:18Z | INFO - Query executed. Number of rows affected: 1
+2024-04-27T04:50:20Z | INFO - Data string lengths checked successfully
+2024-04-27T04:50:20Z | INFO - Converting data...
+2024-04-27T04:50:20Z | INFO - Data converted successfully
+2024-04-27T04:50:20Z | INFO - Sorting data...
+2024-04-27T04:50:20Z | INFO - Data Columns Index(['horse_name', 'horse_id', 'horse_type', 'sire_name', 'sire_id',
+       'dam_name', 'dam_id', 'owner_name', 'owner_id', 'jockey_name',
+       'jockey_id', 'trainer_name', 'trainer_id', 'headgear', 'horse_age',
+       'horse_weight', 'jockey_claim', 'draw', 'official_rating', 'course_id',
+       'course_name', 'course', 'race_date', 'race_id', 'race_timestamp',
+       'first_place_prize_money', 'number_of_runners', 'going', 'distance',
+       'distance_full', 'race_title', 'race_class', 'conditions', 'surface',
+       'race_time', 'horse_price', 'finishing_position', 'rpr_value',
+       'debug_link', 'total_distance_beaten', 'ts_value', 'total_prize_money',
+       'currency', 'winning_time', 'dams_sire_id', 'extra_weight', 'dams_sire',
+       'comment', 'country', 'created_at', 'unique_id', 'meeting_id'],
+      dtype='object')
+2024-04-27T04:50:20Z | INFO - Data Sample         horse_name  ...                                         meeting_id
+0  Sterling Knight  ...  2d205a32b7147f5ed6558e5a958c5b66e5dbffa88d0fd5...
+1       Good Earth  ...  2d205a32b7147f5ed6558e5a958c5b66e5dbffa88d0fd5...
+2   Magical Spirit  ...  2d205a32b7147f5ed6558e5a958c5b66e5dbffa88d0fd5...
+3     Lethal Nymph  ...  2d205a32b7147f5ed6558e5a958c5b66e5dbffa88d0fd5...
+4      Dakota Gold  ...  2d205a32b7147f5ed6558e5a958c5b66e5dbffa88d0fd5...
+5        Able Kane  ...  2d205a32b7147f5ed6558e5a958c5b66e5dbffa88d0fd5...
+6    Katey Kontent  ...  2d205a32b7147f5ed6558e5a958c5b66e5dbffa88d0fd5...
+7         Rathbone  ...  2d205a32b7147f5ed6558e5a958c5b66e5dbffa88d0fd5...
+8           Hectic  ...  2d205a32b7147f5ed6558e5a958c5b66e5dbffa88d0fd5...
+9        Holy Fire  ...  2d205a32b7147f5ed6558e5a958c5b66e5dbffa88d0fd5...
+
+[10 rows x 52 columns]
+2024-04-27T04:50:20Z | INFO - Data Sample         race_timestamp  ...                 created_at
+17 2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+8  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+0  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+1  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+2  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+3  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+4  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+5  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+6  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+7  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+
+[10 rows x 52 columns]
+2024-04-27T04:50:20Z | INFO - Validating data...
+2024-04-27T04:50:20Z | INFO - Data validated successfully
+2024-04-27T04:50:20Z | INFO - Sorting data...
+2024-04-27T04:50:20Z | INFO - Data Columns Index(['race_timestamp', 'race_date', 'course_name', 'race_class',
+       'horse_name', 'horse_type', 'horse_age', 'headgear', 'conditions',
+       'horse_price', 'race_title', 'distance', 'distance_full', 'going',
+       'number_of_runners', 'total_prize_money', 'first_place_prize_money',
+       'winning_time', 'official_rating', 'horse_weight', 'draw', 'country',
+       'surface', 'finishing_position', 'total_distance_beaten', 'ts_value',
+       'rpr_value', 'extra_weight', 'comment', 'race_time', 'currency',
+       'course', 'jockey_name', 'jockey_claim', 'trainer_name', 'sire_name',
+       'dam_name', 'dams_sire', 'owner_name', 'horse_id', 'trainer_id',
+       'jockey_id', 'sire_id', 'dam_id', 'dams_sire_id', 'owner_id', 'race_id',
+       'course_id', 'meeting_id', 'unique_id', 'debug_link', 'created_at'],
+      dtype='object')
+2024-04-27T04:50:20Z | INFO - Data Sample         race_timestamp  ...                 created_at
+17 2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+8  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+0  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+1  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+2  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+3  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+4  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+5  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+6  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+7  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+
+[10 rows x 52 columns]
+2024-04-27T04:50:20Z | INFO - Data Sample         race_timestamp  ...                 created_at
+17 2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+9  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+8  2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+16 2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+15 2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+14 2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+13 2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+12 2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+11 2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+10 2024-04-27 17:20:00  ... 2024-04-27 04:50:20.133027
+
+[10 rows x 52 columns]
+2024-04-27T04:50:20Z | INFO - Fetching data with query: SELECT * FROM rp_raw.todays_performance_data
+2024-04-27T04:50:20Z | INFO - Truncating rp_raw.todays_performance_data
+2024-04-27T04:50:20Z | INFO - Executing query: TRUNCATE TABLE rp_raw.todays_performance_data
+2024-04-27T04:50:20Z | INFO - Query executed. Number of rows affected: -1
+2024-04-27T04:50:20Z | INFO - Storing 503 records in rp_raw.todays_performance_data
+2024-04-27T04:50:21Z | INFO - Executing query: UPDATE metrics.processing_times SET processed_at = NOW() WHERE job_name = 'scrape_todays_rp_data'
+2024-04-27T04:50:21Z | INFO - Query executed. Number of rows affected: 1
+2024-04-27T04:50:23Z | INFO - Fetching data with query: 
+        SELECT * FROM public.course cr
+        left join public.country ct on 
+        cr.country_id::text = ct.country_id::text
+        
+2024-04-27T04:50:23Z | INFO - Fetching data with query: 
+        SELECT * FROM public.course cr
+        left join public.country ct on 
+        cr.country_id::text = ct.country_id::text
+        
+2024-04-27T04:50:23Z | INFO - Creating a new headless WebDriver for Timeform: False
+2024-04-27T04:50:23Z | INFO - Creating a new WebDriver with headless mode set to True
+2024-04-27T04:50:23Z | INFO - Creating a new headless WebDriver for Timeform: False
+2024-04-27T04:50:23Z | INFO - Creating a new WebDriver with headless mode set to True
+2024-04-27T04:50:25Z | INFO - Clicked on button for date: 2024-04-28
+2024-04-27T04:50:29Z | INFO - Toggling settings button
+2024-04-27T04:50:36Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/bath/2024-04-28/1350/4/1/bettingbet-free-bets-handicap
+2024-04-27T04:50:37Z | INFO - Scraping data from: https://www.racingpost.com/racecards/394/southwell-aw/2024-04-28/864620
+2024-04-27T04:50:38Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/bath/2024-04-28/1420/4/2/bettingbet-betting-offers-handicap
+2024-04-27T04:50:41Z | INFO - Scraping data from: https://www.racingpost.com/racecards/394/southwell-aw/2024-04-28/864621
+2024-04-27T04:50:42Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/bath/2024-04-28/1450/4/3/bettingbet-new-betting-sites-fillies-restricted-novice-stakes
+2024-04-27T04:50:45Z | INFO - Scraping data from: https://www.racingpost.com/racecards/394/southwell-aw/2024-04-28/864622
+2024-04-27T04:50:45Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/bath/2024-04-28/1520/4/4/bettingbet-win-50-handicap
+2024-04-27T04:50:48Z | INFO - Scraping data from: https://www.racingpost.com/racecards/394/southwell-aw/2024-04-28/864623
+2024-04-27T04:50:50Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/bath/2024-04-28/1555/4/5/nagsbetcom-10-free-bet-handicap
+2024-04-27T04:50:51Z | INFO - Scraping data from: https://www.racingpost.com/racecards/394/southwell-aw/2024-04-28/864624
+2024-04-27T04:50:53Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/bath/2024-04-28/1630/4/6/paradiso-blinds-handicap
+2024-04-27T04:50:54Z | INFO - Scraping data from: https://www.racingpost.com/racecards/394/southwell-aw/2024-04-28/864625
+2024-04-27T04:50:56Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/bath/2024-04-28/1705/4/7/everytipcom---racing-tips-handicap
+2024-04-27T04:50:57Z | INFO - Scraping data from: https://www.racingpost.com/racecards/394/southwell-aw/2024-04-28/864626
+2024-04-27T04:51:00Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/bath/2024-04-28/1735/4/8/everytipcom---racing-tips-handicap
+2024-04-27T04:51:00Z | INFO - Scraping data from: https://www.racingpost.com/racecards/394/southwell-aw/2024-04-28/867137
+2024-04-27T04:51:03Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/southwell/2024-04-28/1410/47/1/race-by-race-southwell-specials-planetsportbet-handicap
+2024-04-27T04:51:04Z | INFO - Scraping data from: https://www.racingpost.com/racecards/5/bath/2024-04-28/864431
+2024-04-27T04:51:06Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/southwell/2024-04-28/1440/47/2/best-odds-guaranteed-at-planetsportbet-fillies-handicap
+2024-04-27T04:51:06Z | INFO - Scraping data from: https://www.racingpost.com/racecards/5/bath/2024-04-28/864432
+2024-04-27T04:51:09Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/southwell/2024-04-28/1510/47/3/boost-your-football-acca-at-planetsportbet-novice-stakes
+2024-04-27T04:51:09Z | INFO - Scraping data from: https://www.racingpost.com/racecards/5/bath/2024-04-28/864433
+2024-04-27T04:51:11Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/southwell/2024-04-28/1540/47/4/liz-and-izzys-hoap-podcast-handicap
+2024-04-27T04:51:13Z | INFO - Scraping data from: https://www.racingpost.com/racecards/5/bath/2024-04-28/864434
+2024-04-27T04:51:14Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/southwell/2024-04-28/1615/47/5/download-the-planetsportbet-app-handicap
+2024-04-27T04:51:16Z | INFO - Scraping data from: https://www.racingpost.com/racecards/5/bath/2024-04-28/864435
+2024-04-27T04:51:17Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/southwell/2024-04-28/1650/47/6/read-harry-cobdens-blog-at-planetsportbet-handicap
+2024-04-27T04:51:19Z | INFO - Scraping data from: https://www.racingpost.com/racecards/5/bath/2024-04-28/864436
+2024-04-27T04:51:22Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/southwell/2024-04-28/1725/47/7/get-emmas-offers-at-planetsportbet-handicap
+2024-04-27T04:51:22Z | INFO - Scraping data from: https://www.racingpost.com/racecards/5/bath/2024-04-28/864437
+2024-04-27T04:51:25Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/southwell/2024-04-28/1755/47/8/get-emmas-offers-at-planetsportbet-handicap
+2024-04-27T04:51:26Z | INFO - Scraping data from: https://www.racingpost.com/racecards/5/bath/2024-04-28/867136
+2024-04-27T04:51:29Z | INFO - Scraping data from: https://www.racingpost.com/racecards/87/wetherby/2024-04-28/864438
+2024-04-27T04:51:29Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/wetherby/2024-04-28/1400/55/1/burrows-mazda-york-fillies-novice-stakes
+2024-04-27T04:51:31Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/wetherby/2024-04-28/1430/55/2/best-odds-guaranteed-daily-at-vickersbet-handicap
+2024-04-27T04:51:35Z | INFO - Scraping data from: https://www.racingpost.com/racecards/87/wetherby/2024-04-28/864439
+2024-04-27T04:51:35Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/wetherby/2024-04-28/1500/55/3/join-the-vickersbet-free-bet-club-novice-stakes
+2024-04-27T04:51:37Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/wetherby/2024-04-28/1530/55/4/vickersbet-handicap
+2024-04-27T04:51:38Z | INFO - Scraping data from: https://www.racingpost.com/racecards/87/wetherby/2024-04-28/864440
+2024-04-27T04:51:41Z | INFO - Scraping data from: https://www.racingpost.com/racecards/87/wetherby/2024-04-28/864441
+2024-04-27T04:51:43Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/wetherby/2024-04-28/1605/55/5/vickersbet-proudly-supporting-british-racing-handicap
+2024-04-27T04:51:43Z | INFO - Scraping data from: https://www.racingpost.com/racecards/87/wetherby/2024-04-28/864442
+2024-04-27T04:51:47Z | INFO - Scraping data from: https://www.racingpost.com/racecards/87/wetherby/2024-04-28/864443
+2024-04-27T04:51:47Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/wetherby/2024-04-28/1640/55/6/constant-security-services-handicap
+2024-04-27T04:51:49Z | INFO - Scraping data from: https://www.racingpost.com/racecards/87/wetherby/2024-04-28/864444
+2024-04-27T04:51:52Z | INFO - Scraping data from: https://www.timeform.com/horse-racing/racecards/wetherby/2024-04-28/1715/55/7/wetherbyracingcouk-handicap
+2024-04-27T04:51:54Z | INFO - Data string lengths checked successfully
+2024-04-27T04:51:54Z | INFO - Converting data...
+2024-04-27T04:51:54Z | INFO - Data converted successfully
+2024-04-27T04:51:54Z | INFO - Sorting data...
+2024-04-27T04:51:54Z | INFO - Data Columns Index(['horse_name', 'horse_id', 'horse_type', 'sire_name', 'sire_id',
+       'dam_name', 'dam_id', 'owner_name', 'owner_id', 'jockey_name',
+       'jockey_id', 'trainer_name', 'trainer_id', 'headgear', 'horse_age',
+       'horse_weight', 'jockey_claim', 'draw', 'official_rating', 'course_id',
+       'course_name', 'course', 'race_date', 'race_id', 'race_timestamp',
+       'first_place_prize_money', 'number_of_runners', 'going', 'distance',
+       'distance_full', 'race_title', 'race_class', 'conditions', 'surface',
+       'race_time', 'horse_price', 'finishing_position', 'rpr_value',
+       'debug_link', 'total_distance_beaten', 'ts_value', 'total_prize_money',
+       'currency', 'winning_time', 'dams_sire_id', 'extra_weight', 'dams_sire',
+       'comment', 'country', 'created_at', 'unique_id', 'meeting_id'],
+      dtype='object')
+2024-04-27T04:51:54Z | INFO - Data Sample            horse_name  ...                                         meeting_id
+0             Prydwen  ...  865e2bcff6448fb86689fe37b6118ed21ab4fc47b0ca6f...
+1            Tritonic  ...  865e2bcff6448fb86689fe37b6118ed21ab4fc47b0ca6f...
+2   Onesmoothoperator  ...  865e2bcff6448fb86689fe37b6118ed21ab4fc47b0ca6f...
+3         Diamond Bay  ...  865e2bcff6448fb86689fe37b6118ed21ab4fc47b0ca6f...
+4         Lunar Power  ...  865e2bcff6448fb86689fe37b6118ed21ab4fc47b0ca6f...
+5     Wonderful Eagle  ...  865e2bcff6448fb86689fe37b6118ed21ab4fc47b0ca6f...
+6         Duc De Kent  ...  865e2bcff6448fb86689fe37b6118ed21ab4fc47b0ca6f...
+7  Pledgeofallegiance  ...  865e2bcff6448fb86689fe37b6118ed21ab4fc47b0ca6f...
+8        State Legend  ...  865e2bcff6448fb86689fe37b6118ed21ab4fc47b0ca6f...
+9   Tenerife Sunshine  ...  865e2bcff6448fb86689fe37b6118ed21ab4fc47b0ca6f...
+
+[10 rows x 52 columns]
+2024-04-27T04:51:54Z | INFO - Data Sample         race_timestamp  ...                 created_at
+14 2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+7  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+0  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+1  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+3  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+4  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+5  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+6  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+2  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+8  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+
+[10 rows x 52 columns]
+2024-04-27T04:51:54Z | INFO - Validating data...
+2024-04-27T04:51:54Z | INFO - Data validated successfully
+2024-04-27T04:51:54Z | INFO - Sorting data...
+2024-04-27T04:51:54Z | INFO - Data Columns Index(['race_timestamp', 'race_date', 'course_name', 'race_class',
+       'horse_name', 'horse_type', 'horse_age', 'headgear', 'conditions',
+       'horse_price', 'race_title', 'distance', 'distance_full', 'going',
+       'number_of_runners', 'total_prize_money', 'first_place_prize_money',
+       'winning_time', 'official_rating', 'horse_weight', 'draw', 'country',
+       'surface', 'finishing_position', 'total_distance_beaten', 'ts_value',
+       'rpr_value', 'extra_weight', 'comment', 'race_time', 'currency',
+       'course', 'jockey_name', 'jockey_claim', 'trainer_name', 'sire_name',
+       'dam_name', 'dams_sire', 'owner_name', 'horse_id', 'trainer_id',
+       'jockey_id', 'sire_id', 'dam_id', 'dams_sire_id', 'owner_id', 'race_id',
+       'course_id', 'meeting_id', 'unique_id', 'debug_link', 'created_at'],
+      dtype='object')
+2024-04-27T04:51:54Z | INFO - Data Sample         race_timestamp  ...                 created_at
+14 2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+7  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+0  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+1  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+3  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+4  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+5  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+6  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+2  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+8  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+
+[10 rows x 52 columns]
+2024-04-27T04:51:54Z | INFO - Data Sample         race_timestamp  ...                 created_at
+14 2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+2  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+9  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+13 2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+12 2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+11 2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+10 2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+8  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+7  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+6  2024-04-28 14:30:00  ... 2024-04-27 04:51:53.933059
+
+[10 rows x 52 columns]
+2024-04-27T04:51:54Z | INFO - Fetching data with query: SELECT * FROM rp_raw.todays_performance_data
+2024-04-27T04:51:54Z | INFO - Truncating rp_raw.todays_performance_data
+2024-04-27T04:51:54Z | INFO - Executing query: TRUNCATE TABLE rp_raw.todays_performance_data
+2024-04-27T04:51:54Z | INFO - Query executed. Number of rows affected: -1
+2024-04-27T04:51:54Z | INFO - Storing 732 records in rp_raw.todays_performance_data
+2024-04-27T04:51:54Z | INFO - Data string lengths checked successfully
+2024-04-27T04:51:54Z | INFO - Converting data...
+2024-04-27T04:51:54Z | INFO - Data converted successfully
+2024-04-27T04:51:54Z | INFO - Sorting data...
+2024-04-27T04:51:54Z | INFO - Data Columns Index(['horse_name', 'horse_id', 'sire_name', 'sire_id', 'dam_name', 'dam_id',
+       'trainer_name', 'trainer_id', 'jockey_name', 'jockey_id', 'course_id',
+       'course', 'race_date', 'race_timestamp', 'race', 'age_range',
+       'hcap_range', 'prize', 'unique_id', 'finishing_position',
+       'fractional_price', 'main_race_comment', 'draw', 'tf_rating',
+       'tf_speed_figure', 'betfair_win_sp', 'going', 'in_play_prices',
+       'debug_link', 'equipment', 'official_rating', 'race_id',
+       'betfair_place_sp', 'distance', 'horse_name_link', 'race_type',
+       'tf_comment', 'horse_age', 'race_time', 'created_at'],
+      dtype='object')
+2024-04-27T04:51:55Z | INFO - Data Sample           horse_name      horse_id  ... race_time                 created_at
+0       Angel Shared  000000590038  ...      None 2024-04-27 04:50:38.227598
+1         Jungle Jim  000000592044  ...      None 2024-04-27 04:50:38.227598
+2             Better  000000588441  ...      None 2024-04-27 04:50:38.227598
+3           Fidelius  000000594461  ...      None 2024-04-27 04:50:38.227598
+4    Milliethemollie  000000591452  ...      None 2024-04-27 04:50:38.227598
+0          Tyger Bay  000000513699  ...      None 2024-04-27 04:50:42.836389
+1           Level Up  000000552068  ...      None 2024-04-27 04:50:42.836389
+2            Airshow  000000454007  ...      None 2024-04-27 04:50:42.836389
+3  Maharajas Express  000000564245  ...      None 2024-04-27 04:50:42.836389
+4           Alafdhal  000000543454  ...      None 2024-04-27 04:50:42.836389
+
+[10 rows x 40 columns]
+2024-04-27T04:51:55Z | INFO - Data Sample   tf_rating  ...                                          unique_id
+6      None  ...  4464b508bb385cefa917b9bdf5f33566e9326200346f13...
+5      None  ...  e0ff61e5f26616c2305dcffa4576c1c7b39a9d4de9c58d...
+4      None  ...  3ede90819ee1a19298f64d5de390dc6b575946e662b459...
+3      None  ...  906979287d5e8a0819609caf87442194bb61ba7200c402...
+2      None  ...  01dcc63d2c0bf66a2493ae1603ba27fb6486768239ce2b...
+1      None  ...  93f688462882d4f07a58cf7484b37d35efa324f98fddf9...
+0      None  ...  fd4c433c49457d7cfed4c070b12c546e17e66862bc100d...
+5      None  ...  c3c4c184853bf4e099905153bc4223819abe6606b997bb...
+1      None  ...  b7a7d61a8359579ffd58c9a5d32feecac54dd5bfd46f91...
+2      None  ...  4bafdd238503d7f69ad0a0e39475f52fe5db4159d8f95c...
+
+[10 rows x 40 columns]
+2024-04-27T04:51:55Z | INFO - Validating data...
+2024-04-27T04:51:55Z | INFO - Data validated successfully
+2024-04-27T04:51:55Z | INFO - Sorting data...
+2024-04-27T04:51:55Z | INFO - Data Columns Index(['tf_rating', 'tf_speed_figure', 'draw', 'trainer_name', 'trainer_id',
+       'jockey_name', 'jockey_id', 'sire_name', 'sire_id', 'dam_name',
+       'dam_id', 'finishing_position', 'horse_name', 'horse_id',
+       'horse_name_link', 'horse_age', 'equipment', 'official_rating',
+       'fractional_price', 'betfair_win_sp', 'betfair_place_sp',
+       'in_play_prices', 'tf_comment', 'course', 'race_date', 'race_time',
+       'race_timestamp', 'course_id', 'race', 'race_id', 'distance', 'going',
+       'prize', 'hcap_range', 'age_range', 'race_type', 'main_race_comment',
+       'debug_link', 'created_at', 'unique_id'],
+      dtype='object')
+2024-04-27T04:51:55Z | INFO - Data Sample   tf_rating  ...                                          unique_id
+6      None  ...  4464b508bb385cefa917b9bdf5f33566e9326200346f13...
+5      None  ...  e0ff61e5f26616c2305dcffa4576c1c7b39a9d4de9c58d...
+4      None  ...  3ede90819ee1a19298f64d5de390dc6b575946e662b459...
+3      None  ...  906979287d5e8a0819609caf87442194bb61ba7200c402...
+2      None  ...  01dcc63d2c0bf66a2493ae1603ba27fb6486768239ce2b...
+1      None  ...  93f688462882d4f07a58cf7484b37d35efa324f98fddf9...
+0      None  ...  fd4c433c49457d7cfed4c070b12c546e17e66862bc100d...
+5      None  ...  c3c4c184853bf4e099905153bc4223819abe6606b997bb...
+1      None  ...  b7a7d61a8359579ffd58c9a5d32feecac54dd5bfd46f91...
+2      None  ...  4bafdd238503d7f69ad0a0e39475f52fe5db4159d8f95c...
+
+[10 rows x 40 columns]
+2024-04-27T04:51:55Z | INFO - Executing query: UPDATE metrics.processing_times SET processed_at = NOW() WHERE job_name = 'scrape_todays_rp_data'
+2024-04-27T04:51:55Z | INFO - Data Sample   tf_rating  ...                                          unique_id
+6      None  ...  4464b508bb385cefa917b9bdf5f33566e9326200346f13...
+4      None  ...  3ede90819ee1a19298f64d5de390dc6b575946e662b459...
+3      None  ...  906979287d5e8a0819609caf87442194bb61ba7200c402...
+2      None  ...  01dcc63d2c0bf66a2493ae1603ba27fb6486768239ce2b...
+1      None  ...  93f688462882d4f07a58cf7484b37d35efa324f98fddf9...
+0      None  ...  fd4c433c49457d7cfed4c070b12c546e17e66862bc100d...
+5      None  ...  e0ff61e5f26616c2305dcffa4576c1c7b39a9d4de9c58d...
+0      None  ...  3a046b61be9141d08bd066719cb336e23f03218cf43ddf...
+7      None  ...  9db8a8024ea967ee1c98a67a144b2a44bd5c9c05a318e7...
+9      None  ...  8ba232d9804aef70dc5ae5e69cd3841012be642a2fa7de...
+
+[10 rows x 40 columns]
+2024-04-27T04:51:55Z | INFO - Fetching data with query: SELECT * FROM tf_raw.todays_performance_data
+2024-04-27T04:51:55Z | INFO - Query executed. Number of rows affected: 1
+2024-04-27T04:51:55Z | INFO - Truncating tf_raw.todays_performance_data
+2024-04-27T04:51:55Z | INFO - Executing query: TRUNCATE TABLE tf_raw.todays_performance_data
+2024-04-27T04:51:55Z | INFO - Query executed. Number of rows affected: -1
+2024-04-27T04:51:55Z | INFO - Storing 738 records in tf_raw.todays_performance_data
+2024-04-27T04:51:55Z | INFO - Executing query: UPDATE metrics.processing_times SET processed_at = NOW() WHERE job_name = 'scrape_todays_tf_data'
+2024-04-27T04:51:55Z | INFO - Query executed. Number of rows affected: 1
+2024-04-27T04:51:55Z | INFO - Checking for missing data...
+2024-04-27T04:51:55Z | INFO - Fetching data with query: 
+        SELECT * 
+        FROM errors.missing_todays_races 
+        WHERE both_sets = false;
+        
+2024-04-27T04:51:55Z | INFO - Loading direct matches
+2024-04-27T04:51:55Z | INFO - Fetching data with query: SELECT * FROM rp_raw.unmatched_sires;
+2024-04-27T04:51:55Z | INFO - Fetching data with query: SELECT * FROM rp_raw.unmatched_dams;
+2024-04-27T04:51:55Z | INFO - Fetching data with query: SELECT * FROM rp_raw.unmatched_horses;
+2024-04-27T04:51:55Z | INFO - Fetching data with query: SELECT * FROM rp_raw.unmatched_jockeys;
+2024-04-27T04:52:03Z | INFO - Fetching data with query: SELECT * FROM rp_raw.unmatched_trainers;
+2024-04-27T04:52:03Z | INFO - Fetching data with query: SELECT * FROM rp_raw.unmatched_owners;
+2024-04-27T04:52:11Z | INFO - Fetching data with query: SELECT * FROM public.owner
+2024-04-27T04:52:11Z | INFO - Storing 22 records in public.owner
+/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/pipelines/matching_pipeline.py:91: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  rp_matching_data = pd.concat(
+2024-04-27T04:52:11Z | INFO - Fetching data with query: 
+        SELECT pd.horse_name,
+            pd.horse_id,
+            pd.horse_age,
+            pd.jockey_id,
+            pd.jockey_name,
+            pd.trainer_id,
+            pd.trainer_name,
+            pd.sire_name,
+            pd.sire_id,
+            pd.dam_name,
+            pd.dam_id,
+            pd.race_timestamp,
+            pd.unique_id,
+            pd.race_date,
+            pd.debug_link,
+            c.id AS course_id
+        FROM tf_raw.performance_data pd
+        LEFT JOIN public.course c 
+        ON pd.course_id = c.tf_id
+        WHERE pd.race_date 
+        IN ('2024-04-27', '2024-04-28')
+        
+2024-04-27T04:52:11Z | INFO - Fetching data with query: 
+        SELECT pd.horse_name,
+            pd.horse_id,
+            pd.horse_age,
+            pd.jockey_id,
+            pd.jockey_name,
+            pd.trainer_id,
+            pd.trainer_name,
+            pd.sire_name,
+            pd.sire_id,
+            pd.dam_name,
+            pd.dam_id,
+            pd.race_timestamp,
+            pd.unique_id,
+            pd.race_date,
+            pd.debug_link,
+            c.id AS course_id
+        FROM tf_raw.todays_performance_data pd
+        LEFT JOIN public.course c 
+        ON pd.course_id = c.tf_id
+        WHERE pd.race_date 
+        IN ('2024-04-27', '2024-04-28')
+        
+/Users/tom.wattley/Code/Projects/racing-api-project/racing-etl/src/pipelines/matching_pipeline.py:116: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  tf_matching_data = pd.concat([tf_hist_data, tf_present_data]).drop_duplicates(
+2024-04-27T04:52:11Z | INFO - Loading matching data for 2 dates
+2024-04-27T04:52:11Z | INFO - Found 738 records for dates :['2024-04-28' '2024-04-27']
+2024-04-27T04:52:11Z | INFO - Missing entities: ['dam' 'horse' 'jockey']
+2024-04-27T04:52:11Z | INFO - Matching Merci Layan
+2024-04-27T04:52:11Z | INFO - Found match for Merci Layan
+2024-04-27T04:52:11Z | INFO - Matching Amami
+2024-04-27T04:52:11Z | INFO - Found match for Amami
+2024-04-27T04:52:11Z | INFO - Matching Mint Julep
+2024-04-27T04:52:11Z | INFO - Found match for Mint Julep
+2024-04-27T04:52:11Z | INFO - Matching Geizy Teizy
+2024-04-27T04:52:11Z | INFO - Found match for Geizy Teizy
+2024-04-27T04:52:11Z | INFO - Matching Pixel Power
+2024-04-27T04:52:11Z | INFO - Found match for Pixel Power
+2024-04-27T04:52:11Z | INFO - Matching Oh Beautiful
+2024-04-27T04:52:11Z | INFO - Found match for Oh Beautiful
+2024-04-27T04:52:11Z | INFO - Matching Tonis A Star
+2024-04-27T04:52:11Z | INFO - Found match for Tonis A Star
+2024-04-27T04:52:11Z | INFO - Matching Scotesia
+2024-04-27T04:52:11Z | INFO - Found match for Scotesia
+2024-04-27T04:52:11Z | INFO - Matching Tuscan Oasis
+2024-04-27T04:52:11Z | INFO - Found match for Tuscan Oasis
+2024-04-27T04:52:11Z | INFO - Matching Excelling Spirit
+2024-04-27T04:52:11Z | INFO - Found match for Excelling Spirit
+2024-04-27T04:52:11Z | INFO - Matching Alcedo Atthis
+2024-04-27T04:52:11Z | INFO - Found match for Alcedo Atthis
+2024-04-27T04:52:11Z | INFO - Matching Apache Eagle
+2024-04-27T04:52:11Z | INFO - Found match for Apache Eagle
+2024-04-27T04:52:11Z | INFO - Matching Artificer
+2024-04-27T04:52:11Z | INFO - Found match for Artificer
+2024-04-27T04:52:11Z | INFO - Matching Assertively
+2024-04-27T04:52:11Z | INFO - Found match for Assertively
+2024-04-27T04:52:11Z | INFO - Matching Baby Lionheart
+2024-04-27T04:52:11Z | INFO - Found match for Baby Lionheart
+2024-04-27T04:52:11Z | INFO - Matching Barmyblade
+2024-04-27T04:52:11Z | INFO - Found match for Barmyblade
+2024-04-27T04:52:11Z | INFO - Matching Billie Be Quick
+2024-04-27T04:52:11Z | INFO - Found match for Billie Be Quick
+2024-04-27T04:52:11Z | INFO - Matching Blewburton
+2024-04-27T04:52:11Z | INFO - Found match for Blewburton
+2024-04-27T04:52:11Z | INFO - Matching Bright Thunder
+2024-04-27T04:52:11Z | INFO - Found match for Bright Thunder
+2024-04-27T04:52:11Z | INFO - Matching Cabrillo
+2024-04-27T04:52:11Z | INFO - Found match for Cabrillo
+2024-04-27T04:52:11Z | INFO - Matching Camille Pissarro
+2024-04-27T04:52:12Z | INFO - Found match for Camille Pissarro
+2024-04-27T04:52:12Z | INFO - Matching Castleheath
+2024-04-27T04:52:12Z | INFO - Found match for Castleheath
+2024-04-27T04:52:12Z | INFO - Matching Clever And Classy
+2024-04-27T04:52:12Z | INFO - Found match for Clever And Classy
+2024-04-27T04:52:12Z | INFO - Matching Cruden
+2024-04-27T04:52:12Z | INFO - Found match for Cruden
+2024-04-27T04:52:12Z | INFO - Matching Cuan
+2024-04-27T04:52:12Z | INFO - Found match for Cuan
+2024-04-27T04:52:12Z | INFO - Matching Dr Ali
+2024-04-27T04:52:12Z | INFO - Found match for Dr Ali
+2024-04-27T04:52:12Z | INFO - Matching Dubai First
+2024-04-27T04:52:12Z | INFO - Found match for Dubai First
+2024-04-27T04:52:12Z | INFO - Matching Fight Back
+2024-04-27T04:52:12Z | INFO - Found match for Fight Back
+2024-04-27T04:52:12Z | INFO - Matching Fillys Last Lady
+2024-04-27T04:52:12Z | INFO - Found match for Fillys Last Lady
+2024-04-27T04:52:12Z | INFO - Matching Gold Medallist
+2024-04-27T04:52:12Z | INFO - Found match for Gold Medallist
+2024-04-27T04:52:12Z | INFO - Matching Griselda
+2024-04-27T04:52:12Z | INFO - Found match for Griselda
+2024-04-27T04:52:12Z | INFO - Matching Hobart
+2024-04-27T04:52:12Z | INFO - Found match for Hobart
+2024-04-27T04:52:12Z | INFO - Matching Lady La Fay
+2024-04-27T04:52:12Z | INFO - Found match for Lady La Fay
+2024-04-27T04:52:12Z | INFO - Matching Lift Lady
+2024-04-27T04:52:12Z | INFO - Found match for Lift Lady
+2024-04-27T04:52:12Z | INFO - Matching Max Stripes
+2024-04-27T04:52:12Z | INFO - Found match for Max Stripes
+2024-04-27T04:52:12Z | INFO - Matching Miss Cantik
+2024-04-27T04:52:12Z | INFO - Found match for Miss Cantik
+2024-04-27T04:52:12Z | INFO - Matching Nevernay
+2024-04-27T04:52:12Z | INFO - Found match for Nevernay
+2024-04-27T04:52:12Z | INFO - Matching New Theory
+2024-04-27T04:52:12Z | INFO - Found match for New Theory
+2024-04-27T04:52:12Z | INFO - Matching Night In Paris
+2024-04-27T04:52:12Z | INFO - Found match for Night In Paris
+2024-04-27T04:52:12Z | INFO - Matching Poets Peace
+2024-04-27T04:52:12Z | INFO - Found match for Poets Peace
+2024-04-27T04:52:12Z | INFO - Matching Somebodycomegether
+2024-04-27T04:52:12Z | INFO - Found match for Somebodycomegether
+2024-04-27T04:52:12Z | INFO - Matching Son Of Astar
+2024-04-27T04:52:12Z | INFO - Found match for Son Of Astar
+2024-04-27T04:52:12Z | INFO - Matching Sorella Carina
+2024-04-27T04:52:12Z | INFO - Found match for Sorella Carina
+2024-04-27T04:52:12Z | INFO - Matching Spring Corn
+2024-04-27T04:52:12Z | INFO - Found match for Spring Corn
+2024-04-27T04:52:12Z | INFO - Matching Startling
+2024-04-27T04:52:12Z | INFO - Found match for Startling
+2024-04-27T04:52:12Z | INFO - Matching Subsequent
+2024-04-27T04:52:12Z | INFO - Found match for Subsequent
+2024-04-27T04:52:12Z | INFO - Matching Tchalla
+2024-04-27T04:52:12Z | INFO - Found match for Tchalla
+2024-04-27T04:52:12Z | INFO - Matching Till It Shines
+2024-04-27T04:52:12Z | INFO - Found match for Till It Shines
+2024-04-27T04:52:12Z | INFO - Matching Trouville
+2024-04-27T04:52:12Z | INFO - Found match for Trouville
+2024-04-27T04:52:12Z | INFO - Matching Tuscan Point
+2024-04-27T04:52:12Z | INFO - Found match for Tuscan Point
+2024-04-27T04:52:12Z | INFO - Matching Unavoidable
+2024-04-27T04:52:12Z | INFO - Found match for Unavoidable
+2024-04-27T04:52:12Z | INFO - Matching Weegeebear
+2024-04-27T04:52:12Z | INFO - Found match for Weegeebear
+2024-04-27T04:52:12Z | INFO - Matching Young Churchill
+2024-04-27T04:52:12Z | INFO - Found match for Young Churchill
+2024-04-27T04:52:12Z | INFO - Matching Your Call
+2024-04-27T04:52:12Z | INFO - Found match for Your Call
+2024-04-27T04:52:12Z | INFO - Matching Yurinov
+2024-04-27T04:52:12Z | INFO - Found match for Yurinov
+2024-04-27T04:52:12Z | INFO - Matching Aidan Jones
+2024-04-27T04:52:12Z | INFO - Found match for Aidan Jones
+2024-04-27T04:52:12Z | INFO - Fetching data with query: SELECT * FROM public.horse
+2024-04-27T04:52:12Z | INFO - Fetching data with query: SELECT * FROM public.sire
+2024-04-27T04:52:12Z | INFO - Fetching data with query: SELECT * FROM public.dam
+2024-04-27T04:52:12Z | INFO - Fetching data with query: SELECT * FROM public.jockey
+2024-04-27T04:52:12Z | INFO - Fetching data with query: SELECT * FROM public.trainer
+2024-04-27T04:52:13Z | INFO - No data to store in public.trainer
+2024-04-27T04:52:13Z | INFO - No data to store in public.sire
+2024-04-27T04:52:13Z | INFO - Storing 1 records in public.jockey
+2024-04-27T04:52:13Z | INFO - Storing 45 records in public.horse
+2024-04-27T04:52:13Z | INFO - Storing 10 records in public.dam
+2024-04-27T04:52:13Z | INFO - Calling stored procedure staging.insert_into_joined_performance_data()
+2024-04-27T04:52:13Z | INFO - Calling stored procedure staging.insert_into_todays_joined_performance_data()
+2024-04-27T04:52:24Z | INFO - Stored procedure staging.insert_into_joined_performance_data() completed
+2024-04-27T04:52:42Z | INFO - Stored procedure staging.insert_into_todays_joined_performance_data() completed
+2024-04-27T04:52:42Z | INFO - Fetching data with query: SELECT DISTINCT unique_id FROM rp_raw.todays_performance_data;
+2024-04-27T04:52:42Z | INFO - Fetching data with query: SELECT DISTINCT unique_id FROM staging.todays_joined_performance_data;
+2024-04-27T04:52:42Z | WARNING - MISSING DATA RAW: 732 STAGING: 731
+2024-04-27T04:52:42Z | INFO - Fetching data with query: SELECT * FROM public.missing_performance_data_vw;
+2024-04-27T04:52:42Z | INFO - Fetching data with query: SELECT * FROM public.missing_todays_performance_data_vw;
+2024-04-27T04:52:42Z | INFO - Mapping race time column
+2024-04-27T04:52:42Z | INFO - Creating pounds
+2024-04-27T04:52:42Z | INFO - Creating distance data
+2024-04-27T04:52:43Z | INFO - Creating headgear data
+2024-04-27T04:52:43Z | INFO - Cleaning race class field
+2024-04-27T04:52:43Z | INFO - Converting horse type to colour and sex
+2024-04-27T04:52:43Z | INFO - Data string lengths checked successfully
+2024-04-27T04:52:43Z | INFO - Converting data...
+2024-04-27T04:52:43Z | INFO - Data converted successfully
+2024-04-27T04:52:43Z | INFO - Sorting data...
+2024-04-27T04:52:43Z | INFO - Data Columns Index(['horse_name', 'horse_age', 'jockey_name', 'jockey_claim',
+       'trainer_name', 'owner_name', 'weight_carried', 'draw',
+       'finishing_position', 'total_distance_beaten', 'age', 'official_rating',
+       'ts', 'rpr', 'industry_sp', 'extra_weight', 'headgear',
+       'in_race_comment', 'sire_name', 'dam_name', 'dams_sire', 'race_date',
+       'race_title', 'race_time_original', 'race_time', 'race_class',
+       'conditions', 'distance', 'going', 'winning_time', 'number_of_runners',
+       'total_prize_money', 'first_place_prize_money', 'currency', 'country',
+       'surface', 'tfr', 'tfig', 'betfair_win_sp', 'betfair_place_sp',
+       'in_play_prices', 'tf_comment', 'hcap_range', 'age_range', 'race_type',
+       'main_race_comment', 'meeting_id', 'course_id', 'horse_id', 'sire_id',
+       'dam_id', 'trainer_id', 'jockey_id', 'owner_id', 'race_id', 'unique_id',
+       'created_at', 'data_type', 'tfr_view', 'weight_carried_st',
+       'weight_carried_extra_lbs', 'weight_carried_lbs', 'in_play_low',
+       'in_play_high', 'distance_yards', 'distance_meters',
+       'distance_kilometers', 'time_seconds', 'relative_to_standard',
+       'relative_time', 'horse_colour', 'horse_sex'],
+      dtype='object')
+2024-04-27T04:52:43Z | INFO - Data Sample            horse_name horse_age  ... horse_colour horse_sex
+0             Billboa         4  ...          Bay   Gelding
+1  Threeunderthrufive         9  ...          Bay   Gelding
+2     Destinys Spirit         4  ...     Chestnut     Filly
+3              Selwan         5  ...          Bay   Gelding
+4       Media Shooter         3  ...          Bay   Gelding
+5      Soames Forsyte         5  ...          Bay   Gelding
+6           Wyld Bill         3  ...         Grey   Gelding
+7              Rapper        10  ...          Bay   Gelding
+8        Macs Dilemma         6  ...          Bay   Gelding
+9       Onemorenomore         4  ...          Bay   Gelding
+
+[10 rows x 72 columns]
+2024-04-27T04:52:43Z | INFO - Data Sample               race_time  ...                 created_at
+0   2024-04-28 16:50:00  ... 2024-04-27 04:52:13.594356
+480 2024-04-28 17:55:00  ... 2024-04-27 04:52:13.594356
+482 2024-04-27 20:00:00  ... 2024-04-27 04:52:13.594356
+483 2024-04-27 16:20:00  ... 2024-04-27 04:52:13.594356
+484 2024-04-28 17:05:00  ... 2024-04-27 04:52:13.594356
+485 2024-04-28 14:30:00  ... 2024-04-27 04:52:13.594356
+486 2024-04-27 17:00:00  ... 2024-04-27 04:52:13.594356
+487 2024-04-28 14:10:00  ... 2024-04-27 04:52:13.594356
+488 2024-04-27 17:15:00  ... 2024-04-27 04:52:13.594356
+489 2024-04-27 15:35:00  ... 2024-04-27 04:52:13.594356
+
+[10 rows x 35 columns]
+2024-04-27T04:52:43Z | INFO - Validating data...
+2024-04-27T04:52:43Z | INFO - Data validated successfully
+2024-04-27T04:52:43Z | INFO - Sorting data...
+2024-04-27T04:52:43Z | INFO - Data Columns Index(['race_time', 'race_date', 'horse_name', 'age', 'horse_sex', 'draw',
+       'headgear', 'weight_carried', 'weight_carried_lbs', 'extra_weight',
+       'jockey_claim', 'finishing_position', 'total_distance_beaten',
+       'industry_sp', 'betfair_win_sp', 'betfair_place_sp', 'official_rating',
+       'ts', 'rpr', 'tfig', 'tfr', 'in_play_high', 'in_play_low',
+       'in_race_comment', 'tf_comment', 'tfr_view', 'course_id', 'horse_id',
+       'jockey_id', 'trainer_id', 'owner_id', 'sire_id', 'dam_id', 'unique_id',
+       'created_at'],
+      dtype='object')
+2024-04-27T04:52:43Z | INFO - Data Sample               race_time  ...                 created_at
+0   2024-04-28 16:50:00  ... 2024-04-27 04:52:13.594356
+480 2024-04-28 17:55:00  ... 2024-04-27 04:52:13.594356
+482 2024-04-27 20:00:00  ... 2024-04-27 04:52:13.594356
+483 2024-04-27 16:20:00  ... 2024-04-27 04:52:13.594356
+484 2024-04-28 17:05:00  ... 2024-04-27 04:52:13.594356
+485 2024-04-28 14:30:00  ... 2024-04-27 04:52:13.594356
+486 2024-04-27 17:00:00  ... 2024-04-27 04:52:13.594356
+487 2024-04-28 14:10:00  ... 2024-04-27 04:52:13.594356
+488 2024-04-27 17:15:00  ... 2024-04-27 04:52:13.594356
+489 2024-04-27 15:35:00  ... 2024-04-27 04:52:13.594356
+
+[10 rows x 35 columns]
+2024-04-27T04:52:43Z | INFO - Data Sample              race_time  ...                 created_at
+0  2024-04-28 16:50:00  ... 2024-04-27 04:52:13.594356
+22 2024-04-27 15:45:00  ... 2024-04-27 04:52:13.594356
+21 2024-04-28 15:20:00  ... 2024-04-27 04:52:13.594356
+2  2024-04-27 18:00:00  ... 2024-04-27 04:52:13.594356
+3  2024-04-27 14:05:00  ... 2024-04-27 04:52:13.594356
+4  2024-04-28 16:15:00  ... 2024-04-27 04:52:13.594356
+5  2024-04-28 15:30:00  ... 2024-04-27 04:52:13.594356
+6  2024-04-27 16:40:00  ... 2024-04-27 04:52:13.594356
+7  2024-04-27 15:35:00  ... 2024-04-27 04:52:13.594356
+8  2024-04-28 16:30:00  ... 2024-04-27 04:52:13.594356
+
+[10 rows x 35 columns]
+2024-04-27T04:52:43Z | INFO - Data string lengths checked successfully
+2024-04-27T04:52:43Z | INFO - Converting data...
+2024-04-27T04:52:43Z | INFO - Data converted successfully
+2024-04-27T04:52:43Z | INFO - Sorting data...
+2024-04-27T04:52:43Z | INFO - Data Columns Index(['horse_name', 'horse_age', 'jockey_name', 'jockey_claim',
+       'trainer_name', 'owner_name', 'weight_carried', 'draw',
+       'finishing_position', 'total_distance_beaten', 'age', 'official_rating',
+       'ts', 'rpr', 'industry_sp', 'extra_weight', 'headgear',
+       'in_race_comment', 'sire_name', 'dam_name', 'dams_sire', 'race_date',
+       'race_title', 'race_time_original', 'race_time', 'race_class',
+       'conditions', 'distance', 'going', 'winning_time', 'number_of_runners',
+       'total_prize_money', 'first_place_prize_money', 'currency', 'country',
+       'surface', 'tfr', 'tfig', 'betfair_win_sp', 'betfair_place_sp',
+       'in_play_prices', 'tf_comment', 'hcap_range', 'age_range', 'race_type',
+       'main_race_comment', 'meeting_id', 'course_id', 'horse_id', 'sire_id',
+       'dam_id', 'trainer_id', 'jockey_id', 'owner_id', 'race_id', 'unique_id',
+       'created_at', 'data_type', 'tfr_view', 'weight_carried_st',
+       'weight_carried_extra_lbs', 'weight_carried_lbs', 'in_play_low',
+       'in_play_high', 'distance_yards', 'distance_meters',
+       'distance_kilometers', 'time_seconds', 'relative_to_standard',
+       'relative_time', 'horse_colour', 'horse_sex'],
+      dtype='object')
+2024-04-27T04:52:43Z | INFO - Data Sample            horse_name horse_age  ... horse_colour horse_sex
+0             Billboa         4  ...          Bay   Gelding
+1  Threeunderthrufive         9  ...          Bay   Gelding
+2     Destinys Spirit         4  ...     Chestnut     Filly
+3              Selwan         5  ...          Bay   Gelding
+4       Media Shooter         3  ...          Bay   Gelding
+5      Soames Forsyte         5  ...          Bay   Gelding
+6           Wyld Bill         3  ...         Grey   Gelding
+7              Rapper        10  ...          Bay   Gelding
+8        Macs Dilemma         6  ...          Bay   Gelding
+9       Onemorenomore         4  ...          Bay   Gelding
+
+[10 rows x 72 columns]
+2024-04-27T04:52:43Z | INFO - Data Sample               race_time   race_date  ... course_id                 created_at
+0   2024-04-28 16:50:00  2024-04-28  ...        73 2024-04-27 04:52:13.594356
+480 2024-04-28 17:55:00  2024-04-28  ...        73 2024-04-27 04:52:13.594356
+482 2024-04-27 20:00:00  2024-04-27  ...        89 2024-04-27 04:52:13.594356
+483 2024-04-27 16:20:00  2024-04-27  ...        44 2024-04-27 04:52:13.594356
+484 2024-04-28 17:05:00  2024-04-28  ...         6 2024-04-27 04:52:13.594356
+485 2024-04-28 14:30:00  2024-04-28  ...        84 2024-04-27 04:52:13.594356
+486 2024-04-27 17:00:00  2024-04-27  ...        34 2024-04-27 04:52:13.594356
+487 2024-04-28 14:10:00  2024-04-28  ...        73 2024-04-27 04:52:13.594356
+488 2024-04-27 17:15:00  2024-04-27  ...        67 2024-04-27 04:52:13.594356
+489 2024-04-27 15:35:00  2024-04-27  ...        70 2024-04-27 04:52:13.594356
+
+[10 rows x 27 columns]
+2024-04-27T04:52:43Z | INFO - Validating data...
+2024-04-27T04:52:43Z | INFO - Data validated successfully
+2024-04-27T04:52:43Z | INFO - Sorting data...
+2024-04-27T04:52:43Z | INFO - Data Columns Index(['race_time', 'race_date', 'race_title', 'race_type', 'race_class',
+       'distance', 'distance_yards', 'distance_meters', 'distance_kilometers',
+       'conditions', 'going', 'number_of_runners', 'hcap_range', 'age_range',
+       'surface', 'total_prize_money', 'first_place_prize_money',
+       'winning_time', 'time_seconds', 'relative_time', 'relative_to_standard',
+       'country', 'main_race_comment', 'meeting_id', 'race_id', 'course_id',
+       'created_at'],
+      dtype='object')
+2024-04-27T04:52:43Z | INFO - Data Sample               race_time   race_date  ... course_id                 created_at
+0   2024-04-28 16:50:00  2024-04-28  ...        73 2024-04-27 04:52:13.594356
+480 2024-04-28 17:55:00  2024-04-28  ...        73 2024-04-27 04:52:13.594356
+482 2024-04-27 20:00:00  2024-04-27  ...        89 2024-04-27 04:52:13.594356
+483 2024-04-27 16:20:00  2024-04-27  ...        44 2024-04-27 04:52:13.594356
+484 2024-04-28 17:05:00  2024-04-28  ...         6 2024-04-27 04:52:13.594356
+485 2024-04-28 14:30:00  2024-04-28  ...        84 2024-04-27 04:52:13.594356
+486 2024-04-27 17:00:00  2024-04-27  ...        34 2024-04-27 04:52:13.594356
+487 2024-04-28 14:10:00  2024-04-28  ...        73 2024-04-27 04:52:13.594356
+488 2024-04-27 17:15:00  2024-04-27  ...        67 2024-04-27 04:52:13.594356
+489 2024-04-27 15:35:00  2024-04-27  ...        70 2024-04-27 04:52:13.594356
+
+[10 rows x 27 columns]
+2024-04-27T04:52:43Z | INFO - Data Sample               race_time   race_date  ... course_id                 created_at
+0   2024-04-28 16:50:00  2024-04-28  ...        73 2024-04-27 04:52:13.594356
+529 2024-04-28 15:20:00  2024-04-28  ...         6 2024-04-27 04:52:13.594356
+519 2024-04-27 13:30:00  2024-04-27  ...        44 2024-04-27 04:52:13.594356
+518 2024-04-27 16:55:00  2024-04-27  ...        44 2024-04-27 04:52:13.594356
+517 2024-04-27 15:27:00  2024-04-27  ...        54 2024-04-27 04:52:13.594356
+516 2024-04-27 19:10:00  2024-04-27  ...        20 2024-04-27 04:52:13.594356
+512 2024-04-27 18:50:00  2024-04-27  ...        67 2024-04-27 04:52:13.594356
+510 2024-04-27 20:30:00  2024-04-27  ...        89 2024-04-27 04:52:13.594356
+509 2024-04-28 17:35:00  2024-04-28  ...         6 2024-04-27 04:52:13.594356
+508 2024-04-28 14:50:00  2024-04-28  ...         6 2024-04-27 04:52:13.594356
+
+[10 rows x 27 columns]
+2024-04-27T04:52:43Z | INFO - No data to store in errors.staging_todays_transformed_performance_data_rejected
+2024-04-27T04:52:43Z | INFO - Truncating staging.todays_transformed_race_data
+2024-04-27T04:52:43Z | INFO - Truncating staging.todays_transformed_performance_data
+2024-04-27T04:52:43Z | INFO - Executing query: TRUNCATE TABLE staging.todays_transformed_race_data
+2024-04-27T04:52:43Z | INFO - Executing query: TRUNCATE TABLE staging.todays_transformed_performance_data
+2024-04-27T04:52:43Z | INFO - Query executed. Number of rows affected: -1
+2024-04-27T04:52:43Z | INFO - Storing 73 records in staging.todays_transformed_race_data
+2024-04-27T04:52:43Z | INFO - Query executed. Number of rows affected: -1
+2024-04-27T04:52:43Z | INFO - Storing 731 records in staging.todays_transformed_performance_data
+2024-04-27T04:52:52Z | INFO - Mapping race time column
+2024-04-27T04:52:52Z | INFO - Getting surfaces from tf rating
+2024-04-27T04:52:52Z | INFO - Getting tf rating values
+2024-04-27T04:52:52Z | INFO - Creating pounds
+2024-04-27T04:52:52Z | INFO - Getting inplay high and low
+2024-04-27T04:52:52Z | INFO - Creating distance data
+2024-04-27T04:52:52Z | INFO - Creating time data
+2024-04-27T04:52:52Z | INFO - Creating headgear data
+2024-04-27T04:52:52Z | INFO - Converting tf rating
+2024-04-27T04:52:52Z | INFO - Cleaning race class field
+2024-04-27T04:52:52Z | INFO - Converting horse type to colour and sex
+2024-04-27T04:52:52Z | INFO - Creating distance beaten data
+2024-04-27T04:52:52Z | INFO - Data string lengths checked successfully
+2024-04-27T04:52:52Z | INFO - Converting data...
+2024-04-27T04:52:52Z | INFO - Data converted successfully
+2024-04-27T04:52:52Z | INFO - Sorting data...
+2024-04-27T04:52:52Z | INFO - Data Columns Index(['horse_name', 'horse_age', 'jockey_name', 'jockey_claim',
+       'trainer_name', 'owner_name', 'weight_carried', 'draw',
+       'finishing_position', 'total_distance_beaten', 'age', 'official_rating',
+       'ts', 'rpr', 'industry_sp', 'extra_weight', 'headgear',
+       'in_race_comment', 'sire_name', 'dam_name', 'dams_sire', 'race_date',
+       'race_title', 'race_time_original', 'race_time', 'race_class',
+       'conditions', 'distance', 'going', 'winning_time', 'number_of_runners',
+       'total_prize_money', 'first_place_prize_money', 'currency', 'country',
+       'surface', 'tfr', 'tfig', 'betfair_win_sp', 'betfair_place_sp',
+       'in_play_prices', 'tf_comment', 'hcap_range', 'age_range', 'race_type',
+       'main_race_comment', 'meeting_id', 'course_id', 'horse_id', 'sire_id',
+       'dam_id', 'trainer_id', 'jockey_id', 'owner_id', 'race_id', 'unique_id',
+       'created_at', 'data_type', 'tfr_view', 'weight_carried_st',
+       'weight_carried_extra_lbs', 'weight_carried_lbs', 'in_play_low',
+       'in_play_high', 'distance_yards', 'distance_meters',
+       'distance_kilometers', 'time_seconds', 'relative_to_standard',
+       'relative_time', 'horse_colour', 'horse_sex',
+       'total_distance_beaten_str'],
+      dtype='object')
+2024-04-27T04:52:52Z | INFO - Data Sample           horse_name horse_age  ... horse_sex total_distance_beaten_str
+0       Workforadime         6  ...      Mare                          
+1    Private Officer         3  ...      Colt                      [8¾]
+2       Capallcliste         4  ...   Gelding                       [6]
+3      A Shin Undine         5  ...      Mare                       [2]
+4           Concetto         7  ...   Gelding                       [6]
+5  Call Off The Dogs         9  ...   Gelding                      [5½]
+6       Cloud Seeker         3  ...   Gelding                        2¾
+7          Good Work         8  ...   Gelding                         ½
+8      Still Rolling         3  ...     Filly                     [10½]
+9             Instit         6  ...      Mare                        4¾
+
+[10 rows x 73 columns]
+2024-04-27T04:52:52Z | INFO - Data Sample               race_time  ...                 created_at
+0   2024-04-24 19:40:00  ... 2024-04-27 04:52:13.594389
+608 2024-04-23 17:30:00  ... 2024-04-27 04:52:13.594389
+610 2024-04-24 15:35:00  ... 2024-04-27 04:52:13.594389
+611 2024-04-23 18:30:00  ... 2024-04-27 04:52:13.594389
+612 2024-04-24 17:20:00  ... 2024-04-27 04:52:13.594389
+613 2024-04-24 20:14:00  ... 2024-04-27 04:52:13.594389
+614 2024-04-24 16:50:00  ... 2024-04-27 04:52:13.594389
+615 2024-04-23 17:20:00  ... 2024-04-27 04:52:13.594389
+616 2024-04-24 19:25:00  ... 2024-04-27 04:52:13.594389
+617 2024-04-24 15:05:00  ... 2024-04-27 04:52:13.594389
+
+[10 rows x 35 columns]
+2024-04-27T04:52:52Z | INFO - Validating data...
+2024-04-27T04:52:52Z | INFO - Data validated successfully
+2024-04-27T04:52:52Z | INFO - Sorting data...
+2024-04-27T04:52:52Z | INFO - Data Columns Index(['race_time', 'race_date', 'horse_name', 'age', 'horse_sex', 'draw',
+       'headgear', 'weight_carried', 'weight_carried_lbs', 'extra_weight',
+       'jockey_claim', 'finishing_position', 'total_distance_beaten',
+       'industry_sp', 'betfair_win_sp', 'betfair_place_sp', 'official_rating',
+       'ts', 'rpr', 'tfig', 'tfr', 'in_play_high', 'in_play_low',
+       'in_race_comment', 'tf_comment', 'tfr_view', 'course_id', 'horse_id',
+       'jockey_id', 'trainer_id', 'owner_id', 'sire_id', 'dam_id', 'unique_id',
+       'created_at'],
+      dtype='object')
+2024-04-27T04:52:52Z | INFO - Data Sample               race_time  ...                 created_at
+0   2024-04-24 19:40:00  ... 2024-04-27 04:52:13.594389
+608 2024-04-23 17:30:00  ... 2024-04-27 04:52:13.594389
+610 2024-04-24 15:35:00  ... 2024-04-27 04:52:13.594389
+611 2024-04-23 18:30:00  ... 2024-04-27 04:52:13.594389
+612 2024-04-24 17:20:00  ... 2024-04-27 04:52:13.594389
+613 2024-04-24 20:14:00  ... 2024-04-27 04:52:13.594389
+614 2024-04-24 16:50:00  ... 2024-04-27 04:52:13.594389
+615 2024-04-23 17:20:00  ... 2024-04-27 04:52:13.594389
+616 2024-04-24 19:25:00  ... 2024-04-27 04:52:13.594389
+617 2024-04-24 15:05:00  ... 2024-04-27 04:52:13.594389
+
+[10 rows x 35 columns]
+2024-04-27T04:52:52Z | INFO - Data Sample              race_time  ...                 created_at
+0  2024-04-24 19:40:00  ... 2024-04-27 04:52:13.594389
+28 2024-04-24 17:50:00  ... 2024-04-27 04:52:13.594389
+27 2024-04-23 14:18:00  ... 2024-04-27 04:52:13.594389
+2  2024-04-23 17:30:00  ... 2024-04-27 04:52:13.594389
+3  2024-04-23 18:15:00  ... 2024-04-27 04:52:13.594389
+4  2024-04-24 15:05:00  ... 2024-04-27 04:52:13.594389
+5  2024-04-24 19:35:00  ... 2024-04-27 04:52:13.594389
+6  2024-04-23 17:45:00  ... 2024-04-27 04:52:13.594389
+7  2024-04-24 17:35:00  ... 2024-04-27 04:52:13.594389
+8  2024-04-23 18:15:00  ... 2024-04-27 04:52:13.594389
+
+[10 rows x 35 columns]
+2024-04-27T04:52:52Z | INFO - Data string lengths checked successfully
+2024-04-27T04:52:52Z | INFO - Converting data...
+2024-04-27T04:52:52Z | INFO - Data converted successfully
+2024-04-27T04:52:52Z | INFO - Sorting data...
+2024-04-27T04:52:52Z | INFO - Data Columns Index(['horse_name', 'horse_age', 'jockey_name', 'jockey_claim',
+       'trainer_name', 'owner_name', 'weight_carried', 'draw',
+       'finishing_position', 'total_distance_beaten', 'age', 'official_rating',
+       'ts', 'rpr', 'industry_sp', 'extra_weight', 'headgear',
+       'in_race_comment', 'sire_name', 'dam_name', 'dams_sire', 'race_date',
+       'race_title', 'race_time_original', 'race_time', 'race_class',
+       'conditions', 'distance', 'going', 'winning_time', 'number_of_runners',
+       'total_prize_money', 'first_place_prize_money', 'currency', 'country',
+       'surface', 'tfr', 'tfig', 'betfair_win_sp', 'betfair_place_sp',
+       'in_play_prices', 'tf_comment', 'hcap_range', 'age_range', 'race_type',
+       'main_race_comment', 'meeting_id', 'course_id', 'horse_id', 'sire_id',
+       'dam_id', 'trainer_id', 'jockey_id', 'owner_id', 'race_id', 'unique_id',
+       'created_at', 'data_type', 'tfr_view', 'weight_carried_st',
+       'weight_carried_extra_lbs', 'weight_carried_lbs', 'in_play_low',
+       'in_play_high', 'distance_yards', 'distance_meters',
+       'distance_kilometers', 'time_seconds', 'relative_to_standard',
+       'relative_time', 'horse_colour', 'horse_sex',
+       'total_distance_beaten_str'],
+      dtype='object')
+2024-04-27T04:52:52Z | INFO - Data Sample           horse_name horse_age  ... horse_sex total_distance_beaten_str
+0       Workforadime         6  ...      Mare                          
+1    Private Officer         3  ...      Colt                      [8¾]
+2       Capallcliste         4  ...   Gelding                       [6]
+3      A Shin Undine         5  ...      Mare                       [2]
+4           Concetto         7  ...   Gelding                       [6]
+5  Call Off The Dogs         9  ...   Gelding                      [5½]
+6       Cloud Seeker         3  ...   Gelding                        2¾
+7          Good Work         8  ...   Gelding                         ½
+8      Still Rolling         3  ...     Filly                     [10½]
+9             Instit         6  ...      Mare                        4¾
+
+[10 rows x 73 columns]
+2024-04-27T04:52:53Z | INFO - Data Sample               race_time   race_date  ... course_id                 created_at
+0   2024-04-24 19:40:00  2024-04-24  ...         7 2024-04-27 04:52:13.594389
+608 2024-04-23 17:30:00  2024-04-23  ...        89 2024-04-27 04:52:13.594389
+610 2024-04-24 15:35:00  2024-04-24  ...        50 2024-04-27 04:52:13.594389
+611 2024-04-23 18:30:00  2024-04-23  ...        89 2024-04-27 04:52:13.594389
+612 2024-04-24 17:20:00  2024-04-24  ...         7 2024-04-27 04:52:13.594389
+613 2024-04-24 20:14:00  2024-04-24  ...         7 2024-04-27 04:52:13.594389
+614 2024-04-24 16:50:00  2024-04-24  ...        12 2024-04-27 04:52:13.594389
+615 2024-04-23 17:20:00  2024-04-23  ...        79 2024-04-27 04:52:13.594389
+616 2024-04-24 19:25:00  2024-04-24  ...        32 2024-04-27 04:52:13.594389
+617 2024-04-24 15:05:00  2024-04-24  ...        50 2024-04-27 04:52:13.594389
+
+[10 rows x 27 columns]
+2024-04-27T04:52:53Z | INFO - Validating data...
+2024-04-27T04:52:53Z | INFO - Data validated successfully
+2024-04-27T04:52:53Z | INFO - Sorting data...
+2024-04-27T04:52:53Z | INFO - Data Columns Index(['race_time', 'race_date', 'race_title', 'race_type', 'race_class',
+       'distance', 'distance_yards', 'distance_meters', 'distance_kilometers',
+       'conditions', 'going', 'number_of_runners', 'hcap_range', 'age_range',
+       'surface', 'total_prize_money', 'first_place_prize_money',
+       'winning_time', 'time_seconds', 'relative_time', 'relative_to_standard',
+       'country', 'main_race_comment', 'meeting_id', 'race_id', 'course_id',
+       'created_at'],
+      dtype='object')
+2024-04-27T04:52:53Z | INFO - Data Sample               race_time   race_date  ... course_id                 created_at
+0   2024-04-24 19:40:00  2024-04-24  ...         7 2024-04-27 04:52:13.594389
+608 2024-04-23 17:30:00  2024-04-23  ...        89 2024-04-27 04:52:13.594389
+610 2024-04-24 15:35:00  2024-04-24  ...        50 2024-04-27 04:52:13.594389
+611 2024-04-23 18:30:00  2024-04-23  ...        89 2024-04-27 04:52:13.594389
+612 2024-04-24 17:20:00  2024-04-24  ...         7 2024-04-27 04:52:13.594389
+613 2024-04-24 20:14:00  2024-04-24  ...         7 2024-04-27 04:52:13.594389
+614 2024-04-24 16:50:00  2024-04-24  ...        12 2024-04-27 04:52:13.594389
+615 2024-04-23 17:20:00  2024-04-23  ...        79 2024-04-27 04:52:13.594389
+616 2024-04-24 19:25:00  2024-04-24  ...        32 2024-04-27 04:52:13.594389
+617 2024-04-24 15:05:00  2024-04-24  ...        50 2024-04-27 04:52:13.594389
+
+[10 rows x 27 columns]
+2024-04-27T04:52:53Z | INFO - Data Sample               race_time   race_date  ... course_id                 created_at
+0   2024-04-24 19:40:00  2024-04-24  ...         7 2024-04-27 04:52:13.594389
+646 2024-04-24 16:25:00  2024-04-24  ...        62 2024-04-27 04:52:13.594389
+498 2024-04-23 18:45:00  2024-04-23  ...        32 2024-04-27 04:52:13.594389
+492 2024-04-23 14:18:00  2024-04-23  ...        74 2024-04-27 04:52:13.594389
+694 2024-04-23 16:45:00  2024-04-23  ...        79 2024-04-27 04:52:13.594389
+578 2024-04-24 16:05:00  2024-04-24  ...        50 2024-04-27 04:52:13.594389
+580 2024-04-23 14:25:00  2024-04-23  ...        79 2024-04-27 04:52:13.594389
+663 2024-04-24 17:25:00  2024-04-24  ...        12 2024-04-27 04:52:13.594389
+660 2024-04-24 20:10:00  2024-04-24  ...        76 2024-04-27 04:52:13.594389
+656 2024-04-23 14:00:00  2024-04-23  ...        91 2024-04-27 04:52:13.594389
+
+[10 rows x 27 columns]
+2024-04-27T04:52:53Z | INFO - No data to store in errors.staging_transformed_performance_data_rejected
+2024-04-27T04:52:53Z | INFO - Truncating staging.transformed_performance_data
+2024-04-27T04:52:53Z | INFO - Truncating staging.transformed_race_data
+2024-04-27T04:52:53Z | INFO - Executing query: TRUNCATE TABLE staging.transformed_performance_data
+2024-04-27T04:52:53Z | INFO - Executing query: TRUNCATE TABLE staging.transformed_race_data
+2024-04-27T04:52:53Z | INFO - Query executed. Number of rows affected: -1
+2024-04-27T04:52:53Z | INFO - Storing 94 records in staging.transformed_race_data
+2024-04-27T04:52:53Z | INFO - Query executed. Number of rows affected: -1
+2024-04-27T04:52:53Z | INFO - Storing 926 records in staging.transformed_performance_data
+2024-04-27T04:52:53Z | INFO - Calling stored procedure public.insert_transformed_performance_data()
+2024-04-27T04:52:53Z | INFO - Calling stored procedure public.insert_transformed_race_data()
+2024-04-27T04:52:53Z | INFO - Calling stored procedure public.insert_todays_transformed_performance_data()
+2024-04-27T04:52:53Z | INFO - Calling stored procedure public.insert_todays_transformed_race_data()
+2024-04-27T04:52:53Z | INFO - Stored procedure public.insert_todays_transformed_performance_data() completed
+2024-04-27T04:52:53Z | INFO - Stored procedure public.insert_transformed_race_data() completed
+2024-04-27T04:52:53Z | INFO - Stored procedure public.insert_todays_transformed_race_data() completed
+2024-04-27T04:52:55Z | INFO - Stored procedure public.insert_transformed_performance_data() completed
+2024-04-27T04:52:55Z | INFO - Running post-transform checks
+2024-04-27T04:52:55Z | INFO - Fetching data with query: SELECT DISTINCT unique_id FROM staging.todays_joined_performance_data;
+2024-04-27T04:52:55Z | INFO - Fetching data with query: SELECT DISTINCT unique_id FROM public.todays_performance_data;
+2024-04-27T04:52:55Z | INFO - SUCCESS: STAGING: 731 DATA: 731
+2024-04-27T04:52:55Z | INFO - Fetching data with query: SELECT * FROM metrics.record_count_differences_vw
+2024-04-27T04:52:55Z | INFO - Fetching data with query: SELECT * FROM metrics.missing_raw_data
+2024-04-27T04:53:56Z | INFO - No missing data between RP and TF
+2024-04-27T04:53:56Z | INFO - No missing data in final performance data table

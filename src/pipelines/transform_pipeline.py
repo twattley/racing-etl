@@ -102,6 +102,8 @@ def run_transform_pipeline():
 
     post_transform_today_checks()
 
+    call_procedure("insert_unioned_performance_data", "public")
+
 
 if __name__ == "__main__":
     run_transform_pipeline()

@@ -3,7 +3,7 @@ from datetime import date, datetime
 
 import pandas as pd
 
-from src.utils.logging_config import I, W
+from src.utils.logging_config import I, W, D
 
 
 @dataclass
@@ -77,10 +77,14 @@ def sort_data(
 def check_string_field_lengths(
     data: pd.DataFrame, string_lengths: dict
 ) -> pd.DataFrame:
+    I("Checking data string lengths...")
     values_too_long = []
+
     for field, value_ in string_lengths.items():
         if field in data.columns:
-            subset_df = data[[field]].copy()
+            D(f"Checking field {field} with max length {value_}")
+            D(f"Data types {data.dtypes}")
+            subset_df = data[[field]].copy().dropna(subset=[field])
             subset_df[f"truncated_{field}"] = subset_df[field].str[
                 : string_lengths[field]
             ]
@@ -92,7 +96,6 @@ def check_string_field_lengths(
             )
             if subset_df.empty:
                 continue
-            print(subset_df)
             values_too_long.extend(
                 [field, row[field], len(row[field]), value_]
                 for _, row in subset_df.iterrows()
