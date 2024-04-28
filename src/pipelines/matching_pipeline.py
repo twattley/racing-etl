@@ -2,12 +2,13 @@ from datetime import datetime
 
 import pandas as pd
 
+from src.entity_matching.betfair_matcher import entity_match_betfair
 from src.entity_matching.matcher import (
     entity_match,
     store_matching_results,
     store_owner_data,
 )
-from src.storage.sql_db import call_procedure, fetch_data
+from src.storage.sql_db import call_procedure, fetch_data, store_data
 from src.utils.logging_config import I, W
 from src.utils.processing_utils import ptr
 
@@ -126,6 +127,26 @@ def run_matching_pipeline():
     store_matching_results(matched, unmatched)
     insert_into_performance_data()
     post_matching_data_checks()
+
+    I("Starting Betfair matching")
+    (
+        rp_data,
+        bf_data,
+    ) = ptr(
+        lambda: fetch_data(
+            """
+                    SELECT race_timestamp, h.id, horse_name 
+                    FROM rp_raw.todays_performance_data tpd
+                    LEFT JOIN horse h
+                    ON tpd.horse_id = h.rp_id
+            """
+        ),
+        lambda: fetch_data(
+            "SELECT race_time, horse_id, horse_name FROM bf_raw.todays_price_data"
+        ),
+    )
+    matched = entity_match_betfair(rp_data, bf_data)
+    store_data(matched, "bf_horse", "public", truncate=True)
 
 
 if __name__ == "__main__":

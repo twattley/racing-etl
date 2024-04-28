@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from src.raw.betfair.pull_data import process_bf_pull_data
 from src.raw.racing_post.scrape_data import process_rp_scrape_data
 from src.raw.racing_post.scrape_links import process_rp_scrape_links
 from src.raw.racing_post.scrape_todays_data import process_rp_scrape_days_data
@@ -77,11 +78,11 @@ def todays_pipeline():
             ([TOMORROW],),
         ),
     )
-
+    process_bf_pull_data()
     post_racecards_scraping_checks()
 
 
-def run_scraping_pipeline(historical=True, todays=True):
+def run_ingestion_pipeline(historical=True, todays=True):
     if historical:
         historical_pipeline()
     if todays:
@@ -89,4 +90,4 @@ def run_scraping_pipeline(historical=True, todays=True):
 
 
 if __name__ == "__main__":
-    run_scraping_pipeline()
+    run_ingestion_pipeline()

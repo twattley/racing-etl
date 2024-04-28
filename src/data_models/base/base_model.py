@@ -3,7 +3,7 @@ from datetime import date, datetime
 
 import pandas as pd
 
-from src.utils.logging_config import I, W, D
+from src.utils.logging_config import D, I, W
 
 
 @dataclass

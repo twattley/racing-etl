@@ -30,7 +30,7 @@ case $1 in
         echo "Running rp_scrape_data"
         python3 $RACING_ETL_FOLDER/src/raw/racing_post/scrape_data.py
         ;;
-    "run_scraping_pipeline")
+    "run_ingestion_pipeline")
         echo "Running rp_scrape_data"
         python3 $RACING_ETL_FOLDER/src/pipelines/scraping_pipeline.py > $RACING_ETL_FOLDER/logs/scraping_pipeline.log 2>&1
         ;;

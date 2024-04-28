@@ -10,5 +10,7 @@ def get_uk_time_now():
 
 
 def make_uk_time_aware(dt):
-    uk_timezone = pytz.timezone("Europe/London")
-    return uk_timezone.localize(dt)
+    utc_zone = pytz.utc
+    uk_zone = pytz.timezone("Europe/London")
+    utc_datetime = utc_zone.localize(dt)
+    return utc_datetime.astimezone(uk_zone)
