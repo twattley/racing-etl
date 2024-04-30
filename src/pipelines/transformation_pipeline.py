@@ -30,7 +30,7 @@ def post_transform_today_checks():
         )
 
 
-def run_transform_pipeline():
+def run_transformation_pipeline():
     def process_results_data():
         results_data = fetch_data("SELECT * FROM public.missing_performance_data_vw;")
         if results_data.empty:
@@ -106,4 +106,4 @@ def run_transform_pipeline():
 
 
 if __name__ == "__main__":
-    run_transform_pipeline()
+    run_transformation_pipeline()

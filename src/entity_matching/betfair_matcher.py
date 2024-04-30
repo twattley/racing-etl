@@ -1,8 +1,7 @@
 import pandas as pd
 from fuzzywuzzy import process
 
-from src.utils.logging_config import W
-
+from src.utils.logging_config import W, I
 
 def filter_horse_name(data):
     data["filtered_horse_name"] = (
@@ -16,28 +15,45 @@ def filter_horse_name(data):
     return data
 
 
-def entity_match_betfair(rp_data: pd.DataFrame, bf_data: pd.DataFrame) -> pd.DataFrame:
-    rp_data = rp_data.pipe(filter_horse_name)
-    bf_data = bf_data.pipe(filter_horse_name)
-    matched = []
+
+def entity_match_betfair(rp: pd.DataFrame, bf: pd.DataFrame) -> pd.DataFrame:
+    rp = filter_horse_name(rp)
+    bf = filter_horse_name(bf)
+
+    matches = []
     unmatched = []
-    for i in bf_data.itertuples():
-        sub_rp = rp_data[(rp_data["race_timestamp"] == i.race_time)]
-        best_match = process.extractOne(
-            i.filtered_horse_name, sub_rp["filtered_horse_name"]
-        )
-        rp_data = sub_rp[sub_rp["filtered_horse_name"] == best_match[0]]
-        if best_match[1] < 90:
+    for i in bf.itertuples():
+        sub_rp = rp[(rp['race_timestamp'] == i.race_time)]
+        best_match = process.extractOne(i.filtered_horse_name, sub_rp['filtered_horse_name'])
+        if not best_match:
+            W(f"No match for {i.horse_name}")
             unmatched.append(i.horse_name)
             continue
-        matched.append(
+        if best_match[1] < 90:
+            W(f"Match score below 90 for {i.horse_name}")
+            unmatched.append(i.horse_name)
+            continue
+        rp_data = sub_rp[sub_rp['filtered_horse_name'] == best_match[0]]
+        if len(rp_data) > 1 or len(rp_data) == 0:
+            W(f"Multiple matches or no matches for {i.horse_name}")
+            unmatched.append(i.horse_name)
+            continue
+        matches.append(
             {
                 "id": rp_data.id.iloc[0],
                 "name": rp_data.horse_name.iloc[0],
                 "bf_id": i.horse_id,
             }
         )
+    
+    I(f"Matched {len(matches)} of {len(bf)} horses")
+
     if unmatched:
         W(f"Unmatched horses: {unmatched}")
 
-    return pd.DataFrame(matched)
+    return pd.DataFrame(matches)
+
+
+
+
+

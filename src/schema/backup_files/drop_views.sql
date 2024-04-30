@@ -1,9 +1,11 @@
 DROP VIEW IF EXISTS errors.missing_todays_races;
+DROP VIEW IF EXISTS metrics.missing_raw_data;
 DROP VIEW IF EXISTS metrics.record_count_differences_vw;
 DROP VIEW IF EXISTS public.missing_performance_data_vw;
 DROP VIEW IF EXISTS public.missing_race_data_vw;
 DROP VIEW IF EXISTS public.missing_todays_performance_data_vw;
 DROP VIEW IF EXISTS public.missing_todays_race_data_vw;
+DROP VIEW IF EXISTS rp_raw.best_horses;
 DROP VIEW IF EXISTS rp_raw.missing_dates;
 DROP VIEW IF EXISTS rp_raw.missing_links;
 DROP VIEW IF EXISTS rp_raw.todays_races;

@@ -8,7 +8,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-
+from src.raw import check_already_processed
 from src.data_models.base.base_model import convert_and_validate_data
 from src.data_models.raw.racing_post_model import (
     RacingPostDataModel,
@@ -334,6 +334,10 @@ def get_links(
 
 
 def process_rp_scrape_days_data(dates: list[str]):
+    if check_already_processed('scrape_todays_rp_data'):
+        I("Todays RP results data already processed")
+        return
+    I("Todays RP results data scraping started.")
     base_link = "https://www.racingpost.com/racecards"
     pipeline_errors = []
     data = []

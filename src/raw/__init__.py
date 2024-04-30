@@ -102,3 +102,15 @@ def run_scraping_task(task):
         process_scraping_data(task)
     elif isinstance(task, LinkScrapingTask):
         process_scraping_result_links(task)
+
+
+def check_already_processed(job_name: str) -> bool:
+    return fetch_data(
+        f"""
+        SELECT * 
+        FROM metrics.processing_times 
+        WHERE job_name = '{job_name}' 
+        AND processing_time:: date = CURRENT_DATE
+        """
+    ).empty
+

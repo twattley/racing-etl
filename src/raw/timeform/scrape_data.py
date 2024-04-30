@@ -1,6 +1,7 @@
 import hashlib
 import re
 from datetime import datetime
+from src.utils.logging_config import I
 
 import pandas as pd
 from selenium.webdriver.common.by import By
@@ -9,7 +10,7 @@ from src.data_models.raw.timeform_model import TimeformDataModel
 from src.data_models.raw.timeform_model import (
     table_string_field_lengths as tf_string_field_lengths,
 )
-from src.raw import DataScrapingTask, run_scraping_task
+from src.raw import DataScrapingTask, run_scraping_task, check_already_processed
 from src.raw.webdriver_base import get_headless_driver
 
 
@@ -267,6 +268,10 @@ def scrape_data(driver, link):
 
 
 def process_tf_scrape_data():
+    if check_already_processed('scrape_tf_data'):
+        I("TF results data already processed")
+        return
+    I("TF results data scraping started.")
     task = DataScrapingTask(
         driver=get_headless_driver,
         schema="tf_raw",

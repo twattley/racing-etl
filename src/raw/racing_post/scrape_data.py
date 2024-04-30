@@ -15,7 +15,7 @@ from src.data_models.raw.racing_post_model import RacingPostDataModel
 from src.data_models.raw.racing_post_model import (
     table_string_field_lengths as rp_string_field_lengths,
 )
-from src.raw import DataScrapingTask, run_scraping_task
+from src.raw import DataScrapingTask, run_scraping_task, check_already_processed
 from src.raw.webdriver_base import get_headless_driver
 from src.utils.logging_config import E, I
 
@@ -528,6 +528,10 @@ def scrape_data(driver, result):
 
 
 def process_rp_scrape_data():
+    if check_already_processed('scrape_rp_data'):
+        I("RP results data already processed")
+        return
+    I("RP results data scraping started.")
     task = DataScrapingTask(
         driver=get_headless_driver,
         schema="rp_raw",

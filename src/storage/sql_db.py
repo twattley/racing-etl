@@ -111,22 +111,25 @@ def select_function(schema: str, function: str, args: list = None) -> pd.DataFra
     cursor = connection.cursor()
 
     if args:
-        stmt = f"select {schema}.{function}({','.join(args)});"
+        stmt = f"SELECT * FROM {schema}.{function}({','.join(map(str, args))});"
     else:
-        stmt = f"select {schema}.{function}();"
+        stmt = f"SELECT * FROM {schema}.{function}();"
 
     I(stmt)
 
     cursor.execute(stmt)
     result = cursor.fetchall()
+    
+    columns = [desc[0] for desc in cursor.description]
 
     cursor.close()
-    connection.commit()
     connection.close()
 
     I(f"Function {schema}.{function}() completed")
 
-    return result
+    df = pd.DataFrame(result, columns=columns)
+
+    return df
 
 
 def delete_duplicates_from_table(schema: str, table: str, unique_id: str):

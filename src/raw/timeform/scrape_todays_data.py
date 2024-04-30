@@ -2,6 +2,7 @@ import hashlib
 import re
 import time
 from datetime import datetime, timedelta
+from src.raw import check_already_processed
 
 import pandas as pd
 from selenium import webdriver
@@ -163,6 +164,10 @@ def get_links(
 
 
 def process_tf_scrape_days_data(dates: list[str]):
+    if check_already_processed('scrape_todays_tf_data'):
+        I("Todays TF results data already processed")
+        return
+    I("Todays TF results data scraping started.")
 
     base_link = "https://www.timeform.com/horse-racing/racecards"
     errors = []

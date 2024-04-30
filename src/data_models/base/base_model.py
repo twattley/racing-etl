@@ -73,43 +73,6 @@ def sort_data(
     I(f"Data Sample {data.head(10)}")
     return data
 
-
-def check_string_field_lengths(
-    data: pd.DataFrame, string_lengths: dict
-) -> pd.DataFrame:
-    I("Checking data string lengths...")
-    values_too_long = []
-
-    for field, value_ in string_lengths.items():
-        if field in data.columns:
-            D(f"Checking field {field} with max length {value_}")
-            D(f"Data types {data.dtypes}")
-            subset_df = data[[field]].copy().dropna(subset=[field])
-            subset_df[f"truncated_{field}"] = subset_df[field].str[
-                : string_lengths[field]
-            ]
-            subset_df["miss_trunc"] = (
-                subset_df[field] != subset_df[f"truncated_{field}"]
-            )
-            subset_df = subset_df[subset_df["miss_trunc"] == True].dropna(
-                subset=[field]
-            )
-            if subset_df.empty:
-                continue
-            values_too_long.extend(
-                [field, row[field], len(row[field]), value_]
-                for _, row in subset_df.iterrows()
-            )
-    if values_too_long:
-        for value in values_too_long:
-            W(
-                f"Value of {value[0]} that is too long: {value[1]}, string length: {value[2]} > {value[3]}"
-            )
-        raise ValueError("Failed value length check")
-    I("Data string lengths checked successfully")
-    return data
-
-
 def convert_and_validate_data(
     data: pd.DataFrame,
     data_model: BaseDataModel,
@@ -118,8 +81,7 @@ def convert_and_validate_data(
 ) -> pd.DataFrame:
 
     return (
-        data.pipe(check_string_field_lengths, string_lengths)
-        .pipe(convert_data, data_model)
+        data.pipe(convert_data, data_model)
         .pipe(sort_data, data_model, unique_id)
         .pipe(validate_data, data_model)
         .pipe(sort_data, data_model, unique_id)

@@ -32,23 +32,32 @@ CREATE VIEW errors.missing_todays_races AS
 
 ALTER VIEW errors.missing_todays_races OWNER TO postgres;
 
+CREATE VIEW metrics.missing_raw_data AS
+ SELECT rpd.race_timestamp,
+    rpd.horse_name
+   FROM (rp_raw.performance_data rpd
+     LEFT JOIN public.performance_data pd ON (((rpd.unique_id)::text = (pd.unique_id)::text)))
+  WHERE (pd.unique_id IS NULL);
+
+ALTER VIEW metrics.missing_raw_data OWNER TO postgres;
+
 CREATE VIEW metrics.record_count_differences_vw AS
  WITH rp_course_counts AS (
          SELECT c.name AS course_name,
             pd.race_date,
             count(DISTINCT pd.unique_id) AS num_records,
-            c.id AS course_id
+            c.error_id AS course_id
            FROM (rp_raw.performance_data pd
              LEFT JOIN public.course c ON (((pd.course_id)::text = (c.rp_id)::text)))
-          GROUP BY c.name, pd.race_date, c.id
+          GROUP BY c.name, pd.race_date, c.error_id
         ), tf_course_counts AS (
          SELECT c.name AS course_name,
             pd.race_date,
             count(DISTINCT pd.unique_id) AS num_records,
-            c.id AS course_id
+            c.error_id AS course_id
            FROM (tf_raw.performance_data pd
              LEFT JOIN public.course c ON (((pd.course_id)::text = (c.tf_id)::text)))
-          GROUP BY c.name, pd.race_date, c.id
+          GROUP BY c.name, pd.race_date, c.error_id
         )
  SELECT COALESCE(rp.course_name, tf.course_name) AS course,
     COALESCE(rp.race_date, tf.race_date) AS race_date,
@@ -324,6 +333,15 @@ CREATE VIEW public.missing_todays_race_data_vw AS
   WHERE (pd.race_id IS NULL);
 
 ALTER VIEW public.missing_todays_race_data_vw OWNER TO doadmin;
+
+CREATE VIEW rp_raw.best_horses AS
+ SELECT DISTINCT pd.horse_name,
+    pd.horse_id
+   FROM (public.performance_data pd
+     LEFT JOIN public.race_data rd ON ((pd.race_id = rd.race_id)))
+  WHERE ((rd.race_class = 1) AND ((rd.race_type)::text = 'Flat'::text) AND (rd.race_time > '2010-01-01 00:00:00'::timestamp without time zone));
+
+ALTER VIEW rp_raw.best_horses OWNER TO postgres;
 
 CREATE VIEW rp_raw.missing_dates AS
  SELECT gs.date
