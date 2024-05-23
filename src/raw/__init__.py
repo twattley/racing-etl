@@ -110,7 +110,7 @@ def check_already_processed(job_name: str) -> bool:
         SELECT * 
         FROM metrics.processing_times 
         WHERE job_name = '{job_name}' 
-        AND processing_time:: date = CURRENT_DATE
+        AND processed_at:: date = CURRENT_DATE
         """
     ).empty
 

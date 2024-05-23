@@ -1,6 +1,7 @@
-import os
 import random
 import time
+
+from src.config import config
 
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
@@ -79,11 +80,11 @@ def login_to_timeform(driver):
     time.sleep(5)
     email = driver.find_element(by=By.NAME, value="EmailAddress")
     time.sleep(2)
-    email.send_keys(os.environ.get("TF_EMAIL"))
+    email.send_keys(config.tf_email)
     time.sleep(3)
     password = driver.find_element(by=By.NAME, value="Password")
     time.sleep(3)
-    password.send_keys(os.environ.get("TF_PASSWORD"))
+    password.send_keys(config.tf_password)
     time.sleep(3)
     driver.find_element(by=By.CLASS_NAME, value="submit-section").click()
     time.sleep(3)

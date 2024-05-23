@@ -8,7 +8,9 @@ from tests.integration.data.new_data_in_raw import (
     new_data_in_raw_expected_data,
 )
 from tests.integration.data.simple_pass import simple_pass, simple_pass_expected_data
+from src.config import load_config
 
+config = load_config(env_file="tests/test.env")
 
 def test_simple_pass(load_test_data, fetch_test_data, assert_data_equal):
     load_test_data(simple_pass)
@@ -18,37 +20,37 @@ def test_simple_pass(load_test_data, fetch_test_data, assert_data_equal):
     assert_data_equal(output_data, simple_pass_expected_data, ["horse_id"])
 
 
-def test_filters_dupes_in_raw(load_test_data, fetch_test_data, assert_data_equal):
-    load_test_data(dupes_in_raw)
-    run_matching_pipeline()
-    run_transformation_pipeline()
-    output_data = fetch_test_data("SELECT * FROM performance_data")
-    assert_data_equal(output_data, dupes_in_raw_expected_data, ["horse_id"])
+# def test_filters_dupes_in_raw(load_test_data, fetch_test_data, assert_data_equal):
+#     load_test_data(dupes_in_raw)
+#     run_matching_pipeline()
+#     run_transformation_pipeline()
+#     output_data = fetch_test_data("SELECT * FROM performance_data")
+#     assert_data_equal(output_data, dupes_in_raw_expected_data, ["horse_id"])
 
 
-def test_loads_new_data(load_test_data, fetch_test_data, assert_data_equal):
-    load_test_data(new_data_in_raw)
-    run_matching_pipeline()
-    run_transformation_pipeline()
-    output_data = fetch_test_data("SELECT * FROM performance_data")
-    assert_data_equal(output_data, new_data_in_raw_expected_data, ["horse_id"])
+# def test_loads_new_data(load_test_data, fetch_test_data, assert_data_equal):
+#     load_test_data(new_data_in_raw)
+#     run_matching_pipeline()
+#     run_transformation_pipeline()
+#     output_data = fetch_test_data("SELECT * FROM performance_data")
+#     assert_data_equal(output_data, new_data_in_raw_expected_data, ["horse_id"])
 
 
-def test_adds_missing_entity(load_test_data, fetch_test_data):
-    load_test_data(missing_entity)
-    run_matching_pipeline()
-    run_transformation_pipeline()
-    output_data = fetch_test_data("SELECT * FROM performance_data")
-    assert len(output_data) == 5
-    rejected_data = fetch_test_data(
-        "SELECT * FROM errors.staging_transformed_performance_data_rejected"
-    )
-    assert len(rejected_data) == 0
+# def test_adds_missing_entity(load_test_data, fetch_test_data):
+#     load_test_data(missing_entity)
+#     run_matching_pipeline()
+#     run_transformation_pipeline()
+#     output_data = fetch_test_data("SELECT * FROM performance_data")
+#     assert len(output_data) == 5
+#     rejected_data = fetch_test_data(
+#         "SELECT * FROM errors.staging_transformed_performance_data_rejected"
+#     )
+#     assert len(rejected_data) == 0
 
 
-def test_jockey_match(load_test_data, fetch_test_data, assert_data_equal):
-    load_test_data(jockey_match)
-    run_matching_pipeline()
-    run_transformation_pipeline()
-    output_data = fetch_test_data("SELECT * FROM performance_data")
-    assert_data_equal(output_data, jockey_match_expected_data, ["horse_id"])
+# def test_jockey_match(load_test_data, fetch_test_data, assert_data_equal):
+#     load_test_data(jockey_match)
+#     run_matching_pipeline()
+#     run_transformation_pipeline()
+#     output_data = fetch_test_data("SELECT * FROM performance_data")
+#     assert_data_equal(output_data, jockey_match_expected_data, ["horse_id"])

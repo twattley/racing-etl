@@ -334,9 +334,6 @@ def get_links(
 
 
 def process_rp_scrape_days_data(dates: list[str]):
-    if check_already_processed('scrape_todays_rp_data'):
-        I("Todays RP results data already processed")
-        return
     I("Todays RP results data scraping started.")
     base_link = "https://www.racingpost.com/racecards"
     pipeline_errors = []
@@ -349,6 +346,7 @@ def process_rp_scrape_days_data(dates: list[str]):
         link = f"{base_link}/{date}"
         driver.get(link)
         urls = get_links(driver, course_country, date)
+        print(urls)
 
         # get the first url just to toggle the pedigree and owner settings
         driver.get(urls[0])
@@ -443,4 +441,4 @@ def process_rp_scrape_days_data(dates: list[str]):
 
 
 if __name__ == "__main__":
-    process_rp_scrape_days_data([TOMORROWS_DATE_FILTER])
+    process_rp_scrape_days_data([TODAYS_DATE_FILTER])

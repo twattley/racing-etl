@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import betfairlightweight
 import pandas as pd
 import requests
-
+from src.config import config
 from src.utils.logging_config import I
 from src.utils.time_utils import get_uk_time_now, make_uk_time_aware
 
@@ -17,10 +17,10 @@ class BetFairConnector:
 
     def login(self):
         self.client = betfairlightweight.APIClient(
-            username=os.environ["BF_USERNAME"],
-            password=os.environ["BF_PASSWORD"],
-            app_key=os.environ["BF_APP_KEY"],
-            certs=os.environ["BF_CERTS_PATH"],
+            username=config.bf_username,
+            password=config.bf_password,
+            app_key=config.bf_app_key,
+            certs=config.bf_certs_path,
         )
         self.client.login(session=requests)
         if not self.client.session_expired:
@@ -55,7 +55,7 @@ class BetfairClient:
         market_countries=["GB", "IRE"],
         market_type_codes=["WIN", "PLACE"],
         market_start_time={
-            "to": (datetime.now() + timedelta(days=1))
+            "to": (datetime.now())
             .replace(hour=23, minute=59, second=0, microsecond=0)
             .strftime("%Y-%m-%dT%TZ")
         },

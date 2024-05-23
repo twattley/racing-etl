@@ -7,6 +7,7 @@ from src.storage.sql_db import store_data
 def process_bf_pull_data():
     trading_client = BetfairClient(client=BetFairConnector())
     data = trading_client.create_market_data()
+    
     win_and_place = (
         pd.merge(
             data[data["market"] == "WIN"],
@@ -20,6 +21,7 @@ def process_bf_pull_data():
                 "todays_bf_unique_id": "horse_id",
                 "last_traded_price_win": "betfair_win_sp",
                 "last_traded_price_place": "betfair_place_sp",
+                'status_win': 'status'
             }
         )
         .filter(
@@ -30,6 +32,7 @@ def process_bf_pull_data():
                 "course",
                 "betfair_win_sp",
                 "betfair_place_sp",
+                "status"
             ]
         )
         .sort_values(by="race_time", ascending=True)

@@ -3,7 +3,7 @@ import os
 import subprocess
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
-
+from src.config import config
 import pandas as pd
 
 from src.storage.s3_bucket import DigitalOceanSpacesHandler
@@ -77,22 +77,22 @@ if __name__ == "__main__":
         [
             "pg_dump",
             "-h",
-            os.environ["PG_DB_HOST"],
+            config.pg_db_host,
             "-U",
-            os.environ["PG_DB_USER"],
+            config.pg_db_user,
             "-s",
             "-f",
-            os.environ["BACKUP_SCHEMA_FILE"],
-            os.environ["PG_DB_NAME"],
+            config.backup_schema_file,
+            config.pg_db_name,
         ]
     )
 
     d = DigitalOceanSpacesHandler(
-        access_key_id=os.environ["DIGITAL_OCEAN_SPACES_ACCESS_KEY_ID"],
-        secret_access_key=os.environ["DIGITAL_OCEAN_SPACES_SECRET_ACCESS_KEY"],
+        access_key_id=config.digital_ocean_spaces_access_key_id,
+        secret_access_key=config.digital_ocean_spaces_secret_access_key,
     )
     d.upload_sql_file(
-        os.environ["BACKUP_SCHEMA_FILE"],
+        config.backup_schema_file,
         f"snapshots/{RUNNING_TIME}/racehorse-database-schema.sql",
     )
     table_schema_pairs = [

@@ -1,6 +1,6 @@
 import os
 from typing import List, Optional, Union
-
+from src.config import config
 import pandas as pd
 import sqlalchemy
 
@@ -15,11 +15,11 @@ def storage_connection(
     port: int = None,
     db: str = None,
 ):
-    user = user or os.environ.get("PG_DB_USER")
-    password = password or os.environ.get("PG_DB_PASSWORD")
-    host = host or os.environ.get("PG_DB_HOST")
-    port = port or os.environ.get("PG_DB_PORT")
-    db = db or os.environ.get("PG_DB_NAME")
+    user = user or config.pg_db_user
+    password = password or config.pg_db_password
+    host = host or config.pg_db_host
+    port = port or config.pg_db_port
+    db = db or config.pg_db_name
 
     for i in [
         ("user", user),

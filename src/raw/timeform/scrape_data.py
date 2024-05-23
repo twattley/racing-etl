@@ -268,9 +268,6 @@ def scrape_data(driver, link):
 
 
 def process_tf_scrape_data():
-    if check_already_processed('scrape_tf_data'):
-        I("TF results data already processed")
-        return
     I("TF results data scraping started.")
     task = DataScrapingTask(
         driver=get_headless_driver,

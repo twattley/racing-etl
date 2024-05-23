@@ -760,68 +760,74 @@ BEGIN
 	
     INSERT INTO public.unioned_performance_data
     (
-				horse_name,
-				age,
-				horse_sex,
-				draw,
-				headgear,
-				weight_carried,
-				weight_carried_lbs,
-				extra_weight,
-				jockey_claim,
-				finishing_position,
-				total_distance_beaten,
-				industry_sp,
-				betfair_win_sp,
-				betfair_place_sp,
-				official_rating,
-				ts,
-				rpr,
-				tfr,
-				tfig,
-				in_play_high,
-				in_play_low,
-				in_race_comment,
-				tf_comment,
-				tfr_view,
-                race_id,
-				horse_id,
-				jockey_id,
-				trainer_id,
-				owner_id,
-				sire_id,
-				dam_id,
-				unique_id,
-                race_time,
-                race_date,
-                race_title,
-                race_type,
-                race_class,
-                distance,
-                distance_yards,
-                distance_meters,
-                distance_kilometers,
-                conditions,
-                going,
-                number_of_runners,
-                hcap_range,
-                age_range,
-                surface,
-                total_prize_money,
-                first_place_prize_money,
-                winning_time,
-                time_seconds,
-                relative_time,
-                relative_to_standard,
-                country,
-                main_race_comment,
-                meeting_id,
-                course_id,
-				course, 
-				dam, 
-				sire, 
-				trainer, 
-				jockey
+    horse_name,
+    age,
+    horse_sex,
+	days_since_last_ran,
+    draw,
+    headgear,
+    weight_carried,
+    weight_carried_lbs,
+    extra_weight,
+    jockey_claim,
+    finishing_position,
+    total_distance_beaten,
+    number_of_runs,
+    first_places,
+    second_places,
+    third_places,
+    fourth_places,
+    industry_sp,
+    betfair_win_sp,
+    betfair_place_sp,
+    official_rating,
+    ts,
+    rpr,
+    tfr,
+    tfig,
+    in_play_high,
+    in_play_low,
+    in_race_comment,
+    tf_comment,
+    tfr_view,
+    race_id,
+    horse_id,
+    jockey_id,
+    trainer_id,
+    owner_id,
+    sire_id,
+    dam_id,
+    unique_id,
+    race_time,
+    race_date,
+    race_title,
+    race_type,
+    race_class,
+    distance,
+    distance_yards,
+    distance_meters,
+    distance_kilometers,
+    conditions,
+    going,
+    number_of_runners,
+    hcap_range,
+    age_range,
+    surface,
+    total_prize_money,
+    first_place_prize_money,
+    winning_time,
+    time_seconds,
+    relative_time,
+    relative_to_standard,
+    country,
+    main_race_comment,
+    meeting_id,
+    course_id,
+    course,
+    dam,
+    sire,
+    trainer,
+    jockey
     )
 with todays as (
 	SELECT 
@@ -967,73 +973,91 @@ historical as (SELECT
 	LEFT JOIN trainer t ON hpd.trainer_id = t.id
 	LEFT JOIN jockey j ON hpd.jockey_id = j.id
 )
-SELECT horse_name,
-		age,
-		horse_sex,
-		draw,
-		headgear,
-		weight_carried,
-		weight_carried_lbs,
-		extra_weight,
-		jockey_claim,
-		finishing_position,
-		total_distance_beaten,
-		industry_sp,
-		betfair_win_sp,
-		betfair_place_sp,
-		official_rating,
-		ts,
-		rpr,
-		tfr,
-		tfig,
-		in_play_high,
-		in_play_low,
-		in_race_comment,
-		tf_comment,
-		tfr_view,
-		race_id,
-		horse_id,
-		jockey_id,
-		trainer_id,
-		owner_id,
-		sire_id,
-		dam_id,
-		unique_id,
-		race_time,
-		race_date,
-		race_title,
-		race_type,
-		race_class,
-		distance,
-		distance_yards,
-		distance_meters,
-		distance_kilometers,
-		conditions,
-		going,
-		number_of_runners,
-		hcap_range,
-		age_range,
-		surface,
-		total_prize_money,
-		first_place_prize_money,
-		winning_time,
-		time_seconds,
-		relative_time,
-		relative_to_standard,
-		country,
-		main_race_comment,
-		meeting_id,
-		course_id,
-		course, 
-		dam, 
-		sire, 
-		trainer, 
-		jockey
-FROM 
-(
-	SELECT * FROM todays
-	UNION 
-	SELECT * FROM historical
+SELECT 
+    horse_name,
+    age,
+    horse_sex,
+	days_since_last_ran,
+    draw,
+    headgear,
+    weight_carried,
+    weight_carried_lbs,
+    extra_weight,
+    jockey_claim,
+    finishing_position,
+    total_distance_beaten,
+    number_of_runs,
+    first_places,
+    second_places,
+    third_places,
+    fourth_places,
+    industry_sp,
+    betfair_win_sp,
+    betfair_place_sp,
+    official_rating,
+    ts,
+    rpr,
+    tfr,
+    tfig,
+    in_play_high,
+    in_play_low,
+    in_race_comment,
+    tf_comment,
+    tfr_view,
+    race_id,
+    horse_id,
+    jockey_id,
+    trainer_id,
+    owner_id,
+    sire_id,
+    dam_id,
+    unique_id,
+    race_time,
+    race_date,
+    race_title,
+    race_type,
+    race_class,
+    distance,
+    distance_yards,
+    distance_meters,
+    distance_kilometers,
+    conditions,
+    going,
+    number_of_runners,
+    hcap_range,
+    age_range,
+    surface,
+    total_prize_money,
+    first_place_prize_money,
+    winning_time,
+    time_seconds,
+    relative_time,
+    relative_to_standard,
+    country,
+    main_race_comment,
+    meeting_id,
+    course_id,
+    course,
+    dam,
+    sire,
+    trainer,
+    jockey
+FROM (
+    SELECT *,
+           CASE
+               WHEN LAG(race_date) OVER (PARTITION BY horse_id ORDER BY race_date) IS NOT NULL THEN race_date - LAG(race_date) OVER (PARTITION BY horse_id ORDER BY race_date)
+               ELSE NULL
+           END as days_since_last_ran,
+           COUNT(*) OVER (PARTITION BY horse_id ORDER BY race_time ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as number_of_runs,
+           SUM(CASE WHEN finishing_position = '1' THEN 1 ELSE 0 END) OVER (PARTITION BY horse_id ORDER BY race_time) as first_places,
+           SUM(CASE WHEN finishing_position = '2' THEN 1 ELSE 0 END) OVER (PARTITION BY horse_id ORDER BY race_time) as second_places,
+           SUM(CASE WHEN finishing_position = '3' AND number_of_runners > 7 THEN 1 ELSE 0 END) OVER (PARTITION BY horse_id ORDER BY race_time) as third_places,
+           SUM(CASE WHEN finishing_position = '4' AND number_of_runners > 11 THEN 1 ELSE 0 END) OVER (PARTITION BY horse_id ORDER BY race_time) as fourth_places
+    FROM (
+        SELECT * FROM todays
+        UNION 
+        SELECT * FROM historical
+    ) combined_data
 );
 END;
 $$;
@@ -1059,6 +1083,99 @@ $$;
 
 
 ALTER FUNCTION public.minus_three_years(input_date date) OWNER TO postgres;
+
+--
+-- Name: select_collateral_form_data(date); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.select_collateral_form_data(input_date date) RETURNS TABLE(horse_name character varying, age integer, horse_sex character varying, draw integer, headgear character varying, weight_carried character varying, weight_carried_lbs smallint, extra_weight smallint, jockey_claim smallint, finishing_position character varying, total_distance_beaten numeric, industry_sp character varying, betfair_win_sp numeric, betfair_place_sp numeric, official_rating smallint, ts smallint, rpr smallint, tfr smallint, tfig smallint, in_play_high numeric, in_play_low numeric, in_race_comment text, tf_comment text, tfr_view character varying, race_id integer, horse_id integer, jockey_id integer, trainer_id integer, owner_id integer, sire_id integer, dam_id integer, unique_id character varying, race_time timestamp without time zone, race_date date, race_title character varying, race_type character varying, race_class smallint, distance character varying, distance_yards numeric, distance_meters numeric, distance_kilometers numeric, conditions character varying, going character varying, number_of_runners smallint, hcap_range character varying, age_range character varying, surface character varying, total_prize_money integer, first_place_prize_money integer, winning_time character varying, time_seconds numeric, relative_time numeric, relative_to_standard character varying, country character varying, main_race_comment text, meeting_id character varying, course_id smallint, course character varying, dam character varying, sire character varying, trainer character varying, jockey character varying, data_type character varying)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    RETURN QUERY 
+
+-- Collateral races for horses that have raced with horses from historical races
+SELECT pd.*, 'collateral'::character varying AS data_type
+FROM public.unioned_performance_data pd
+WHERE pd.horse_id IN (
+    SELECT DISTINCT pd.horse_id
+    FROM public.unioned_performance_data pd
+    WHERE pd.race_date < input_date
+    AND pd.race_date >= input_date - INTERVAL '3 YEARS'
+    AND pd.race_id IN (
+        SELECT DISTINCT pd.race_id
+        FROM public.unioned_performance_data pd
+        WHERE pd.horse_id IN (
+            SELECT pd.horse_id
+            FROM public.unioned_performance_data pd
+            WHERE pd.race_date = input_date
+        )
+        AND pd.race_date < input_date
+        AND pd.race_date >= input_date - INTERVAL '3 YEARS'
+    )
+)
+AND pd.race_date < input_date
+AND pd.race_date >= input_date - INTERVAL '3 YEARS';
+
+END;
+$$;
+
+
+ALTER FUNCTION public.select_collateral_form_data(input_date date) OWNER TO postgres;
+
+--
+-- Name: select_form_data(date); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.select_form_data(input_date date) RETURNS TABLE(horse_name character varying, age integer, horse_sex character varying, draw integer, headgear character varying, weight_carried character varying, weight_carried_lbs smallint, extra_weight smallint, jockey_claim smallint, finishing_position character varying, total_distance_beaten numeric, industry_sp character varying, betfair_win_sp numeric, betfair_place_sp numeric, official_rating smallint, ts smallint, rpr smallint, tfr smallint, tfig smallint, in_play_high numeric, in_play_low numeric, in_race_comment text, tf_comment text, tfr_view character varying, race_id integer, horse_id integer, jockey_id integer, trainer_id integer, owner_id integer, sire_id integer, dam_id integer, unique_id character varying, race_time timestamp without time zone, race_date date, race_title character varying, race_type character varying, race_class smallint, distance character varying, distance_yards numeric, distance_meters numeric, distance_kilometers numeric, conditions character varying, going character varying, number_of_runners smallint, hcap_range character varying, age_range character varying, surface character varying, total_prize_money integer, first_place_prize_money integer, winning_time character varying, time_seconds numeric, relative_time numeric, relative_to_standard character varying, country character varying, main_race_comment text, meeting_id character varying, course_id smallint, course character varying, dam character varying, sire character varying, trainer character varying, jockey character varying, data_type character varying)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    RETURN QUERY 
+-- Historical races for horses racing today
+SELECT pd.*, 'historical'::character varying AS data_type
+FROM public.unioned_performance_data pd
+WHERE pd.horse_id IN (
+    SELECT pd.horse_id
+    FROM public.unioned_performance_data pd
+    WHERE pd.race_date = input_date
+)
+AND pd.race_date < input_date
+AND pd.race_date >= input_date - INTERVAL '3 YEARS';
+
+
+
+END;
+$$;
+
+
+ALTER FUNCTION public.select_form_data(input_date date) OWNER TO postgres;
+
+--
+-- Name: select_form_data_by_race_id(date, integer); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.select_form_data_by_race_id(input_date date, input_race_id integer) RETURNS TABLE(horse_name character varying, age integer, horse_sex character varying, days_since_last_ran smallint, draw integer, headgear character varying, weight_carried character varying, weight_carried_lbs smallint, extra_weight smallint, jockey_claim smallint, finishing_position character varying, total_distance_beaten numeric, number_of_runs smallint, first_places smallint, second_places smallint, third_places smallint, fourth_places smallint, industry_sp character varying, betfair_win_sp numeric, betfair_place_sp numeric, official_rating smallint, ts smallint, rpr smallint, tfr smallint, tfig smallint, in_play_high numeric, in_play_low numeric, in_race_comment text, tf_comment text, tfr_view character varying, race_id integer, horse_id integer, jockey_id integer, trainer_id integer, owner_id integer, sire_id integer, dam_id integer, unique_id character varying, race_time timestamp without time zone, race_date date, race_title character varying, race_type character varying, race_class smallint, distance character varying, distance_yards numeric, distance_meters numeric, distance_kilometers numeric, conditions character varying, going character varying, number_of_runners smallint, hcap_range character varying, age_range character varying, surface character varying, total_prize_money integer, first_place_prize_money integer, winning_time character varying, time_seconds numeric, relative_time numeric, relative_to_standard character varying, country character varying, main_race_comment text, meeting_id character varying, course_id smallint, course character varying, dam character varying, sire character varying, trainer character varying, jockey character varying, data_type character varying)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    RETURN QUERY 
+SELECT pd.*, 'historical'::character varying AS data_type
+FROM public.unioned_performance_data pd
+WHERE pd.horse_id IN (
+    SELECT pd.horse_id
+    FROM public.unioned_performance_data pd
+    WHERE pd.race_date = input_date
+	AND pd.race_id = input_race_id
+)
+AND pd.race_date < input_date
+AND pd.race_date >= input_date - INTERVAL '3 YEARS'
+ORDER BY pd.horse_name, pd.race_time DESC;
+END;
+$$;
+
+
+ALTER FUNCTION public.select_form_data_by_race_id(input_date date, input_race_id integer) OWNER TO postgres;
 
 --
 -- Name: select_race_date(date); Type: FUNCTION; Schema: public; Owner: postgres
@@ -1117,6 +1234,99 @@ $$;
 
 
 ALTER FUNCTION public.select_race_date(input_date date) OWNER TO postgres;
+
+--
+-- Name: select_race_date_race_times(date); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.select_race_date_race_times(input_date date) RETURNS TABLE(race_id integer, race_time timestamp without time zone, race_date date, race_title character varying, race_type character varying, race_class smallint, distance character varying, distance_yards numeric, distance_meters numeric, distance_kilometers numeric, conditions character varying, going character varying, number_of_runners smallint, hcap_range character varying, age_range character varying, surface character varying, total_prize_money integer, first_place_prize_money integer, course_id smallint, course character varying, data_type character varying)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    RETURN QUERY 
+-- Today's races
+with distinct_races as (
+SELECT distinct on (pd.race_id)
+pd.race_id,
+pd.race_time,
+pd.race_date,
+pd.race_title,
+pd.race_type,
+pd.race_class,
+pd.distance,
+pd.distance_yards,
+pd.distance_meters,
+pd.distance_kilometers,
+pd.conditions,
+pd.going,
+pd.number_of_runners,
+pd.hcap_range,
+pd.age_range,
+pd.surface,
+pd.total_prize_money,
+pd.first_place_prize_money,
+pd.course_id,
+pd.course, 
+'today'::character varying AS data_type
+FROM public.unioned_performance_data pd
+WHERE pd.race_date = input_date)
+
+select * from distinct_races
+order by course, race_time;
+END;
+$$;
+
+
+ALTER FUNCTION public.select_race_date_race_times(input_date date) OWNER TO postgres;
+
+--
+-- Name: select_results_data_by_race_id(date, integer); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.select_results_data_by_race_id(input_date date, input_race_id integer) RETURNS TABLE(horse_name character varying, finishing_position character varying, total_distance_beaten numeric, industry_sp character varying, betfair_win_sp numeric, betfair_place_sp numeric, ts smallint, rpr smallint, tfr smallint, tfig smallint, in_play_high numeric, in_play_low numeric, in_race_comment text, tf_comment text, tfr_view character varying, race_id integer, horse_id integer, unique_id character varying, winning_time character varying, time_seconds numeric, relative_time numeric, relative_to_standard character varying, main_race_comment text, meeting_id character varying)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    RETURN QUERY 
+
+SELECT pd.horse_name,
+pd.finishing_position,
+pd.total_distance_beaten,
+pd.industry_sp,
+pd.betfair_win_sp,
+pd.betfair_place_sp,
+pd.ts,
+pd.rpr,
+pd.tfr,
+pd.tfig,
+pd.in_play_high,
+pd.in_play_low,
+pd.in_race_comment,
+pd.tf_comment,
+pd.tfr_view,
+pd.race_id,
+pd.horse_id,
+pd.unique_id,
+pd.winning_time,
+pd.time_seconds,
+pd.relative_time,
+pd.relative_to_standard,
+pd.main_race_comment,
+pd.meeting_id
+FROM public.unioned_performance_data pd
+WHERE pd.horse_id IN (
+    SELECT pd.horse_id
+    FROM public.unioned_performance_data pd
+    WHERE pd.race_date = input_date
+	AND pd.race_id = input_race_id
+)
+AND pd.race_date = input_date
+ORDER BY pd.total_distance_beaten;
+END;
+$$;
+
+
+ALTER FUNCTION public.select_results_data_by_race_id(input_date date, input_race_id integer) OWNER TO postgres;
 
 --
 -- Name: get_my_list(); Type: FUNCTION; Schema: rp_raw; Owner: doadmin
@@ -1859,7 +2069,8 @@ CREATE TABLE bf_raw.todays_price_data (
     course character varying(132),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
-    created_at timestamp with time zone
+    created_at timestamp with time zone,
+    status character varying(64)
 );
 
 
@@ -3227,6 +3438,7 @@ CREATE TABLE public.unioned_performance_data (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -3235,6 +3447,11 @@ CREATE TABLE public.unioned_performance_data (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -3300,6 +3517,7 @@ CREATE TABLE public.unioned_performance_data_2010 (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -3308,6 +3526,11 @@ CREATE TABLE public.unioned_performance_data_2010 (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -3372,6 +3595,7 @@ CREATE TABLE public.unioned_performance_data_2011 (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -3380,6 +3604,11 @@ CREATE TABLE public.unioned_performance_data_2011 (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -3444,6 +3673,7 @@ CREATE TABLE public.unioned_performance_data_2012 (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -3452,6 +3682,11 @@ CREATE TABLE public.unioned_performance_data_2012 (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -3516,6 +3751,7 @@ CREATE TABLE public.unioned_performance_data_2013 (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -3524,6 +3760,11 @@ CREATE TABLE public.unioned_performance_data_2013 (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -3588,6 +3829,7 @@ CREATE TABLE public.unioned_performance_data_2014 (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -3596,6 +3838,11 @@ CREATE TABLE public.unioned_performance_data_2014 (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -3660,6 +3907,7 @@ CREATE TABLE public.unioned_performance_data_2015 (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -3668,6 +3916,11 @@ CREATE TABLE public.unioned_performance_data_2015 (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -3732,6 +3985,7 @@ CREATE TABLE public.unioned_performance_data_2016 (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -3740,6 +3994,11 @@ CREATE TABLE public.unioned_performance_data_2016 (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -3804,6 +4063,7 @@ CREATE TABLE public.unioned_performance_data_2017 (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -3812,6 +4072,11 @@ CREATE TABLE public.unioned_performance_data_2017 (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -3876,6 +4141,7 @@ CREATE TABLE public.unioned_performance_data_2018 (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -3884,6 +4150,11 @@ CREATE TABLE public.unioned_performance_data_2018 (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -3948,6 +4219,7 @@ CREATE TABLE public.unioned_performance_data_2019 (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -3956,6 +4228,11 @@ CREATE TABLE public.unioned_performance_data_2019 (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -4020,6 +4297,7 @@ CREATE TABLE public.unioned_performance_data_2020 (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -4028,6 +4306,11 @@ CREATE TABLE public.unioned_performance_data_2020 (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -4092,6 +4375,7 @@ CREATE TABLE public.unioned_performance_data_2021 (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -4100,6 +4384,11 @@ CREATE TABLE public.unioned_performance_data_2021 (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -4164,6 +4453,7 @@ CREATE TABLE public.unioned_performance_data_2022 (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -4172,6 +4462,11 @@ CREATE TABLE public.unioned_performance_data_2022 (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -4236,6 +4531,7 @@ CREATE TABLE public.unioned_performance_data_2023 (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -4244,6 +4540,11 @@ CREATE TABLE public.unioned_performance_data_2023 (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -4308,6 +4609,7 @@ CREATE TABLE public.unioned_performance_data_2024 (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -4316,6 +4618,11 @@ CREATE TABLE public.unioned_performance_data_2024 (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -4380,6 +4687,7 @@ CREATE TABLE public.unioned_performance_data_2025 (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -4388,6 +4696,11 @@ CREATE TABLE public.unioned_performance_data_2025 (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -4452,6 +4765,7 @@ CREATE TABLE public.unioned_performance_data_2026 (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -4460,6 +4774,11 @@ CREATE TABLE public.unioned_performance_data_2026 (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -4524,6 +4843,7 @@ CREATE TABLE public.unioned_performance_data_2027 (
     horse_name character varying(132),
     age integer,
     horse_sex character varying(32),
+    days_since_last_ran smallint,
     draw integer,
     headgear character varying(64),
     weight_carried character varying(16),
@@ -4532,6 +4852,11 @@ CREATE TABLE public.unioned_performance_data_2027 (
     jockey_claim smallint,
     finishing_position character varying(6),
     total_distance_beaten numeric(10,2),
+    number_of_runs smallint,
+    first_places smallint,
+    second_places smallint,
+    third_places smallint,
+    fourth_places smallint,
     industry_sp character varying(16),
     betfair_win_sp numeric(6,2),
     betfair_place_sp numeric(6,2),
@@ -4589,6 +4914,46 @@ CREATE TABLE public.unioned_performance_data_2027 (
 ALTER TABLE public.unioned_performance_data_2027 OWNER TO postgres;
 
 --
+-- Name: users; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.users (
+    id integer NOT NULL,
+    username character varying(255) NOT NULL,
+    hashed_password character varying(255) NOT NULL,
+    email character varying(255) NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    is_active boolean DEFAULT true,
+    is_admin boolean DEFAULT false
+);
+
+
+ALTER TABLE public.users OWNER TO postgres;
+
+--
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.users_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.users_id_seq OWNER TO postgres;
+
+--
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
+
+
+--
 -- Name: best_horses; Type: VIEW; Schema: rp_raw; Owner: postgres
 --
 
@@ -4644,7 +5009,7 @@ CREATE VIEW rp_raw.missing_links AS
     cr.date
    FROM (courses cr
      LEFT JOIN rp_raw.performance_data pd ON ((cr.link = pd.debug_link)))
-  WHERE ((pd.debug_link IS NULL) AND (cr.date > '2010-01-01'::date) AND (cr.course_part = ANY (ARRAY['aintree'::text, 'ascot'::text, 'ayr'::text, 'ballinrobe'::text, 'bangor-on-dee'::text, 'bath'::text, 'bellewstown'::text, 'beverley'::text, 'brighton'::text, 'carlisle'::text, 'cartmel'::text, 'catterick'::text, 'chelmsford-aw'::text, 'cheltenham'::text, 'chepstow'::text, 'chester'::text, 'clonmel'::text, 'cork'::text, 'curragh'::text, 'doncaster'::text, 'down-royal'::text, 'downpatrick'::text, 'dundalk-aw'::text, 'epsom'::text, 'exeter'::text, 'fairyhouse'::text, 'fakenham'::text, 'ffos-las'::text, 'fontwell'::text, 'galway'::text, 'goodwood'::text, 'gowran-park'::text, 'hamilton'::text, 'haydock'::text, 'hereford'::text, 'hexham'::text, 'huntingdon'::text, 'kelso'::text, 'kempton'::text, 'kempton-aw'::text, 'kilbeggan'::text, 'killarney'::text, 'laytown'::text, 'leicester'::text, 'leopardstown'::text, 'limerick'::text, 'lingfield'::text, 'lingfield-aw'::text, 'listowel'::text, 'ludlow'::text, 'market-rasen'::text, 'musselburgh'::text, 'naas'::text, 'navan'::text, 'newbury'::text, 'newcastle'::text, 'newcastle-aw'::text, 'newmarket'::text, 'newmarket-july'::text, 'newton-abbot'::text, 'nottingham'::text, 'perth'::text, 'plumpton'::text, 'pontefract'::text, 'punchestown'::text, 'redcar'::text, 'ripon'::text, 'roscommon'::text, 'salisbury'::text, 'sandown'::text, 'sedgefield'::text, 'sligo'::text, 'southwell'::text, 'southwell-aw'::text, 'stratford'::text, 'taunton'::text, 'thirsk'::text, 'thurles'::text, 'tipperary'::text, 'towcester'::text, 'tramore'::text, 'uttoxeter'::text, 'warwick'::text, 'wetherby'::text, 'wexford'::text, 'wexford-rh'::text, 'wincanton'::text, 'windsor'::text, 'wolverhampton-aw'::text, 'worcester'::text, 'yarmouth'::text, 'york'::text])) AND (cr.link <> ALL (ARRAY['https://www.racingpost.com/results/87/wetherby/2011-10-12/539792'::text, 'https://www.racingpost.com/results/513/wolverhampton-aw/2007-12-10/444939'::text, 'https://www.racingpost.com/results/16/musselburgh/2019-11-06/742103'::text, 'https://www.racingpost.com/results/101/worcester/2023-05-26/839708'::text, 'https://www.racingpost.com/results/15/doncaster/2009-12-12/494914'::text, 'https://www.racingpost.com/results/83/towcester/2011-03-17/525075'::text, 'https://www.racingpost.com/results/16/musselburgh/2019-11-06/742103'::text, 'https://www.racingpost.com/results/393/lingfield-aw/2022-03-04/804298'::text, 'https://www.racingpost.com/results/25/hexham/2021-05-01/781541'::text, 'https://www.racingpost.com/results/1138/dundalk-aw/2010-10-03/515581'::text, 'https://www.racingpost.com/results/17/epsom/2014-08-25/608198'::text, 'https://www.racingpost.com/results/57/sedgefield/2014-11-25/613650'::text, 'https://www.racingpost.com/results/1083/chelmsford-aw/2017-02-23/668139'::text, 'https://www.racingpost.com/results/41/perth/2017-09-11/682957'::text, 'https://www.racingpost.com/results/1138/dundalk-aw/2020-03-20/754104'::text, 'https://www.racingpost.com/results/20/fontwell/2016-09-30/658390'::text, 'https://www.racingpost.com/results/9/cartmel/2018-05-30/701255'::text, 'https://www.racingpost.com/results/34/ludlow/2014-05-11/600195'::text, 'https://www.racingpost.com/results/8/carlisle/2011-02-21/523611'::text, 'https://www.racingpost.com/results/513/wolverhampton-aw/2023-07-11/843383'::text, 'https://www.racingpost.com/results/513/wolverhampton-aw/2023-07-11/843383'::text, 'https://www.racingpost.com/results/90/wincanton/2016-12-26/664813'::text, 'https://www.racingpost.com/results/393/lingfield-aw/2013-06-22/580503'::text, 'https://www.racingpost.com/results/1083/chelmsford-aw/2023-10-19/849854'::text, 'https://www.racingpost.com/results/1083/chelmsford-aw/2023-10-19/849854'::text, 'https://www.racingpost.com/results/393/lingfield-aw/2013-06-22/580503'::text, 'https://www.racingpost.com/results/44/plumpton/2021-03-01/777465'::text, 'https://www.racingpost.com/results/1083/chelmsford-aw/2018-11-13/714479'::text, 'https://www.racingpost.com/results/54/sandown/2019-12-07/744492'::text, 'https://www.racingpost.com/results/4/bangor-on-dee/2022-10-25/822558'::text, 'https://www.racingpost.com/results/67/stratford/2023-06-20/842207'::text, 'https://www.racingpost.com/results/23/haydock/2018-12-30/717697'::text, 'https://www.racingpost.com/results/44/plumpton/2022-04-18/807343'::text, 'https://www.racingpost.com/results/37/newcastle/2024-03-05/860189'::text, 'https://www.racingpost.com/results/27/kelso/2024-04-15/863253'::text])));
+  WHERE ((pd.debug_link IS NULL) AND (cr.date > '2010-01-01'::date) AND (cr.course_part = ANY (ARRAY['aintree'::text, 'ascot'::text, 'ayr'::text, 'ballinrobe'::text, 'bangor-on-dee'::text, 'bath'::text, 'bellewstown'::text, 'beverley'::text, 'brighton'::text, 'carlisle'::text, 'cartmel'::text, 'catterick'::text, 'chelmsford-aw'::text, 'cheltenham'::text, 'chepstow'::text, 'chester'::text, 'clonmel'::text, 'cork'::text, 'curragh'::text, 'doncaster'::text, 'down-royal'::text, 'downpatrick'::text, 'dundalk-aw'::text, 'epsom'::text, 'exeter'::text, 'fairyhouse'::text, 'fakenham'::text, 'ffos-las'::text, 'fontwell'::text, 'galway'::text, 'goodwood'::text, 'gowran-park'::text, 'hamilton'::text, 'haydock'::text, 'hereford'::text, 'hexham'::text, 'huntingdon'::text, 'kelso'::text, 'kempton'::text, 'kempton-aw'::text, 'kilbeggan'::text, 'killarney'::text, 'laytown'::text, 'leicester'::text, 'leopardstown'::text, 'limerick'::text, 'lingfield'::text, 'lingfield-aw'::text, 'listowel'::text, 'ludlow'::text, 'market-rasen'::text, 'musselburgh'::text, 'naas'::text, 'navan'::text, 'newbury'::text, 'newcastle'::text, 'newcastle-aw'::text, 'newmarket'::text, 'newmarket-july'::text, 'newton-abbot'::text, 'nottingham'::text, 'perth'::text, 'plumpton'::text, 'pontefract'::text, 'punchestown'::text, 'redcar'::text, 'ripon'::text, 'roscommon'::text, 'salisbury'::text, 'sandown'::text, 'sedgefield'::text, 'sligo'::text, 'southwell'::text, 'southwell-aw'::text, 'stratford'::text, 'taunton'::text, 'thirsk'::text, 'thurles'::text, 'tipperary'::text, 'towcester'::text, 'tramore'::text, 'uttoxeter'::text, 'warwick'::text, 'wetherby'::text, 'wexford'::text, 'wexford-rh'::text, 'wincanton'::text, 'windsor'::text, 'wolverhampton-aw'::text, 'worcester'::text, 'yarmouth'::text, 'york'::text])) AND (cr.link <> ALL (ARRAY['https://www.racingpost.com/results/87/wetherby/2011-10-12/539792'::text, 'https://www.racingpost.com/results/513/wolverhampton-aw/2007-12-10/444939'::text, 'https://www.racingpost.com/results/16/musselburgh/2019-11-06/742103'::text, 'https://www.racingpost.com/results/101/worcester/2023-05-26/839708'::text, 'https://www.racingpost.com/results/15/doncaster/2009-12-12/494914'::text, 'https://www.racingpost.com/results/83/towcester/2011-03-17/525075'::text, 'https://www.racingpost.com/results/16/musselburgh/2019-11-06/742103'::text, 'https://www.racingpost.com/results/393/lingfield-aw/2022-03-04/804298'::text, 'https://www.racingpost.com/results/25/hexham/2021-05-01/781541'::text, 'https://www.racingpost.com/results/1138/dundalk-aw/2010-10-03/515581'::text, 'https://www.racingpost.com/results/17/epsom/2014-08-25/608198'::text, 'https://www.racingpost.com/results/57/sedgefield/2014-11-25/613650'::text, 'https://www.racingpost.com/results/1083/chelmsford-aw/2017-02-23/668139'::text, 'https://www.racingpost.com/results/41/perth/2017-09-11/682957'::text, 'https://www.racingpost.com/results/1138/dundalk-aw/2020-03-20/754104'::text, 'https://www.racingpost.com/results/20/fontwell/2016-09-30/658390'::text, 'https://www.racingpost.com/results/9/cartmel/2018-05-30/701255'::text, 'https://www.racingpost.com/results/34/ludlow/2014-05-11/600195'::text, 'https://www.racingpost.com/results/8/carlisle/2011-02-21/523611'::text, 'https://www.racingpost.com/results/513/wolverhampton-aw/2023-07-11/843383'::text, 'https://www.racingpost.com/results/513/wolverhampton-aw/2023-07-11/843383'::text, 'https://www.racingpost.com/results/90/wincanton/2016-12-26/664813'::text, 'https://www.racingpost.com/results/393/lingfield-aw/2013-06-22/580503'::text, 'https://www.racingpost.com/results/1083/chelmsford-aw/2023-10-19/849854'::text, 'https://www.racingpost.com/results/1083/chelmsford-aw/2023-10-19/849854'::text, 'https://www.racingpost.com/results/393/lingfield-aw/2013-06-22/580503'::text, 'https://www.racingpost.com/results/44/plumpton/2021-03-01/777465'::text, 'https://www.racingpost.com/results/1083/chelmsford-aw/2018-11-13/714479'::text, 'https://www.racingpost.com/results/54/sandown/2019-12-07/744492'::text, 'https://www.racingpost.com/results/4/bangor-on-dee/2022-10-25/822558'::text, 'https://www.racingpost.com/results/67/stratford/2023-06-20/842207'::text, 'https://www.racingpost.com/results/23/haydock/2018-12-30/717697'::text, 'https://www.racingpost.com/results/44/plumpton/2022-04-18/807343'::text, 'https://www.racingpost.com/results/37/newcastle/2024-03-05/860189'::text, 'https://www.racingpost.com/results/27/kelso/2024-04-15/863253'::text, 'https://www.racingpost.com/results/35/market-rasen/2024-05-10/865428'::text])));
 
 
 ALTER VIEW rp_raw.missing_links OWNER TO doadmin;
@@ -5732,6 +6097,13 @@ ALTER TABLE ONLY public.trainer ALTER COLUMN id SET DEFAULT nextval('public.trai
 
 
 --
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
 -- Name: course course_pkey; Type: CONSTRAINT; Schema: public; Owner: doadmin
 --
 
@@ -5873,6 +6245,30 @@ ALTER TABLE ONLY public.trainer
 
 ALTER TABLE ONLY public.performance_data
     ADD CONSTRAINT unique_id_pd UNIQUE (unique_id);
+
+
+--
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_email_key UNIQUE (email);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: users users_username_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_username_key UNIQUE (username);
 
 
 --
