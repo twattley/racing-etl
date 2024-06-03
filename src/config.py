@@ -14,6 +14,7 @@ class Config(BaseSettings):
     pg_db_name: str
     pg_db_password: str
     pg_db_port: int
+    chrome_driver_path: str
     backup_schema_file: str
     digital_ocean_spaces_access_key_id: str
     digital_ocean_spaces_secret_access_key: str
