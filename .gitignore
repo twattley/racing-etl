@@ -2,3 +2,4 @@
 *.gz
 src/data/*
 src/betfair/certs/*
+*.pyc
