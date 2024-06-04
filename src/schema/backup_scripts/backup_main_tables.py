@@ -82,7 +82,7 @@ if __name__ == "__main__":
             config.pg_db_user,
             "-s",
             "-f",
-            config.backup_schema_file,
+            "./src/schema/backup_files/racehorse-database-schema.sql",
             config.pg_db_name,
         ]
     )
@@ -92,7 +92,7 @@ if __name__ == "__main__":
         secret_access_key=config.digital_ocean_spaces_secret_access_key,
     )
     d.upload_sql_file(
-        config.backup_schema_file,
+        "./src/schema/backup_files/racehorse-database-schema.sql",
         f"snapshots/{RUNNING_TIME}/racehorse-database-schema.sql",
     )
     table_schema_pairs = [
