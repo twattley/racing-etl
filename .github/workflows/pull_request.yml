@@ -19,13 +19,17 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
-
-      - name: set python path
+          
+      - name: Unit tests
         env:
-          PYTHONPATH: ${{ github.workspace }}  
+          PYTHONPATH: ${{ github.workspace }}
         run: |
-          echo "PYTHONPATH"
-          echo $PYTHONPATH
+          pytest tests/unit
+
+      - name: Run docker
+        run: |
+          docker-compose up -d
+        shell: bash
 
       - name: Unit tests
         env:
@@ -38,7 +42,13 @@ jobs:
           docker-compose up -d
         shell: bash
 
-
+      - name: Wait for PostgreSQL to start
+        run: |
+          echo "Waiting for PostgreSQL to start..."
+          while ! pg_isready -h localhost -p 5433 -U test_user; do
+            sleep 1
+          done
+          echo "PostgreSQL is ready"
 
       - name: Integration tests
         env:
