@@ -35,7 +35,7 @@ def test_tf_rating_values():
                 "f1+",
                 "f1?",
             ],
-            'data_type': ['historical'] * 15
+            "data_type": ["historical"] * 15,
         }
     )
 
@@ -82,7 +82,7 @@ def test_tf_rating_values():
                 "positive",
                 "questionable",
             ],
-            'data_type': ['historical'] * 15
+            "data_type": ["historical"] * 15,
         }
     )
 
@@ -117,10 +117,12 @@ def test_create_pounds():
 
 
 def test_get_inplay_high_and_low():
-    input_df = pd.DataFrame({
-        "in_play_prices": ["-/2", "2/-", "/-", "/", ""],
-        'data_type': ['historical'] * 5
-        })
+    input_df = pd.DataFrame(
+        {
+            "in_play_prices": ["-/2", "2/-", "/-", "/", ""],
+            "data_type": ["historical"] * 5,
+        }
+    )
     output_df = input_df.pipe(get_inplay_high_and_low)
 
     pd.testing.assert_frame_equal(
@@ -128,7 +130,7 @@ def test_get_inplay_high_and_low():
         pd.DataFrame(
             {
                 "in_play_prices": ["-/2", "2/-", "/-", "/", ""],
-                'data_type': ['historical'] * 5,
+                "data_type": ["historical"] * 5,
                 "in_play_low": [2.0, np.nan, np.nan, np.nan, np.nan],
                 "in_play_high": [np.nan, 2.0, np.nan, np.nan, np.nan],
             }
@@ -198,7 +200,7 @@ def test_create_time_data():
                 "59.20s (standard time)",
                 "11m 0.20s (fast by 2m 30.00s)",
             ],
-            'data_type': ['historical'] * 9
+            "data_type": ["historical"] * 9,
         }
     )
     output_df = input_df.pipe(create_time_data)
@@ -216,7 +218,7 @@ def test_create_time_data():
                 "59.20s (standard time)",
                 "11m 0.20s (fast by 2m 30.00s)",
             ],
-            'data_type': ['historical'] * 9,
+            "data_type": ["historical"] * 9,
             "time_seconds": [
                 np.nan,
                 np.nan,
@@ -301,7 +303,7 @@ def test_distance_beaten_data():
                 "[dist]",
             ],
             "finishing_position": ["1", "2", "3", "2", "1", "3", "1", "2", "3", "4"],
-            'data_type': ['historical'] * 10
+            "data_type": ["historical"] * 10,
         }
     )
 
@@ -323,7 +325,7 @@ def test_distance_beaten_data():
                 999.0,
             ],
             "finishing_position": ["1", "2", "3", "2", "1", "3", "1", "2", "3", "4"],
-            'data_type': ['historical'] * 10,
+            "data_type": ["historical"] * 10,
             "total_distance_beaten_str": [
                 "",
                 "sht-hd",
@@ -357,7 +359,7 @@ def test_convert_horse_type_to_colour_sex():
                 "ch, g",
                 "b, g",
             ],
-            'data_type': ['historical'] * 10
+            "data_type": ["historical"] * 10,
         }
     )
 
@@ -365,7 +367,7 @@ def test_convert_horse_type_to_colour_sex():
 
     expected_df = pd.DataFrame(
         {
-            'data_type': ['historical'] * 10,
+            "data_type": ["historical"] * 10,
             "horse_colour": [
                 "Bay",
                 "Bay",

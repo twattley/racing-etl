@@ -1,9 +1,9 @@
-import os
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import betfairlightweight
 import pandas as pd
 import requests
+
 from src.config import config
 from src.utils.logging_config import I
 from src.utils.time_utils import get_uk_time_now, make_uk_time_aware

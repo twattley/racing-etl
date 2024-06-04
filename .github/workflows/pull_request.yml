@@ -1,0 +1,47 @@
+name: Pull request
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'  
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: set python path
+        env:
+          PYTHONPATH: ${{ github.workspace }}  
+        run: |
+          echo "PYTHONPATH"
+          echo $PYTHONPATH
+
+      - name: Unit tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          pytest tests/unit
+
+      - name: Run docker
+        run: |
+          docker-compose up -d
+        shell: bash
+
+
+
+      - name: Integration tests
+        env:
+          PYTHONPATH: ${{ github.workspace }} 
+        run: |
+          pytest tests/integration

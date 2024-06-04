@@ -1,6 +1,8 @@
 import concurrent.futures
 
-from src.storage.sql_db import execute_query
+from src.storage.psql_db import get_db
+
+db = get_db()
 
 
 def pt(*funcs):
@@ -35,6 +37,6 @@ def pp(*func_args):
 
 
 def register_job_completion(job_name):
-    execute_query(
+    db.execute_query(
         f"UPDATE metrics.processing_times SET processed_at = NOW() WHERE job_name = '{job_name}'"
     )

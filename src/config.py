@@ -1,3 +1,5 @@
+import os
+
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 
@@ -19,10 +21,14 @@ class Config(BaseSettings):
     chromedriver_path: str
 
 
-def load_config(env_file: str = '.env'):
+def load_config():
+    env = os.environ.get("ENV", "DEV")
+    if env == "DEV":
+        env_file = ".env"
+    elif env == "TEST":
+        env_file = "./tests/.test.env"
     load_dotenv(env_file, override=True)
     return Config()
 
+
 config = load_config()
-
-

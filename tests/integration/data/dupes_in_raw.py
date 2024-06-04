@@ -595,7 +595,7 @@ dupes_in_raw_expected_data = pd.DataFrame(
             "this is a comment for timeform horse e",
         ],
         "tfr_view": ["positive", "questionable", "positive", "neutral", "neutral"],
-        'race_id': [1, 2, 3, 4, 5],
+        "race_id": [1, 2, 3, 4, 5],
         "course_id": [100, 200, 300, 400, 500],
         "horse_id": [100, 200, 300, 400, 500],
         "jockey_id": [100, 200, 300, 400, 500],

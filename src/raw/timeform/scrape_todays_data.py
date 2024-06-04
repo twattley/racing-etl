@@ -2,7 +2,6 @@ import hashlib
 import re
 import time
 from datetime import datetime, timedelta
-from src.raw import check_already_processed
 
 import pandas as pd
 from selenium import webdriver
@@ -16,7 +15,9 @@ from src.data_models.raw.timeform_model import (
     table_string_field_lengths,
 )
 from src.raw.webdriver_base import get_headless_driver
-from src.storage.sql_db import fetch_data, store_data
+from src.storage.psql_db import get_db
+
+db = get_db()
 from src.utils.logging_config import E, I
 from src.utils.processing_utils import register_job_completion
 
@@ -25,7 +26,7 @@ TOMORROWS_DATE_FILTER = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d"
 
 
 def fetch_course_data() -> pd.DataFrame:
-    return fetch_data(
+    return db.fetch_data(
         """
         SELECT * FROM public.course cr
         left join public.country ct on 
@@ -241,7 +242,7 @@ def process_tf_scrape_days_data(dates: list[str]):
             table_string_field_lengths,
             "unique_id",
         )
-        processed_data = fetch_data("SELECT * FROM tf_raw.todays_performance_data")
+        processed_data = db.fetch_data("SELECT * FROM tf_raw.todays_performance_data")
         data = (
             pd.concat([data, processed_data])
             .sort_values(by="created_at", ascending=False)
@@ -252,16 +253,16 @@ def process_tf_scrape_days_data(dates: list[str]):
             E(
                 f'there were errors processing the following urls: {errors["error_url"].tolist()}'
             )
-            processed_error_data = fetch_data(
+            processed_error_data = db.fetch_data(
                 "SELECT * FROM errors.todays_performance_data"
             )
             non_duplicated_errors = errors[
                 ~errors["error_url"].isin(processed_error_data["error_url"])
             ].drop_duplicates(subset=["error_url"])
-            store_data(non_duplicated_errors, "todays_performance_data", "errors")
+            db.store_data(non_duplicated_errors, "todays_performance_data", "errors")
 
         data = data[data["race_date"] >= datetime.now().strftime("%Y-%m-%d")]
-        store_data(data, "todays_performance_data", "tf_raw", truncate=True)
+        db.store_data(data, "todays_performance_data", "tf_raw", truncate=True)
 
     driver.quit()
     register_job_completion("scrape_todays_tf_data")

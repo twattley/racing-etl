@@ -7,7 +7,9 @@ from selenium import webdriver
 
 from src.data_models.base.base_model import BaseDataModel, convert_and_validate_data
 from src.raw.webdriver_base import select_source_driver
-from src.storage.sql_db import fetch_data, store_data
+from src.storage.psql_db import get_db
+
+db = get_db()
 from src.utils.logging_config import E, I
 from src.utils.processing_utils import register_job_completion
 
@@ -37,7 +39,7 @@ class LinkScrapingTask:
 def process_scraping_data(task: DataScrapingTask) -> None:
     driver = select_source_driver(task)
     dataframes_list = []
-    filtered_links_df = fetch_data(f"SELECT * FROM {task.schema}.missing_links")
+    filtered_links_df = db.fetch_data(f"SELECT * FROM {task.schema}.missing_links")
     if filtered_links_df.empty:
         I("No missing links found. Ending the script.")
         return
@@ -59,7 +61,7 @@ def process_scraping_data(task: DataScrapingTask) -> None:
     data = data.pipe(
         convert_and_validate_data, task.data_model, task.string_fields, task.unique_id
     )
-    store_data(data, task.table, task.schema)
+    db.store_data(data, task.table, task.schema)
     register_job_completion(task.job_name)
     driver.quit()
 
@@ -67,7 +69,7 @@ def process_scraping_data(task: DataScrapingTask) -> None:
 def process_scraping_result_links(task: LinkScrapingTask) -> None:
     I("Scrape_links.py execution started.")
     driver = task.driver
-    dates = fetch_data(f"SELECT * FROM {task.schema}.{task.source_table}")
+    dates = db.fetch_data(f"SELECT * FROM {task.schema}.{task.source_table}")
     if dates.empty:
         I("No missing dates found. Ending the script.")
         return
@@ -85,7 +87,7 @@ def process_scraping_result_links(task: LinkScrapingTask) -> None:
                 {"date": [date] * len(days_results_links), "link": days_results_links}
             )
             I(f"Inserting {len(days_results_links)} links into the database.")
-            store_data(days_results_links_df, task.destination_table, task.schema)
+            db.store_data(days_results_links_df, task.destination_table, task.schema)
         except KeyboardInterrupt:
             I("Keyboard interrupt detected. Exiting the script.")
             break
@@ -105,7 +107,7 @@ def run_scraping_task(task):
 
 
 def check_already_processed(job_name: str) -> bool:
-    return fetch_data(
+    return db.fetch_data(
         f"""
         SELECT * 
         FROM metrics.processing_times 
@@ -113,4 +115,3 @@ def check_already_processed(job_name: str) -> bool:
         AND processed_at:: date = CURRENT_DATE
         """
     ).empty
-

@@ -8,14 +8,16 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from src.raw import check_already_processed
+
 from src.data_models.base.base_model import convert_and_validate_data
 from src.data_models.raw.racing_post_model import (
     RacingPostDataModel,
     table_string_field_lengths,
 )
 from src.raw.webdriver_base import get_headless_driver
-from src.storage.sql_db import fetch_data, store_data
+from src.storage.psql_db import get_db
+
+db = get_db()
 from src.utils.logging_config import E, I, W
 from src.utils.processing_utils import register_job_completion
 
@@ -27,7 +29,7 @@ TOMORROW_LINK = f"{BASE_LINK}/{TOMORROWS_DATE_FILTER}"
 
 
 def fetch_course_data() -> pd.DataFrame:
-    return fetch_data(
+    return db.fetch_data(
         """
         SELECT * FROM public.course cr
         left join public.country ct on 
@@ -415,7 +417,7 @@ def process_rp_scrape_days_data(dates: list[str]):
             table_string_field_lengths,
             "unique_id",
         )
-        processed_data = fetch_data("SELECT * FROM rp_raw.todays_performance_data")
+        processed_data = db.fetch_data("SELECT * FROM rp_raw.todays_performance_data")
         data = (
             pd.concat([data, processed_data])
             .sort_values(by="created_at", ascending=False)
@@ -426,16 +428,16 @@ def process_rp_scrape_days_data(dates: list[str]):
             E(
                 f'there were errors processing the following urls: {errors["error_url"].tolist()}'
             )
-            processed_error_data = fetch_data(
+            processed_error_data = db.fetch_data(
                 "SELECT * FROM errors.todays_performance_data"
             )
             non_duplicated_errors = errors[
                 ~errors["error_url"].isin(processed_error_data["error_url"])
             ].drop_duplicates(subset=["error_url"])
-            store_data(non_duplicated_errors, "todays_performance_data", "errors")
+            db.store_data(non_duplicated_errors, "todays_performance_data", "errors")
 
         data = data[data["race_date"] >= datetime.now().strftime("%Y-%m-%d")]
-        store_data(data, "todays_performance_data", "rp_raw", truncate=True)
+        db.store_data(data, "todays_performance_data", "rp_raw", truncate=True)
     driver.quit()
     register_job_completion("scrape_todays_rp_data")
 
