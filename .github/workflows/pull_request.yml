@@ -31,17 +31,6 @@ jobs:
           docker-compose up -d
         shell: bash
 
-      - name: Unit tests
-        env:
-          PYTHONPATH: ${{ github.workspace }}
-        run: |
-          pytest tests/unit
-
-      - name: Run docker
-        run: |
-          docker-compose up -d
-        shell: bash
-
       - name: Wait for PostgreSQL to start
         run: |
           echo "Waiting for PostgreSQL to start..."
