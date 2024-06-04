@@ -1,16 +1,14 @@
 import random
 import time
 
-from src.config import config
-
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 
-from src.utils.logging_config import I
 from src.config import config
+from src.utils.logging_config import I
 
 
 class WebDriverBuilder:

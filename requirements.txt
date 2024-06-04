@@ -4,6 +4,7 @@ pytz
 pandas 
 sqlalchemy
 psycopg2-binary
-pyarrow
-fastparquet
-boto3
+fuzzywuzzy
+betfairlightweight
+pydantic-settings
+python-dotenv

@@ -4,10 +4,8 @@ pytz
 pandas 
 sqlalchemy
 psycopg2-binary
-black
-isort
-flake8
+fuzzywuzzy
+betfairlightweight
+pydantic-settings
+python-dotenv
 pytest
-pyarrow
-fastparquet
-boto3

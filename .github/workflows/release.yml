@@ -1,0 +1,60 @@
+name: Development release
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'  
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Unit tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          pytest tests/unit
+
+      - name: Run docker
+        run: |
+          docker-compose up -d
+        shell: bash
+
+      - name: Wait for PostgreSQL to start
+        run: |
+          echo "Waiting for PostgreSQL to start..."
+          while ! pg_isready -h localhost -p 5433 -U test_user; do
+            sleep 1
+          done
+          echo "PostgreSQL is ready"
+
+      - name: Integration tests
+        env:
+          PYTHONPATH: ${{ github.workspace }} 
+        run: |
+          pytest tests/integration
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.DROPLET_IP }} >> ~/.ssh/known_hosts
+
+      - name: SSH into Droplet and execute commands
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_IP }} << 'EOF'
+            cd racing-etl
+            git checkout main
+            git pull

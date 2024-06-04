@@ -1,20 +1,22 @@
 import itertools
-import os
 import subprocess
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
-from src.config import config
+
 import pandas as pd
 
+from src.config import config
+from src.storage.psql_db import get_db
 from src.storage.s3_bucket import DigitalOceanSpacesHandler
-from src.storage.sql_db import fetch_data
+
+db = get_db()
 from src.utils.logging_config import I
 
 RUNNING_TIME = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
 
 def fetch_entity_data(table: str):
-    return fetch_data(
+    return db.fetch_data(
         f"""
         SELECT * 
         FROM public.{table}
@@ -42,7 +44,7 @@ def upload_entity_data(
 
 
 def fetch_performance_data(schema: str, table: str, year: int) -> pd.DataFrame:
-    return fetch_data(
+    return db.fetch_data(
         f"""
         SELECT * 
         FROM {schema}.{table}

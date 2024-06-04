@@ -1,7 +1,9 @@
 import pandas as pd
 from fuzzywuzzy import fuzz
 
-from src.storage.sql_db import insert_records
+from src.storage.psql_db import get_db
+
+db = get_db()
 from src.utils.logging_config import I, W
 from src.utils.processing_utils import pt
 
@@ -153,12 +155,12 @@ def entity_match(
 
 def store_owner_data(owner_data: pd.DataFrame) -> None:
     if not owner_data.empty:
-        insert_records("owner", "public", owner_data, ["rp_id"])
+        db.insert_records("owner", "public", owner_data, ["rp_id"])
 
 
 def store_matched_data(matched: pd.DataFrame, entity: str) -> None:
     if not matched.empty:
-        insert_records(
+        db.insert_records(
             entity,
             "public",
             matched[matched["entity"] == entity][["rp_id", "name", "tf_id"]],
@@ -170,7 +172,7 @@ def store_unmatched_data(unmatched: pd.DataFrame, entity: str) -> None:
     if not unmatched.empty:
         W(f"Unmatched {entity} data found")
         W(unmatched[unmatched["entity"] == entity])
-        insert_records(
+        db.insert_records(
             "staging_entity_unmatched",
             "errors",
             unmatched[unmatched["entity"] == entity],

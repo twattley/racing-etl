@@ -1,9 +1,11 @@
-from src.storage.sql_db import fetch_data, store_data
-from src.utils.processing_utils import ptr
 import pandas as pd
 from fuzzywuzzy import process
 
-from src.utils.logging_config import W, I
+from src.storage.psql_db import get_db
+from src.utils.logging_config import I, W
+from src.utils.processing_utils import ptr
+
+db = get_db()
 
 
 def filter_horse_name(data):
@@ -35,15 +37,17 @@ def entity_match_betfair(rp: pd.DataFrame, bf: pd.DataFrame) -> pd.DataFrame:
             continue
         if best_match[1] < 90:
             W(f"Match score below 90 for {i.horse_name}, race_time: {i.race_time}")
-            W(f'Best match: {best_match}')
+            W(f"Best match: {best_match}")
             unmatched.append(i.horse_name)
             continue
-        rp_data = sub_rp[sub_rp["filtered_horse_name"] == best_match[0]].drop_duplicates()
+        rp_data = sub_rp[
+            sub_rp["filtered_horse_name"] == best_match[0]
+        ].drop_duplicates()
         if len(rp_data) > 1:
             W(f"Multiple matches for {i.horse_name}, race_time: {i.race_time}")
             unmatched.append(i.horse_name)
             continue
-        if  len(rp_data) == 0:
+        if len(rp_data) == 0:
             W(f"No matches for {i.horse_name}, race_time: {i.race_time}")
             unmatched.append(i.horse_name)
             continue
@@ -66,7 +70,7 @@ if __name__ == "__main__":
         rp_data,
         bf_data,
     ) = ptr(
-        lambda: fetch_data(
+        lambda: db.fetch_data(
             """
             SELECT race_timestamp, h.id, horse_name 
             FROM rp_raw.todays_performance_data tpd
@@ -74,7 +78,7 @@ if __name__ == "__main__":
             ON tpd.horse_id = h.rp_id
             """
         ),
-        lambda: fetch_data(
+        lambda: db.fetch_data(
             """
             SELECT race_time, horse_id, horse_name 
             FROM bf_raw.todays_price_data
@@ -84,7 +88,4 @@ if __name__ == "__main__":
     )
 
     matched = entity_match_betfair(rp_data, bf_data)
-    store_data(matched, "bf_horse", "public", truncate=True)
-
-
-
+    db.store_data(matched, "bf_horse", "public", truncate=True)

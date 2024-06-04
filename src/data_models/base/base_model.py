@@ -3,7 +3,7 @@ from datetime import date, datetime
 
 import pandas as pd
 
-from src.utils.logging_config import D, I, W
+from src.utils.logging_config import I
 
 
 @dataclass
@@ -72,6 +72,7 @@ def sort_data(
     )[[field.name for field in fields(data_model)]]
     I(f"Data Sample {data.head(10)}")
     return data
+
 
 def convert_and_validate_data(
     data: pd.DataFrame,

@@ -8,7 +8,9 @@ from src.entity_matching.matcher import (
     store_matching_results,
     store_owner_data,
 )
-from src.storage.sql_db import call_procedure, fetch_data, store_data
+from src.storage.psql_db import get_db
+
+db = get_db()
 from src.utils.logging_config import I, W
 from src.utils.processing_utils import ptr
 
@@ -18,17 +20,19 @@ STRING_DATE_NOW = datetime.now().strftime("%Y-%m-%d")
 
 def insert_into_performance_data():
     ptr(
-        lambda: call_procedure("insert_into_joined_performance_data", "staging"),
-        lambda: call_procedure("insert_into_todays_joined_performance_data", "staging"),
+        lambda: db.call_procedure("insert_into_joined_performance_data", "staging"),
+        lambda: db.call_procedure(
+            "insert_into_todays_joined_performance_data", "staging"
+        ),
     )
 
 
 def post_matching_data_checks():
     todays_rp_raw, todays_staging = ptr(
-        lambda: fetch_data(
+        lambda: db.fetch_data(
             "SELECT DISTINCT unique_id FROM rp_raw.todays_performance_data;"
         ),
-        lambda: fetch_data(
+        lambda: db.fetch_data(
             "SELECT DISTINCT unique_id FROM staging.todays_joined_performance_data;"
         ),
     )
@@ -81,12 +85,12 @@ def run_matching_pipeline():
         rp_trainer_data,
         rp_owner_data,
     ) = ptr(
-        lambda: fetch_data("SELECT * FROM rp_raw.unmatched_sires;"),
-        lambda: fetch_data("SELECT * FROM rp_raw.unmatched_dams;"),
-        lambda: fetch_data("SELECT * FROM rp_raw.unmatched_horses;"),
-        lambda: fetch_data("SELECT * FROM rp_raw.unmatched_jockeys;"),
-        lambda: fetch_data("SELECT * FROM rp_raw.unmatched_trainers;"),
-        lambda: fetch_data("SELECT * FROM rp_raw.unmatched_owners;"),
+        lambda: db.fetch_data("SELECT * FROM rp_raw.unmatched_sires;"),
+        lambda: db.fetch_data("SELECT * FROM rp_raw.unmatched_dams;"),
+        lambda: db.fetch_data("SELECT * FROM rp_raw.unmatched_horses;"),
+        lambda: db.fetch_data("SELECT * FROM rp_raw.unmatched_jockeys;"),
+        lambda: db.fetch_data("SELECT * FROM rp_raw.unmatched_trainers;"),
+        lambda: db.fetch_data("SELECT * FROM rp_raw.unmatched_owners;"),
     )
     store_owner_data(rp_owner_data)
     rp_matching_data = pd.concat(
@@ -109,8 +113,10 @@ def run_matching_pipeline():
         return
 
     tf_hist_data, tf_present_data = ptr(
-        lambda: fetch_data(missing_timeform_query("performance_data", missing_dates)),
-        lambda: fetch_data(
+        lambda: db.fetch_data(
+            missing_timeform_query("performance_data", missing_dates)
+        ),
+        lambda: db.fetch_data(
             missing_timeform_query("todays_performance_data", missing_dates)
         ),
     )
@@ -133,7 +139,7 @@ def run_matching_pipeline():
         rp_data,
         bf_data,
     ) = ptr(
-        lambda: fetch_data(
+        lambda: db.fetch_data(
             """
                     SELECT race_timestamp, h.id, horse_name 
                     FROM rp_raw.todays_performance_data tpd
@@ -141,12 +147,12 @@ def run_matching_pipeline():
                     ON tpd.horse_id = h.rp_id
             """
         ),
-        lambda: fetch_data(
+        lambda: db.fetch_data(
             "SELECT race_time, horse_id, horse_name FROM bf_raw.todays_price_data"
         ),
     )
     matched = entity_match_betfair(rp_data, bf_data)
-    store_data(matched, "bf_horse", "public", truncate=True)
+    db.store_data(matched, "bf_horse", "public", truncate=True)
 
 
 if __name__ == "__main__":

@@ -1,12 +1,14 @@
-from src.storage.sql_db import fetch_data
+from src.storage.psql_db import get_db
+db = get_db()
+
 from src.utils.logging_config import E, I
 from src.utils.processing_utils import ptr
 
 
 def run_data_checks_pipeline():
     missing_records_between_sets, missing_rp_data_in_final = ptr(
-        lambda: fetch_data("SELECT * FROM metrics.record_count_differences_vw"),
-        lambda: fetch_data("SELECT * FROM metrics.missing_raw_data"),
+        lambda: db.fetch_data("SELECT * FROM metrics.record_count_differences_vw"),
+        lambda: db.fetch_data("SELECT * FROM metrics.missing_raw_data"),
     )
 
     if missing_records_between_sets.empty:
