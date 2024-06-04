@@ -10,6 +10,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 
 from src.utils.logging_config import I
+from src.config import config
 
 
 class WebDriverBuilder:
@@ -34,7 +35,7 @@ class WebDriverBuilder:
 
         options.add_argument(f"user-agent={self.user_agent}")
 
-        chromedriver_path = "/Users/tom.wattley/chromedriver/chromedriver"
+        chromedriver_path = config.chromedriver_path
         service = Service(executable_path=chromedriver_path)
 
         return webdriver.Chrome(service=service, options=options)
