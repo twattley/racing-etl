@@ -56,36 +56,13 @@ def entity_match_betfair(rp: pd.DataFrame, bf: pd.DataFrame) -> pd.DataFrame:
                 "id": rp_data.id.iloc[0],
                 "name": rp_data.horse_name.iloc[0],
                 "bf_id": i.horse_id,
+                'race_time': i.race_time,
+                "race_id": rp_data.race_id.iloc[0],
+                "market_id_win": i.market_id_win,
+                "market_id_place": i.market_id_place,
             }
         )
 
     I(f"Matched {len(matches)} of {len(bf)} horses")
 
     return pd.DataFrame(matches)
-
-
-if __name__ == "__main__":
-    I("Starting Betfair matching")
-    (
-        rp_data,
-        bf_data,
-    ) = ptr(
-        lambda: db.fetch_data(
-            """
-            SELECT race_timestamp, h.id, horse_name 
-            FROM rp_raw.todays_performance_data tpd
-            LEFT JOIN horse h
-            ON tpd.horse_id = h.rp_id
-            """
-        ),
-        lambda: db.fetch_data(
-            """
-            SELECT race_time, horse_id, horse_name 
-            FROM bf_raw.todays_price_data
-            WHERE status = 'ACTIVE'
-            """
-        ),
-    )
-
-    matched = entity_match_betfair(rp_data, bf_data)
-    db.store_data(matched, "bf_horse", "public", truncate=True)

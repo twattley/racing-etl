@@ -5,6 +5,7 @@ pandas
 sqlalchemy
 psycopg2-binary
 fuzzywuzzy
-betfairlightweight
 pydantic-settings
 python-dotenv
+git+https://github.com/twattley/api-helpers@v0.0.6
+

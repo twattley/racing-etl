@@ -55,7 +55,7 @@ class SQLDatabase:
                 I(f"Truncating {schema}.{table}")
                 self.execute_query(f"TRUNCATE TABLE {schema}.{table}")
             if created_at:
-                self = self.assign(created_at=get_uk_time_now())
+                self = data.assign(created_at=get_uk_time_now())
             I(f"Storing {len(data)} records in {schema}.{table}")
             data.to_sql(
                 name=table,

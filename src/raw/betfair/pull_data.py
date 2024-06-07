@@ -1,14 +1,25 @@
 import pandas as pd
 
-from src.betfair.betfair_client import BetfairClient, BetFairConnector
+from api_helpers.betfair_client import get_betfair_client, BetfairCredentials
 from src.storage.psql_db import get_db
+from src.config import config
 
 db = get_db()
 
 
 def process_bf_pull_data():
-    trading_client = BetfairClient(client=BetFairConnector())
+    trading_client = get_betfair_client(
+        BetfairCredentials(
+            username=config.bf_username,
+            password=config.bf_password,
+            app_key=config.bf_app_key,
+            certs_path=config.bf_certs_path,
+        )
+    )
+
     data = trading_client.create_market_data()
+
+    data .to_csv('~/Desktop/test.csv', index=False)
 
     win_and_place = (
         pd.merge(
@@ -24,6 +35,8 @@ def process_bf_pull_data():
                 "last_traded_price_win": "betfair_win_sp",
                 "last_traded_price_place": "betfair_place_sp",
                 "status_win": "status",
+                "market_id_win": "market_id_win",
+                "market_id_place": "market_id_place",
             }
         )
         .filter(
@@ -35,6 +48,8 @@ def process_bf_pull_data():
                 "betfair_win_sp",
                 "betfair_place_sp",
                 "status",
+                "market_id_win",
+                "market_id_place",
             ]
         )
         .sort_values(by="race_time", ascending=True)
