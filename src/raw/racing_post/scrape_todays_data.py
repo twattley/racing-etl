@@ -16,10 +16,10 @@ from src.data_models.raw.racing_post_model import (
 )
 from src.raw.webdriver_base import get_headless_driver
 from src.storage.psql_db import get_db
-
-db = get_db()
 from src.utils.logging_config import E, I, W
 from src.utils.processing_utils import register_job_completion
+
+db = get_db()
 
 BASE_LINK = "https://www.racingpost.com/racecards"
 TODAYS_DATE_FILTER = datetime.now().strftime("%Y-%m-%d")
@@ -129,7 +129,6 @@ def get_surface(driver: webdriver.Chrome) -> str:
 
 
 def get_race_details(driver: webdriver.Chrome) -> dict:
-
     header_map = {
         "RC-header__raceDistanceRound": "distance",
         "RC-header__raceDistance": "distance_full",

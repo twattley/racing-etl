@@ -149,7 +149,6 @@ def test_simple_fail():
 
 
 def test_horse_mispelled():
-
     rp_entity_data = pd.DataFrame(
         {
             "horse_name": ["horse_a"],

@@ -1,8 +1,8 @@
 from src.storage.psql_db import get_db
-db = get_db()
-
 from src.utils.logging_config import E, I
 from src.utils.processing_utils import ptr
+
+db = get_db()
 
 
 def run_data_checks_pipeline():

@@ -2,16 +2,15 @@ import pandas as pd
 from fuzzywuzzy import fuzz
 
 from src.storage.psql_db import get_db
-
-db = get_db()
 from src.utils.logging_config import I, W
 from src.utils.processing_utils import pt
+
+db = get_db()
 
 
 def format_names(
     data: pd.DataFrame,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-
     data["jockey_last_name"] = (
         data["jockey_name"]
         .apply(lambda x: x.split(" ")[-1])
@@ -51,7 +50,6 @@ def format_names(
 def create_fuzz_scores(
     base_set: pd.DataFrame, matching_set: pd.DataFrame
 ) -> pd.DataFrame:
-
     base_set = base_set.assign(
         fuzz_horse=base_set["filtered_horse_name"].apply(
             lambda x: fuzz.ratio(x, matching_set["filtered_horse_name"].iloc[0])

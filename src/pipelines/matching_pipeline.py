@@ -9,10 +9,10 @@ from src.entity_matching.matcher import (
     store_owner_data,
 )
 from src.storage.psql_db import get_db
-
-db = get_db()
 from src.utils.logging_config import I, W
 from src.utils.processing_utils import ptr
+
+db = get_db()
 
 MATCHING_DATA_FOLDER = "./src/data"
 STRING_DATE_NOW = datetime.now().strftime("%Y-%m-%d")
@@ -75,7 +75,6 @@ def missing_timeform_query(table, missing_dates):
 
 
 def run_matching_pipeline():
-
     I("Loading direct matches")
     (
         rp_sire_data,

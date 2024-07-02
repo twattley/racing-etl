@@ -60,7 +60,6 @@ def title_except_brackets(text):
 
 
 def get_main_race_comment(driver):
-
     premium_comment_elements = driver.find_elements(
         By.CSS_SELECTOR, "td[title='Premium Race Comment']"
     )

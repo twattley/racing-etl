@@ -8,17 +8,16 @@ from src.raw.timeform.scrape_data import process_tf_scrape_data
 from src.raw.timeform.scrape_links import process_tf_scrape_links
 from src.raw.timeform.scrape_todays_data import process_tf_scrape_days_data
 from src.storage.psql_db import get_db
-
-db = get_db()
 from src.utils.logging_config import I, W
 from src.utils.processing_utils import pp, ptr
+
+db = get_db()
 
 TODAY = datetime.now().strftime("%Y-%m-%d")
 TOMORROW = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
 
 
 def post_results_scraping_checks():
-
     I("Checking for missing data...")
     rp_links, tf_links = ptr(
         lambda: db.fetch_data("SELECT * FROM rp_raw.missing_links;"),

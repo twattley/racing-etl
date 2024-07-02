@@ -63,7 +63,6 @@ def assert_data_equal():
 
 
 def truncate_table_statements():
-
     SCHEMA_DIR = os.path.join(os.getcwd(), "src/schema/backup_files")
     SCHEMA_FILE = "racehorse-database-schema.sql"
 

@@ -344,7 +344,6 @@ def test_distance_beaten_data():
 
 
 def test_convert_horse_type_to_colour_sex():
-
     input_df = pd.DataFrame(
         {
             "horse_type": [

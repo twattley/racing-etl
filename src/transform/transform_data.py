@@ -148,7 +148,6 @@ def get_surfaces_from_tf_rating(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def convert_distances(distance: str) -> tuple:
-
     frac_map = {
         "½": 0.5,
         "⅓": 0.33,
@@ -499,7 +498,6 @@ def transform_data(
     transform_data_model: TransformedDataModel,
     race_data_model: RaceDataModel,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-
     transformed_data, race_data = process_data(
         data=data,
         transform_data_model=transform_data_model,

@@ -83,7 +83,6 @@ class BetfairClient:
         return self._process_combined_market_data(markets, runners)
 
     def _create_markets_and_runners(self):
-
         markets = self.trading_client.client.betting.list_market_catalogue(
             filter=self.MARKET_FILTER,
             market_projection=self.MARKET_PROJECTION,

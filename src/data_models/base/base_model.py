@@ -14,19 +14,18 @@ def convert_data(
     data: pd.DataFrame,
     data_model: BaseDataModel,
 ) -> pd.DataFrame:
-
     I("Converting data...")
 
     for field in fields(data_model):
-        if field.type == datetime:
+        if isinstance(field.type, datetime):
             data[field.name] = pd.to_datetime(data[field.name], errors="coerce")
-        if field.type == date:
+        if isinstance(field.type, date):
             data[field.name] = pd.to_datetime(data[field.name], errors="coerce").dt.date
-        elif field.type == int:
+        elif isinstance(field.type, int):
             data[field.name] = pd.to_numeric(data[field.name], errors="coerce").astype(
                 "Int64"
             )
-        elif field.type == float:
+        elif isinstance(field.type, float):
             data[field.name] = pd.to_numeric(data[field.name], errors="coerce")
 
     I("Data converted successfully")
@@ -38,7 +37,6 @@ def validate_data(
     data: pd.DataFrame,
     data_model: BaseDataModel,
 ) -> pd.DataFrame:
-
     I("Validating data...")
 
     data_model_fields = {field.name for field in fields(data_model)}
@@ -80,7 +78,6 @@ def convert_and_validate_data(
     string_lengths: dict,
     unique_id: str,
 ) -> pd.DataFrame:
-
     return (
         data.pipe(convert_data, data_model)
         .pipe(sort_data, data_model, unique_id)

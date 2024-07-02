@@ -153,7 +153,6 @@ def get_prize_money(driver):
 
 
 def get_performance_data(driver):
-
     horse_data = []
 
     order = []
