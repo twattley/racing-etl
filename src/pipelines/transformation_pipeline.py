@@ -109,6 +109,7 @@ def run_transformation_pipeline():
     post_transform_today_checks()
 
     db.call_procedure("insert_unioned_performance_data", "public")
+    db.call_procedure("amend_winning_position_of_first_place_horse", "public")
 
 
 if __name__ == "__main__":

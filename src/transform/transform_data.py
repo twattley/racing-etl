@@ -493,6 +493,21 @@ def validate_data(data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     return accepted_df, rejected_df
 
 
+def convert_types(data: pd.DataFrame) -> pd.DataFrame:
+    return data.assign(
+        official_rating=pd.to_numeric(data["official_rating"], errors="coerce")
+        .fillna(0)
+        .astype(int),
+        rpr=pd.to_numeric(data["rpr"], errors="coerce").astype("Int64"),
+        ts=pd.to_numeric(data["ts"], errors="coerce").astype("Int64"),
+        tfr=pd.to_numeric(data["tfr"], errors="coerce").astype("Int64"),
+        tfig=pd.to_numeric(data["tfig"], errors="coerce").astype("Int64"),
+        draw=pd.to_numeric(
+            data["draw"].str.replace("(", "").str.replace(")", ""), errors="coerce"
+        ).astype("Int64"),
+    )
+
+
 def transform_data(
     data: pd.DataFrame,
     transform_data_model: TransformedDataModel,
@@ -505,5 +520,7 @@ def transform_data(
     )
 
     accepted_data, rejected_data = transformed_data.pipe(validate_data)
+
+    accepted_data = accepted_data.pipe(convert_types)
 
     return accepted_data, rejected_data, race_data

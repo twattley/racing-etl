@@ -280,6 +280,10 @@ def get_horse_data(driver: webdriver.Chrome) -> pd.DataFrame:
         official_rating = (
             official_rating_element.text.strip() if official_rating_element else None
         )
+        if draw is not None:
+            draw = draw.replace("(", "").replace(")", "").strip()
+        else:
+            draw = None
 
         horse_data.append(
             {
@@ -300,7 +304,7 @@ def get_horse_data(driver: webdriver.Chrome) -> pd.DataFrame:
                 "horse_age": age.strip() if age else None,
                 "horse_weight": weight_carried.strip() if weight_carried else None,
                 "jockey_claim": jockey_claim.strip() if jockey_claim else None,
-                "draw": draw.strip() if draw else None,
+                "draw": draw,
                 "official_rating": official_rating,
             }
         )
@@ -315,8 +319,11 @@ def get_links(
         element.get_attribute("href")
         for element in driver.find_elements(By.XPATH, "//a")
     ]
+    filtered_hrefs = [i for i in hrefs if i is not None]
+
+    racecards = [i for i in filtered_hrefs if "racecards" in i]
     trimmed_hrefs = []
-    for href in hrefs:
+    for href in racecards:
         if href.endswith("/"):
             href = href[:-1]
         trimmed_hrefs.append(href)
@@ -330,7 +337,12 @@ def get_links(
         raise ValueError(f"No patterns found on date: {date}")
 
     return sorted(
-        {url for url in hrefs for pattern in patterns if re.search(pattern, url)}
+        {
+            url
+            for url in filtered_hrefs
+            for pattern in patterns
+            if re.search(pattern, url)
+        }
     )
 
 

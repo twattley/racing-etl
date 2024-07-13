@@ -69,21 +69,21 @@ def todays_pipeline():
             ([TODAY],),
         ),
     )
-    pp(
-        (
-            process_rp_scrape_days_data,
-            ([TOMORROW],),
-        ),
-        (
-            process_tf_scrape_days_data,
-            ([TOMORROW],),
-        ),
-    )
+    # pp(
+    #     (
+    #         process_rp_scrape_days_data,
+    #         ([TOMORROW],),
+    #     ),
+    #     (
+    #         process_tf_scrape_days_data,
+    #         ([TOMORROW],),
+    #     ),
+    # )
     process_bf_pull_data()
     post_racecards_scraping_checks()
 
 
-def run_ingestion_pipeline(historical=True, todays=True):
+def run_ingestion_pipeline(historical=False, todays=True):
     if historical:
         historical_pipeline()
     if todays:
