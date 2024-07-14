@@ -9,7 +9,7 @@ def run_daily_pipeline():
     I("***************** RUNNING INGESTION PIPELINE *****************")
     run_ingestion_pipeline()
     I("***************** RUNNING MATCHING PIPELINE *****************")
-    # run_matching_pipeline()
+    run_matching_pipeline()
     I("***************** RUNNING TRANSFORMATION PIPELINE *****************")
     run_transformation_pipeline()
     I("***************** RUNNING DATA CHECKS PIPELINE *****************")

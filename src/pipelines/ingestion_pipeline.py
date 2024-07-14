@@ -83,7 +83,7 @@ def todays_pipeline():
     post_racecards_scraping_checks()
 
 
-def run_ingestion_pipeline(historical=False, todays=True):
+def run_ingestion_pipeline(historical=True, todays=True):
     if historical:
         historical_pipeline()
     if todays:
