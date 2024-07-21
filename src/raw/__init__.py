@@ -44,7 +44,7 @@ def process_scraping_data(task: DataScrapingTask) -> None:
         I("No missing links found. Ending the script.")
         return
     I(f"Number of missing links: {len(filtered_links_df)}")
-    for link in filtered_links_df.link:
+    for link in filtered_links_df.link_url:
         try:
             I(f"Scraping link: {link}")
             driver.get(link)
@@ -84,7 +84,10 @@ def process_scraping_result_links(task: LinkScrapingTask) -> None:
             days_results_links = task.filter_func(driver)
             I(f"Found {len(days_results_links)} valid links for date {date}.")
             days_results_links_df = pd.DataFrame(
-                {"date": [date] * len(days_results_links), "link": days_results_links}
+                {
+                    "date": [date] * len(days_results_links),
+                    "link_url": days_results_links,
+                }
             )
             I(f"Inserting {len(days_results_links)} links into the database.")
             db.store_data(days_results_links_df, task.destination_table, task.schema)

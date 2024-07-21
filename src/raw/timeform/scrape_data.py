@@ -64,11 +64,19 @@ def get_main_race_comment(driver):
         By.CSS_SELECTOR, "td[title='Premium Race Comment']"
     )
     for premium_comment_element in premium_comment_elements:
-        first_paragraph_elements = premium_comment_element.find_elements(
-            By.TAG_NAME, "p"
-        )
-        if first_paragraph_elements:
-            return first_paragraph_elements[0].text.strip()
+        paragraph_elements = premium_comment_element.find_elements(By.TAG_NAME, "p")
+        if paragraph_elements:
+            first_paragraph_text = paragraph_elements[0].text.strip()
+            if "rule 4" in first_paragraph_text.lower():
+                second_paragraph_text = (
+                    paragraph_elements[1].text.strip()
+                    if len(paragraph_elements) > 1
+                    else ""
+                )
+                full_comment = f"{first_paragraph_text} {second_paragraph_text}"
+            else:
+                full_comment = first_paragraph_text
+            return full_comment
     return "No Comment Found"
 
 

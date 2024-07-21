@@ -45,6 +45,7 @@ def run_transformation_pipeline():
             data=results_data,
             transform_data_model=TransformedDataModel,
             race_data_model=RaceDataModel,
+            data_type="results",
         )
         pt(
             lambda: db.store_data(
@@ -73,6 +74,7 @@ def run_transformation_pipeline():
             data=todays_data,
             transform_data_model=TransformedDataModel,
             race_data_model=RaceDataModel,
+            data_type="todays",
         )
         pt(
             lambda: db.store_data(

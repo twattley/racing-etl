@@ -69,16 +69,6 @@ def todays_pipeline():
             ([TODAY],),
         ),
     )
-    # pp(
-    #     (
-    #         process_rp_scrape_days_data,
-    #         ([TOMORROW],),
-    #     ),
-    #     (
-    #         process_tf_scrape_days_data,
-    #         ([TOMORROW],),
-    #     ),
-    # )
     process_bf_pull_data()
     post_racecards_scraping_checks()
 

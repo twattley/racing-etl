@@ -495,6 +495,24 @@ def validate_data(data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
 
 def convert_types(data: pd.DataFrame) -> pd.DataFrame:
     return data.assign(
+        race_time=pd.to_datetime(data["race_time"]),
+        race_date=pd.to_datetime(data["race_date"]).dt.date,
+        age=pd.to_numeric(data["age"], errors="coerce").astype("Int64"),
+        draw=pd.to_numeric(data["draw"], errors="coerce").astype("Int64"),
+        weight_carried_lbs=pd.to_numeric(
+            data["weight_carried_lbs"], errors="coerce"
+        ).astype("Int64"),
+        extra_weight=pd.to_numeric(data["extra_weight"], errors="coerce").astype(
+            "Int64"
+        ),
+        jockey_claim=pd.to_numeric(data["jockey_claim"], errors="coerce").astype(
+            "Int64"
+        ),
+        total_distance_beaten=pd.to_numeric(
+            data["total_distance_beaten"], errors="coerce"
+        ),
+        betfair_win_sp=pd.to_numeric(data["betfair_win_sp"], errors="coerce"),
+        betfair_place_sp=pd.to_numeric(data["betfair_place_sp"], errors="coerce"),
         official_rating=pd.to_numeric(data["official_rating"], errors="coerce")
         .fillna(0)
         .astype(int),
@@ -502,9 +520,16 @@ def convert_types(data: pd.DataFrame) -> pd.DataFrame:
         ts=pd.to_numeric(data["ts"], errors="coerce").astype("Int64"),
         tfr=pd.to_numeric(data["tfr"], errors="coerce").astype("Int64"),
         tfig=pd.to_numeric(data["tfig"], errors="coerce").astype("Int64"),
-        draw=pd.to_numeric(
-            data["draw"].str.replace("(", "").str.replace(")", ""), errors="coerce"
-        ).astype("Int64"),
+        in_play_high=pd.to_numeric(data["in_play_high"], errors="coerce"),
+        in_play_low=pd.to_numeric(data["in_play_low"], errors="coerce"),
+        race_id=pd.to_numeric(data["race_id"], errors="coerce").astype("Int64"),
+        course_id=pd.to_numeric(data["course_id"], errors="coerce").astype("Int64"),
+        horse_id=pd.to_numeric(data["horse_id"], errors="coerce").astype("Int64"),
+        jockey_id=pd.to_numeric(data["jockey_id"], errors="coerce").astype("Int64"),
+        trainer_id=pd.to_numeric(data["trainer_id"], errors="coerce").astype("Int64"),
+        owner_id=pd.to_numeric(data["owner_id"], errors="coerce").astype("Int64"),
+        sire_id=pd.to_numeric(data["sire_id"], errors="coerce").astype("Int64"),
+        dam_id=pd.to_numeric(data["dam_id"], errors="coerce").astype("Int64"),
     )
 
 
@@ -512,7 +537,9 @@ def transform_data(
     data: pd.DataFrame,
     transform_data_model: TransformedDataModel,
     race_data_model: RaceDataModel,
+    data_type: str,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
+    I(f"transforming {data_type} data")
     transformed_data, race_data = process_data(
         data=data,
         transform_data_model=transform_data_model,
@@ -523,4 +550,5 @@ def transform_data(
 
     accepted_data = accepted_data.pipe(convert_types)
 
+    I(f"finished transforming {data_type} data")
     return accepted_data, rejected_data, race_data
