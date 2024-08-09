@@ -44,7 +44,6 @@ def process_scraping_data(task: DataScrapingTask) -> None:
         I("No missing links found. Ending the script.")
         return
     I(f"Number of missing links: {len(filtered_links_df)}")
-    print(filtered_links_df.head())
     for link in filtered_links_df.link_url.unique():
         try:
             I(f"Scraping link: {link}")
