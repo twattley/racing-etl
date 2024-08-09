@@ -9,7 +9,10 @@ from src.data_models.transform.race_model import RaceDataModel
 from src.data_models.transform.race_model import (
     table_string_field_lengths as race_string_field_lengths,
 )
-from src.data_models.transform.transformed_model import TransformedDataModel
+from src.data_models.transform.transformed_model import (
+    TransformedDataModel,
+    distance_map,
+)
 from src.data_models.transform.transformed_model import (
     table_string_field_lengths as transform_string_field_lengths,
 )
@@ -145,76 +148,6 @@ def get_surfaces_from_tf_rating(data: pd.DataFrame) -> pd.DataFrame:
         return data.assign(surface=None)
     I("Getting surfaces from tf rating")
     return data.assign(surface=data["tfr"].apply(get_surface_type))
-
-
-def convert_distances(distance: str) -> tuple:
-    frac_map = {
-        "½": 0.5,
-        "⅓": 0.33,
-        "⅔": 0.66,
-        "¼": 0.25,
-        "¾": 0.75,
-        "⅕": 0.2,
-        "⅖": 0.4,
-        "⅗": 0.6,
-        "⅘": 0.8,
-        "⅙": 0.167,
-        "⅚": 0.833,
-        "⅐": 0.143,
-        "⅛": 0.125,
-        "⅜": 0.375,
-        "⅝": 0.625,
-        "⅞": 0.875,
-    }
-    if pd.isna(distance) or not distance:
-        return np.nan, np.nan, np.nan
-    miles_to_yards = 1760
-    furlongs_to_yards = 220
-    yards_to_meters = 0.9144
-
-    total_yards = 0
-    m, f = 0, 0
-    if "m" in distance:
-        parts = distance.split("m")
-        m = int(parts[0])
-        f_part = parts[1] if len(parts) > 1 else ""
-    else:
-        f_part = distance
-
-    for frac_symbol, decimal_value in frac_map.items():
-        if frac_symbol in f_part:
-            f = int(f_part.split(frac_symbol)[0]) if f_part.split(frac_symbol)[0] else 0
-            f += decimal_value
-            break
-    else:
-        if f_part.replace("f", ""):
-            f = int(f_part.replace("f", ""))
-
-    total_yards += m * miles_to_yards + f * furlongs_to_yards
-    total_meters = total_yards * yards_to_meters
-    total_kilometers = total_meters / 1000
-
-    return total_yards, round(total_meters, 2), round(total_kilometers, 2)
-
-
-def convert_distances_full(distance: str) -> tuple:
-    if pd.isna(distance) or not distance:
-        return np.nan, np.nan, np.nan
-    miles_to_yards = 1760
-    furlongs_to_yards = 220
-    yards_to_meters = 0.9144
-    numbers = [int(i) for i in re.sub(r"[^\d]", " ", distance).split(" ") if i]
-    if len(numbers) == 3:
-        m, f, y = numbers
-    else:
-        f, y = numbers
-        m = 0
-
-    total_yards = m * miles_to_yards + f * furlongs_to_yards + y
-    total_meters = total_yards * yards_to_meters
-    total_kilometers = total_meters / 1000
-
-    return total_yards, round(total_meters, 2), round(total_kilometers, 2)
 
 
 def get_inplay_high_and_low(data: pd.DataFrame) -> pd.DataFrame:
@@ -372,29 +305,12 @@ def clean_race_class_field(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def create_distance_data(data: pd.DataFrame) -> pd.DataFrame:
-    I("Creating distance data")
-    data[["distance_yards", "distance_meters", "distance_kilometers"]] = data[
-        "distance"
-    ].apply(lambda x: pd.Series(convert_distances(x)))
-    data[
-        ["distance_yards_full", "distance_meters_full", "distance_kilometers_full"]
-    ] = data["distance_full"].apply(lambda x: pd.Series(convert_distances_full(x)))
+    I("Creating yards from furlongs")
+    data = data.assign(distance_yards=data["distance"].map(distance_map))
     data = data.assign(
-        distance_yards=lambda x: x["distance_yards_full"].fillna(x["distance_yards"]),
-        distance_meters=lambda x: x["distance_meters_full"].fillna(
-            x["distance_meters"]
-        ),
-        distance_kilometers=lambda x: x["distance_kilometers_full"].fillna(
-            x["distance_kilometers"]
-        ),
-    ).drop(
-        columns=[
-            "distance_full",
-            "distance_yards_full",
-            "distance_meters_full",
-            "distance_kilometers_full",
-        ]
+        distance_meters=lambda x: x["distance_yards"] * 0.9144,
     )
+    data = data.assign(distance_kilometers=lambda x: x["distance_meters"] / 1000)
     return data
 
 

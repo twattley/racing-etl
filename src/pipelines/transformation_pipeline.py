@@ -4,8 +4,38 @@ from src.storage.psql_db import get_db
 from src.transform.transform_data import transform_data
 from src.utils.logging_config import I, W
 from src.utils.processing_utils import pt, ptr
+import json
 
 db = get_db()
+
+
+def write_json(data: dict | list, file_path: str, indent: int = 4) -> None:
+    try:
+        with open(file_path, "w") as file:
+            json.dump(data, file, indent=indent)
+    except Exception as e:
+        print(f"Error writing to JSON file: {e}")
+
+
+def construct_cache_data():
+    market_ids = db.fetch_data(
+        """
+        SELECT race_time, race_id, market_id_win, market_id_place 
+        FROM public.bf_market
+        where race_time::date = current_date
+        """
+    )
+
+    market_ids["race_time"] = market_ids["race_time"].apply(
+        lambda x: x.strftime("%Y-%m-%dT%H:%M:%S")
+    )
+    if market_ids.empty:
+        raise ValueError("No market ids found for today")
+
+    write_json(
+        market_ids.to_dict("records"),
+        "../racing-api/src/cache/market_ids.json",
+    )
 
 
 def post_transform_today_checks():
@@ -109,7 +139,7 @@ def run_transformation_pipeline():
         lambda: db.call_procedure("insert_todays_betfair_market_data", "public"),
     )
 
-    post_transform_today_checks()
+    pt(post_transform_today_checks, construct_cache_data)
 
     db.call_procedure("insert_unioned_performance_data", "public")
     db.call_procedure("amend_winning_position_of_first_place_horse", "public")
