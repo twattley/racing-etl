@@ -359,7 +359,6 @@ def process_rp_scrape_days_data(dates: list[str]):
         link = f"{base_link}/{date}"
         driver.get(link)
         urls = get_links(driver, course_country, date)
-        print(urls)
 
         # get the first url just to toggle the pedigree and owner settings
         driver.get(urls[0])
