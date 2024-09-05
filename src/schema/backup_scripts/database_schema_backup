@@ -1,2 +1,2 @@
 #!/bin/bash
-pg_dump -h localhost -U tomwattley -s -f "./src/schema/backup_files/racehorse-database-schema.sql" racehorse-database
+pg_dump -h localhost -U tomwattley -s -f "./backup_files/racehorse-database-schema.sql" racehorse-database

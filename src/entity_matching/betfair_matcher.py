@@ -32,7 +32,7 @@ def entity_match_betfair(rp: pd.DataFrame, bf: pd.DataFrame) -> pd.DataFrame:
             i.filtered_horse_name, sub_rp["filtered_horse_name"]
         )
         if not best_match:
-            W(f"No match for {i.horse_name}")
+            W(f"No betfair match found for {i.horse_name}")
             unmatched.append(i.horse_name)
             continue
         if best_match[1] < 90:
