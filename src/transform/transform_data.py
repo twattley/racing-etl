@@ -6,16 +6,12 @@ import pandas as pd
 
 from src.data_models.base.base_model import convert_and_validate_data
 from src.data_models.transform.race_model import RaceDataModel
-from src.data_models.transform.race_model import (
-    table_string_field_lengths as race_string_field_lengths,
-)
-from src.data_models.transform.transformed_model import (
-    TransformedDataModel,
-    distance_map,
-)
-from src.data_models.transform.transformed_model import (
-    table_string_field_lengths as transform_string_field_lengths,
-)
+from src.data_models.transform.race_model import \
+    table_string_field_lengths as race_string_field_lengths
+from src.data_models.transform.transformed_model import (TransformedDataModel,
+                                                         distance_map)
+from src.data_models.transform.transformed_model import \
+    table_string_field_lengths as transform_string_field_lengths
 from src.utils.logging_config import I, W
 
 COLOUR_MAP = {

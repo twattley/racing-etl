@@ -3,11 +3,8 @@ from datetime import datetime
 import pandas as pd
 
 from src.entity_matching.betfair_matcher import entity_match_betfair
-from src.entity_matching.matcher import (
-    entity_match,
-    store_matching_results,
-    store_owner_data,
-)
+from src.entity_matching.matcher import (entity_match, store_matching_results,
+                                         store_owner_data)
 from src.storage.psql_db import get_db
 from src.utils.logging_config import I, W
 from src.utils.processing_utils import ptr

@@ -10,10 +10,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from src.data_models.base.base_model import convert_and_validate_data
-from src.data_models.raw.racing_post_model import (
-    RacingPostDataModel,
-    table_string_field_lengths,
-)
+from src.data_models.raw.racing_post_model import (RacingPostDataModel,
+                                                   table_string_field_lengths)
 from src.raw.webdriver_base import get_headless_driver
 from src.storage.psql_db import get_db
 from src.utils.logging_config import E, I, W

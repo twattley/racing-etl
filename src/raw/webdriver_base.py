@@ -12,7 +12,7 @@ from src.utils.logging_config import I
 
 
 class WebDriverBuilder:
-    def __init__(self, headless_mode=False):
+    def __init__(self, headless_mode=True):
         self.headless_mode = headless_mode
         self.user_agent = self._get_random_user_agent()
         self.driver = self._create_driver()

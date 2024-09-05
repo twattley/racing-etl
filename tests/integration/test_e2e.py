@@ -2,14 +2,15 @@ import os
 
 from src.pipelines.matching_pipeline import run_matching_pipeline
 from src.pipelines.transformation_pipeline import run_transformation_pipeline
-from tests.integration.data.dupes_in_raw import dupes_in_raw, dupes_in_raw_expected_data
-from tests.integration.data.jockey_match import jockey_match, jockey_match_expected_data
+from tests.integration.data.dupes_in_raw import (dupes_in_raw,
+                                                 dupes_in_raw_expected_data)
+from tests.integration.data.jockey_match import (jockey_match,
+                                                 jockey_match_expected_data)
 from tests.integration.data.missing_entity import missing_entity
 from tests.integration.data.new_data_in_raw import (
-    new_data_in_raw,
-    new_data_in_raw_expected_data,
-)
-from tests.integration.data.simple_pass import simple_pass, simple_pass_expected_data
+    new_data_in_raw, new_data_in_raw_expected_data)
+from tests.integration.data.simple_pass import (simple_pass,
+                                                simple_pass_expected_data)
 
 os.environ["ENV"] = "TEST"
 

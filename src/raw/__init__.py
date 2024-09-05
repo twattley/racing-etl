@@ -5,7 +5,8 @@ from dataclasses import dataclass
 import pandas as pd
 from selenium import webdriver
 
-from src.data_models.base.base_model import BaseDataModel, convert_and_validate_data
+from src.data_models.base.base_model import (BaseDataModel,
+                                             convert_and_validate_data)
 from src.raw.webdriver_base import select_source_driver
 from src.storage.psql_db import get_db
 

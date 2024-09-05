@@ -1,3 +1,5 @@
+import time
+from dataclasses import dataclass
 from datetime import datetime
 
 import betfairlightweight
@@ -7,6 +9,19 @@ import requests
 from src.config import config
 from src.utils.logging_config import I
 from src.utils.time_utils import get_uk_time_now, make_uk_time_aware
+
+
+@dataclass
+class BetfairHistoricalDataParams:
+    from_day: int
+    from_month: int
+    from_year: int
+    to_day: int
+    to_month: int
+    to_year: int
+    market_types_collection: list[str]
+    countries_collection: list[str]
+    file_type_collection: list[str]
 
 
 class BetFairConnector:
@@ -81,6 +96,32 @@ class BetfairClient:
     def create_market_data(self) -> pd.DataFrame:
         markets, runners = self._create_markets_and_runners()
         return self._process_combined_market_data(markets, runners)
+
+    def fetch_historical_market_data(self, params: BetfairHistoricalDataParams):
+        I(
+            f"Fetching historical market data from {params.from_day}-{params.from_month}-{params.from_year} to {params.to_day}-{params.to_month}-{params.to_year}"
+        )
+        I(params)
+        file_list = self.trading_client.client.historic.get_file_list(
+            "Horse Racing",
+            "Basic Plan",
+            from_day=params.from_day,
+            from_month=params.from_month,
+            from_year=params.from_year,
+            to_day=params.to_day,
+            to_month=params.to_month,
+            to_year=params.to_year,
+            market_types_collection=params.market_types_collection,
+            countries_collection=params.countries_collection,
+            file_type_collection=params.file_type_collection,
+        )
+        I(f"last file: {file_list[-1]}")
+        for file in file_list:
+            I(f"{file} being downloaded...")
+            self.trading_client.client.historic.download_file(
+                file, f"{config.betfair_historical_data_path}/raw"
+            )
+            time.sleep(0.1)
 
     def _create_markets_and_runners(self):
         markets = self.trading_client.client.betting.list_market_catalogue(

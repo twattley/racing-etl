@@ -1,8 +1,8 @@
+import json
+
 from src.storage.psql_db import get_db
 from src.utils.logging_config import E, I
 from src.utils.processing_utils import ptr
-
-import json
 
 
 def write_json(data: dict | list, file_path: str, indent: int = 4) -> None:

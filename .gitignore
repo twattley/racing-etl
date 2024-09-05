@@ -1,6 +1,7 @@
 .env
 *.gz
 src/data/*
+data/*
 src/betfair/certs/*
 *.pyc
 *.log

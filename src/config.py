@@ -11,6 +11,7 @@ class Config(BaseSettings):
     bf_password: str
     bf_app_key: str
     bf_certs_path: str
+    betfair_historical_data_path: str
     pg_db_host: str
     pg_db_user: str
     pg_db_name: str

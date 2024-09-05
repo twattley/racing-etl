@@ -1,2 +1,2 @@
 #!/bin/bash
-pg_dump -h $PG_DB_HOST -U $PG_DB_USER -s -f "./src/schema/backup_files/racehorse-database-schema.sql" $PG_DB_NAME
+pg_dump -h localhost -U tomwattley -s -f "./src/schema/backup_files/racehorse-database-schema.sql" racehorse-database

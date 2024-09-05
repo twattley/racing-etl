@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 16.2 (Postgres.app)
--- Dumped by pg_dump version 16.2 (Postgres.app)
+-- Dumped from database version 16.3 (Postgres.app)
+-- Dumped by pg_dump version 16.3 (Postgres.app)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -17,67 +17,67 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: backup; Type: SCHEMA; Schema: -; Owner: doadmin
+-- Name: backup; Type: SCHEMA; Schema: -; Owner: tomwattley
 --
 
 CREATE SCHEMA backup;
 
 
-ALTER SCHEMA backup OWNER TO doadmin;
+ALTER SCHEMA backup OWNER TO tomwattley;
 
 --
--- Name: bf_raw; Type: SCHEMA; Schema: -; Owner: doadmin
+-- Name: bf_raw; Type: SCHEMA; Schema: -; Owner: tomwattley
 --
 
 CREATE SCHEMA bf_raw;
 
 
-ALTER SCHEMA bf_raw OWNER TO doadmin;
+ALTER SCHEMA bf_raw OWNER TO tomwattley;
 
 --
--- Name: errors; Type: SCHEMA; Schema: -; Owner: doadmin
+-- Name: errors; Type: SCHEMA; Schema: -; Owner: tomwattley
 --
 
 CREATE SCHEMA errors;
 
 
-ALTER SCHEMA errors OWNER TO doadmin;
+ALTER SCHEMA errors OWNER TO tomwattley;
 
 --
--- Name: metrics; Type: SCHEMA; Schema: -; Owner: doadmin
+-- Name: metrics; Type: SCHEMA; Schema: -; Owner: tomwattley
 --
 
 CREATE SCHEMA metrics;
 
 
-ALTER SCHEMA metrics OWNER TO doadmin;
+ALTER SCHEMA metrics OWNER TO tomwattley;
 
 --
--- Name: rp_raw; Type: SCHEMA; Schema: -; Owner: doadmin
+-- Name: rp_raw; Type: SCHEMA; Schema: -; Owner: tomwattley
 --
 
 CREATE SCHEMA rp_raw;
 
 
-ALTER SCHEMA rp_raw OWNER TO doadmin;
+ALTER SCHEMA rp_raw OWNER TO tomwattley;
 
 --
--- Name: staging; Type: SCHEMA; Schema: -; Owner: doadmin
+-- Name: staging; Type: SCHEMA; Schema: -; Owner: tomwattley
 --
 
 CREATE SCHEMA staging;
 
 
-ALTER SCHEMA staging OWNER TO doadmin;
+ALTER SCHEMA staging OWNER TO tomwattley;
 
 --
--- Name: tf_raw; Type: SCHEMA; Schema: -; Owner: doadmin
+-- Name: tf_raw; Type: SCHEMA; Schema: -; Owner: tomwattley
 --
 
 CREATE SCHEMA tf_raw;
 
 
-ALTER SCHEMA tf_raw OWNER TO doadmin;
+ALTER SCHEMA tf_raw OWNER TO tomwattley;
 
 --
 -- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
@@ -94,7 +94,128 @@ COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 
 
 --
--- Name: get_day_name(date); Type: FUNCTION; Schema: errors; Owner: doadmin
+-- Name: vector; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION vector; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION vector IS 'vector data type and ivfflat and hnsw access methods';
+
+
+--
+-- Name: update_historical_price_data(); Type: PROCEDURE; Schema: bf_raw; Owner: postgres
+--
+
+CREATE PROCEDURE bf_raw.update_historical_price_data()
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    INSERT INTO public.historical_price_data (
+        race_time,
+        race_date,
+        horse_name,
+        horse_id,
+        course_id,
+        meeting_id,
+        race_id,
+        runner_id,
+        race_key,
+        unique_id,
+        bf_unique_id,
+        price_change
+    )
+    SELECT DISTINCT ON (pd.unique_id, hpd.bf_unique_id)
+        pd.race_timestamp as race_time,
+        pd.race_date,
+        pd.horse_name,
+        pd.horse_id,
+        pd.course_id,
+        pd.meeting_id,
+        pd.race_id,
+        hpd.runner_id,
+        hpd.race_key,
+        pd.unique_id,
+        hpd.bf_unique_id,
+        hpd.price_change
+    FROM 
+        rp_raw.performance_data pd
+    LEFT JOIN 
+        public.course c ON pd.course_id = c.rp_id
+    INNER JOIN 
+        bf_raw.historical_price_data hpd ON 
+        pd.horse_name = hpd.horse AND
+        c.bf_name = hpd.course AND
+        pd.race_date::date = hpd.race_date::date
+    WHERE 
+        NOT EXISTS (
+            SELECT 1
+            FROM public.historical_price_data hpd_existing
+            WHERE hpd_existing.unique_id = pd.unique_id
+            AND hpd_existing.bf_unique_id = hpd.bf_unique_id
+        )
+    ORDER BY pd.unique_id, hpd.bf_unique_id, pd.race_timestamp DESC
+    ON CONFLICT (unique_id, bf_unique_id) DO NOTHING;
+
+    COMMIT;
+END;
+$$;
+
+
+ALTER PROCEDURE bf_raw.update_historical_price_data() OWNER TO postgres;
+
+--
+-- Name: update_matched_historical_price_data(); Type: PROCEDURE; Schema: bf_raw; Owner: postgres
+--
+
+CREATE PROCEDURE bf_raw.update_matched_historical_price_data()
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    INSERT INTO public.historical_price_data (
+        race_time,
+        race_date,
+        horse_name,
+        horse_id,
+        course_id,
+        meeting_id,
+        race_id,
+        runner_id,
+        race_key,
+        unique_id,
+        bf_unique_id,
+        price_change
+    )
+    SELECT DISTINCT ON (unique_id, bf_unique_id)
+        race_time,
+        race_date,
+        horse_name,
+        horse_id,
+        course_id,
+        meeting_id,
+        race_id,
+        runner_id,
+        race_key,
+        unique_id,
+        bf_unique_id,
+        price_change
+    FROM 
+        bf_raw.matched_historical_price_data
+    ON CONFLICT (unique_id, bf_unique_id) DO NOTHING;
+
+    COMMIT;
+END;
+$$;
+
+
+ALTER PROCEDURE bf_raw.update_matched_historical_price_data() OWNER TO postgres;
+
+--
+-- Name: get_day_name(date); Type: FUNCTION; Schema: errors; Owner: tomwattley
 --
 
 CREATE FUNCTION errors.get_day_name(input_date date) RETURNS text
@@ -107,10 +228,10 @@ END;
 $$;
 
 
-ALTER FUNCTION errors.get_day_name(input_date date) OWNER TO doadmin;
+ALTER FUNCTION errors.get_day_name(input_date date) OWNER TO tomwattley;
 
 --
--- Name: refresh_unmatched_rp_dams(); Type: PROCEDURE; Schema: metrics; Owner: doadmin
+-- Name: refresh_unmatched_rp_dams(); Type: PROCEDURE; Schema: metrics; Owner: tomwattley
 --
 
 CREATE PROCEDURE metrics.refresh_unmatched_rp_dams()
@@ -131,10 +252,10 @@ END;
 $$;
 
 
-ALTER PROCEDURE metrics.refresh_unmatched_rp_dams() OWNER TO doadmin;
+ALTER PROCEDURE metrics.refresh_unmatched_rp_dams() OWNER TO tomwattley;
 
 --
--- Name: refresh_unmatched_rp_horses(); Type: PROCEDURE; Schema: metrics; Owner: doadmin
+-- Name: refresh_unmatched_rp_horses(); Type: PROCEDURE; Schema: metrics; Owner: tomwattley
 --
 
 CREATE PROCEDURE metrics.refresh_unmatched_rp_horses()
@@ -155,10 +276,10 @@ END;
 $$;
 
 
-ALTER PROCEDURE metrics.refresh_unmatched_rp_horses() OWNER TO doadmin;
+ALTER PROCEDURE metrics.refresh_unmatched_rp_horses() OWNER TO tomwattley;
 
 --
--- Name: refresh_unmatched_rp_jockeys(); Type: PROCEDURE; Schema: metrics; Owner: doadmin
+-- Name: refresh_unmatched_rp_jockeys(); Type: PROCEDURE; Schema: metrics; Owner: tomwattley
 --
 
 CREATE PROCEDURE metrics.refresh_unmatched_rp_jockeys()
@@ -179,10 +300,10 @@ END;
 $$;
 
 
-ALTER PROCEDURE metrics.refresh_unmatched_rp_jockeys() OWNER TO doadmin;
+ALTER PROCEDURE metrics.refresh_unmatched_rp_jockeys() OWNER TO tomwattley;
 
 --
--- Name: refresh_unmatched_rp_sires(); Type: PROCEDURE; Schema: metrics; Owner: doadmin
+-- Name: refresh_unmatched_rp_sires(); Type: PROCEDURE; Schema: metrics; Owner: tomwattley
 --
 
 CREATE PROCEDURE metrics.refresh_unmatched_rp_sires()
@@ -203,10 +324,10 @@ END;
 $$;
 
 
-ALTER PROCEDURE metrics.refresh_unmatched_rp_sires() OWNER TO doadmin;
+ALTER PROCEDURE metrics.refresh_unmatched_rp_sires() OWNER TO tomwattley;
 
 --
--- Name: refresh_unmatched_rp_trainers(); Type: PROCEDURE; Schema: metrics; Owner: doadmin
+-- Name: refresh_unmatched_rp_trainers(); Type: PROCEDURE; Schema: metrics; Owner: tomwattley
 --
 
 CREATE PROCEDURE metrics.refresh_unmatched_rp_trainers()
@@ -227,10 +348,10 @@ END;
 $$;
 
 
-ALTER PROCEDURE metrics.refresh_unmatched_rp_trainers() OWNER TO doadmin;
+ALTER PROCEDURE metrics.refresh_unmatched_rp_trainers() OWNER TO tomwattley;
 
 --
--- Name: refresh_unmatched_tf_dams(); Type: PROCEDURE; Schema: metrics; Owner: doadmin
+-- Name: refresh_unmatched_tf_dams(); Type: PROCEDURE; Schema: metrics; Owner: tomwattley
 --
 
 CREATE PROCEDURE metrics.refresh_unmatched_tf_dams()
@@ -251,10 +372,10 @@ END;
 $$;
 
 
-ALTER PROCEDURE metrics.refresh_unmatched_tf_dams() OWNER TO doadmin;
+ALTER PROCEDURE metrics.refresh_unmatched_tf_dams() OWNER TO tomwattley;
 
 --
--- Name: refresh_unmatched_tf_horses(); Type: PROCEDURE; Schema: metrics; Owner: doadmin
+-- Name: refresh_unmatched_tf_horses(); Type: PROCEDURE; Schema: metrics; Owner: tomwattley
 --
 
 CREATE PROCEDURE metrics.refresh_unmatched_tf_horses()
@@ -276,10 +397,10 @@ END;
 $$;
 
 
-ALTER PROCEDURE metrics.refresh_unmatched_tf_horses() OWNER TO doadmin;
+ALTER PROCEDURE metrics.refresh_unmatched_tf_horses() OWNER TO tomwattley;
 
 --
--- Name: refresh_unmatched_tf_jockeys(); Type: PROCEDURE; Schema: metrics; Owner: doadmin
+-- Name: refresh_unmatched_tf_jockeys(); Type: PROCEDURE; Schema: metrics; Owner: tomwattley
 --
 
 CREATE PROCEDURE metrics.refresh_unmatched_tf_jockeys()
@@ -300,10 +421,10 @@ END;
 $$;
 
 
-ALTER PROCEDURE metrics.refresh_unmatched_tf_jockeys() OWNER TO doadmin;
+ALTER PROCEDURE metrics.refresh_unmatched_tf_jockeys() OWNER TO tomwattley;
 
 --
--- Name: refresh_unmatched_tf_sires(); Type: PROCEDURE; Schema: metrics; Owner: doadmin
+-- Name: refresh_unmatched_tf_sires(); Type: PROCEDURE; Schema: metrics; Owner: tomwattley
 --
 
 CREATE PROCEDURE metrics.refresh_unmatched_tf_sires()
@@ -324,10 +445,10 @@ END;
 $$;
 
 
-ALTER PROCEDURE metrics.refresh_unmatched_tf_sires() OWNER TO doadmin;
+ALTER PROCEDURE metrics.refresh_unmatched_tf_sires() OWNER TO tomwattley;
 
 --
--- Name: refresh_unmatched_tf_trainers(); Type: PROCEDURE; Schema: metrics; Owner: doadmin
+-- Name: refresh_unmatched_tf_trainers(); Type: PROCEDURE; Schema: metrics; Owner: tomwattley
 --
 
 CREATE PROCEDURE metrics.refresh_unmatched_tf_trainers()
@@ -348,10 +469,67 @@ END;
 $$;
 
 
-ALTER PROCEDURE metrics.refresh_unmatched_tf_trainers() OWNER TO doadmin;
+ALTER PROCEDURE metrics.refresh_unmatched_tf_trainers() OWNER TO tomwattley;
 
 --
--- Name: insert_todays_transformed_performance_data(); Type: PROCEDURE; Schema: public; Owner: doadmin
+-- Name: amend_winning_position_of_first_place_horse(); Type: PROCEDURE; Schema: public; Owner: tomwattley
+--
+
+CREATE PROCEDURE public.amend_winning_position_of_first_place_horse()
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+	UPDATE unioned_performance_data up
+	SET total_distance_beaten = -sub.distance_beaten
+	FROM (
+	    SELECT race_id, total_distance_beaten AS distance_beaten
+	    FROM unioned_performance_data
+	    WHERE finishing_position = '2'
+		AND total_distance_beaten <> 0
+	) sub
+	WHERE up.race_id = sub.race_id
+	AND up.finishing_position = '1'
+	AND up.total_distance_beaten = 0;
+	END;
+$$;
+
+
+ALTER PROCEDURE public.amend_winning_position_of_first_place_horse() OWNER TO tomwattley;
+
+--
+-- Name: insert_todays_betfair_market_data(); Type: PROCEDURE; Schema: public; Owner: postgres
+--
+
+CREATE PROCEDURE public.insert_todays_betfair_market_data()
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+
+	TRUNCATE public.bf_market;
+	
+    INSERT INTO public.bf_market
+    (
+		race_time, race_id, market_id_win, market_id_place
+    )
+    SELECT
+		distinct pd.race_time, rd.race_id, tpd.market_id_win, tpd.market_id_place
+		from public.todays_performance_data pd
+		left join public.todays_race_data rd
+			on pd.race_id = rd.race_id
+		left join public.bf_horse bfh
+			on bfh.id = pd.horse_id
+		left join bf_raw.todays_price_data tpd
+			on bfh.bf_id = tpd.horse_id
+		where tpd.market_id_win is not null
+		order by pd.race_time;
+END;
+$$;
+
+
+ALTER PROCEDURE public.insert_todays_betfair_market_data() OWNER TO postgres;
+
+--
+-- Name: insert_todays_transformed_performance_data(); Type: PROCEDURE; Schema: public; Owner: tomwattley
 --
 
 CREATE PROCEDURE public.insert_todays_transformed_performance_data()
@@ -442,10 +620,10 @@ END;
 $$;
 
 
-ALTER PROCEDURE public.insert_todays_transformed_performance_data() OWNER TO doadmin;
+ALTER PROCEDURE public.insert_todays_transformed_performance_data() OWNER TO tomwattley;
 
 --
--- Name: insert_todays_transformed_race_data(); Type: PROCEDURE; Schema: public; Owner: doadmin
+-- Name: insert_todays_transformed_race_data(); Type: PROCEDURE; Schema: public; Owner: tomwattley
 --
 
 CREATE PROCEDURE public.insert_todays_transformed_race_data()
@@ -517,10 +695,10 @@ END;
 $$;
 
 
-ALTER PROCEDURE public.insert_todays_transformed_race_data() OWNER TO doadmin;
+ALTER PROCEDURE public.insert_todays_transformed_race_data() OWNER TO tomwattley;
 
 --
--- Name: insert_transformed_performance_data(); Type: PROCEDURE; Schema: public; Owner: doadmin
+-- Name: insert_transformed_performance_data(); Type: PROCEDURE; Schema: public; Owner: tomwattley
 --
 
 CREATE PROCEDURE public.insert_transformed_performance_data()
@@ -644,10 +822,10 @@ END;
 $$;
 
 
-ALTER PROCEDURE public.insert_transformed_performance_data() OWNER TO doadmin;
+ALTER PROCEDURE public.insert_transformed_performance_data() OWNER TO tomwattley;
 
 --
--- Name: insert_transformed_race_data(); Type: PROCEDURE; Schema: public; Owner: doadmin
+-- Name: insert_transformed_race_data(); Type: PROCEDURE; Schema: public; Owner: tomwattley
 --
 
 CREATE PROCEDURE public.insert_transformed_race_data()
@@ -745,10 +923,10 @@ END;
 $$;
 
 
-ALTER PROCEDURE public.insert_transformed_race_data() OWNER TO doadmin;
+ALTER PROCEDURE public.insert_transformed_race_data() OWNER TO tomwattley;
 
 --
--- Name: insert_unioned_performance_data(); Type: PROCEDURE; Schema: public; Owner: doadmin
+-- Name: insert_unioned_performance_data(); Type: PROCEDURE; Schema: public; Owner: tomwattley
 --
 
 CREATE PROCEDURE public.insert_unioned_performance_data()
@@ -821,7 +999,8 @@ BEGIN
     dam,
     sire,
     trainer,
-    jockey
+    jockey,
+	price_move
     )
 with todays as (
 	SELECT 
@@ -871,7 +1050,7 @@ with todays as (
                 trd.number_of_runners,
                 trd.hcap_range,
                 trd.age_range,
-                trd.surface,
+                sf.name as surface,
                 trd.total_prize_money,
                 trd.first_place_prize_money,
                 trd.winning_time,
@@ -886,10 +1065,12 @@ with todays as (
 				d.name as dam, 
 				s.name as sire, 
 				t.name as trainer, 
-				j.name as jockey
+				j.name as jockey,
+				null as price_move
 	FROM todays_performance_data tpd
 	LEFT JOIN todays_race_data trd ON tpd.race_id = trd.race_id
 	LEFT JOIN course c ON tpd.course_id = c.id
+	LEFT JOIN surface sf ON c.surface_id = sf.id
 	LEFT JOIN horse h ON tpd.horse_id = h.id
 	LEFT JOIN dam d ON tpd.dam_id = d.id
 	LEFT JOIN sire s ON tpd.sire_id = s.id
@@ -957,7 +1138,9 @@ historical as (SELECT
 				d.name as dam, 
 				s.name as sire, 
 				t.name as trainer, 
-				j.name as jockey
+				j.name as jockey,
+				bpd.price_move
+		
 	FROM performance_data hpd
 	LEFT JOIN race_data hrd ON hpd.race_id = hrd.race_id
 	LEFT JOIN course c ON hpd.course_id = c.id
@@ -966,6 +1149,7 @@ historical as (SELECT
 	LEFT JOIN sire s ON hpd.sire_id = s.id
 	LEFT JOIN trainer t ON hpd.trainer_id = t.id
 	LEFT JOIN jockey j ON hpd.jockey_id = j.id
+	LEFT JOIN historical_price_data bpd ON hpd.unique_id = bpd.unique_id
 )
 
 SELECT * FROM todays
@@ -977,10 +1161,10 @@ END;
 $$;
 
 
-ALTER PROCEDURE public.insert_unioned_performance_data() OWNER TO doadmin;
+ALTER PROCEDURE public.insert_unioned_performance_data() OWNER TO tomwattley;
 
 --
--- Name: minus_three_years(date); Type: FUNCTION; Schema: public; Owner: doadmin
+-- Name: minus_three_years(date); Type: FUNCTION; Schema: public; Owner: tomwattley
 --
 
 CREATE FUNCTION public.minus_three_years(input_date date) RETURNS TABLE(horse_name character varying, age integer, horse_sex character varying, draw integer, headgear character varying, weight_carried character varying, weight_carried_lbs smallint, extra_weight smallint, jockey_claim smallint, finishing_position character varying, total_distance_beaten numeric, industry_sp character varying, betfair_win_sp numeric, betfair_place_sp numeric, official_rating smallint, ts smallint, rpr smallint, tfr smallint, tfig smallint, in_play_high numeric, in_play_low numeric, in_race_comment text, tf_comment text, tfr_view character varying, race_id integer, horse_id integer, jockey_id integer, trainer_id integer, owner_id integer, sire_id integer, dam_id integer, unique_id character varying, race_time timestamp without time zone, race_date date, race_title character varying, race_type character varying, race_class smallint, distance character varying, distance_yards numeric, distance_meters numeric, distance_kilometers numeric, conditions character varying, going character varying, number_of_runners smallint, hcap_range character varying, age_range character varying, surface character varying, total_prize_money integer, first_place_prize_money integer, winning_time character varying, time_seconds numeric, relative_time numeric, relative_to_standard character varying, country character varying, main_race_comment text, meeting_id character varying, course_id smallint, course character varying, dam character varying, sire character varying, trainer character varying, jockey character varying)
@@ -996,49 +1180,134 @@ END;
 $$;
 
 
-ALTER FUNCTION public.minus_three_years(input_date date) OWNER TO doadmin;
+ALTER FUNCTION public.minus_three_years(input_date date) OWNER TO tomwattley;
 
 --
--- Name: select_collateral_form_data(date); Type: FUNCTION; Schema: public; Owner: doadmin
+-- Name: select_collateral_form_data_by_race_id(date, integer, date, integer); Type: FUNCTION; Schema: public; Owner: tomwattley
 --
 
-CREATE FUNCTION public.select_collateral_form_data(input_date date) RETURNS TABLE(horse_name character varying, age integer, horse_sex character varying, draw integer, headgear character varying, weight_carried character varying, weight_carried_lbs smallint, extra_weight smallint, jockey_claim smallint, finishing_position character varying, total_distance_beaten numeric, industry_sp character varying, betfair_win_sp numeric, betfair_place_sp numeric, official_rating smallint, ts smallint, rpr smallint, tfr smallint, tfig smallint, in_play_high numeric, in_play_low numeric, in_race_comment text, tf_comment text, tfr_view character varying, race_id integer, horse_id integer, jockey_id integer, trainer_id integer, owner_id integer, sire_id integer, dam_id integer, unique_id character varying, race_time timestamp without time zone, race_date date, race_title character varying, race_type character varying, race_class smallint, distance character varying, distance_yards numeric, distance_meters numeric, distance_kilometers numeric, conditions character varying, going character varying, number_of_runners smallint, hcap_range character varying, age_range character varying, surface character varying, total_prize_money integer, first_place_prize_money integer, winning_time character varying, time_seconds numeric, relative_time numeric, relative_to_standard character varying, country character varying, main_race_comment text, meeting_id character varying, course_id smallint, course character varying, dam character varying, sire character varying, trainer character varying, jockey character varying, data_type character varying)
+CREATE FUNCTION public.select_collateral_form_data_by_race_id(input_date date, input_race_id integer, todays_race_date date, input_horse_id integer) RETURNS TABLE(horse_name character varying, age integer, horse_sex character varying, draw integer, headgear character varying, weight_carried character varying, weight_carried_lbs smallint, extra_weight smallint, jockey_claim smallint, finishing_position character varying, total_distance_beaten numeric, industry_sp character varying, betfair_win_sp numeric, betfair_place_sp numeric, official_rating smallint, ts smallint, rpr smallint, tfr smallint, tfig smallint, in_play_high numeric, in_play_low numeric, in_race_comment text, tf_comment text, tfr_view character varying, race_id integer, horse_id integer, jockey_id integer, trainer_id integer, owner_id integer, sire_id integer, dam_id integer, unique_id character varying, race_time timestamp without time zone, race_date date, race_title character varying, race_type character varying, race_class smallint, distance character varying, distance_yards numeric, distance_meters numeric, distance_kilometers numeric, conditions character varying, going character varying, number_of_runners smallint, hcap_range character varying, age_range character varying, surface character varying, total_prize_money integer, first_place_prize_money integer, winning_time character varying, time_seconds numeric, relative_time numeric, relative_to_standard character varying, country character varying, main_race_comment text, meeting_id character varying, course_id smallint, course character varying, dam character varying, sire character varying, trainer character varying, jockey character varying, data_type character varying, distance_difference numeric)
     LANGUAGE plpgsql
     AS $$
 BEGIN
     RETURN QUERY 
-
--- Collateral races for horses that have raced with horses from historical races
-SELECT pd.*, 'collateral'::character varying AS data_type
+with collateral_form as (
+SELECT     
+	pd.*,
+	'collateral'::character varying as data_type
 FROM public.unioned_performance_data pd
 WHERE pd.horse_id IN (
-    SELECT DISTINCT pd.horse_id
+    SELECT pd.horse_id
     FROM public.unioned_performance_data pd
-    WHERE pd.race_date < input_date
-    AND pd.race_date >= input_date - INTERVAL '3 YEARS'
-    AND pd.race_id IN (
-        SELECT DISTINCT pd.race_id
-        FROM public.unioned_performance_data pd
-        WHERE pd.horse_id IN (
-            SELECT pd.horse_id
-            FROM public.unioned_performance_data pd
-            WHERE pd.race_date = input_date
-        )
-        AND pd.race_date < input_date
-        AND pd.race_date >= input_date - INTERVAL '3 YEARS'
-    )
+    WHERE pd.race_id = input_race_id
 )
-AND pd.race_date < input_date
-AND pd.race_date >= input_date - INTERVAL '3 YEARS';
-
+AND pd.race_date > input_date
+AND pd.race_date < todays_race_date
+ORDER BY pd.race_date),
+race_form as (
+	SELECT     
+	pd.*,
+	'race_form'::character varying as data_type
+FROM public.unioned_performance_data pd
+WHERE pd.race_id = input_race_id
+),
+combined as (
+SELECT * FROM race_form
+UNION
+SELECT * FROM collateral_form
+ORDER BY horse_name, race_time desc),
+distances as (
+	SELECT 
+	pd.horse_id, 
+	pd.total_distance_beaten,
+		CASE 
+	      WHEN pd.total_distance_beaten <= 0 
+	      THEN pd.total_distance_beaten - (SELECT 0) 
+	      ELSE pd.total_distance_beaten - 
+	  (SELECT pdd.total_distance_beaten 
+	   FROM public.unioned_performance_data pdd
+	   WHERE pdd.race_id = input_race_id AND pdd.horse_id = input_horse_id) 
+	    END AS distance_difference
+	FROM public.unioned_performance_data pd
+	WHERE pd.race_id = input_race_id
+)
+SELECT 
+	c.horse_name,
+	c.age,
+	c.horse_sex,
+	c.draw,
+	c.headgear,
+	c.weight_carried,
+	c.weight_carried_lbs,
+	c.extra_weight,
+	c.jockey_claim,
+	c.finishing_position,
+	c.total_distance_beaten,
+	c.industry_sp,
+	c.betfair_win_sp,
+	c.betfair_place_sp,
+	c.official_rating,
+	c.ts,  
+	c.rpr, 
+	c.tfr, 
+	c.tfig, 
+	c.in_play_high,
+	c.in_play_low,
+	c.in_race_comment,
+	c.tf_comment,
+	c.tfr_view,
+	c.race_id,
+	c.horse_id,
+	c.jockey_id,
+	c.trainer_id,
+	c.owner_id,
+	c.sire_id,
+	c.dam_id,
+	c.unique_id,
+	c.race_time,
+	c.race_date,
+	c.race_title,
+	c.race_type,
+	c.race_class,
+	c.distance,
+	c.distance_yards,
+	c.distance_meters,
+	c.distance_kilometers,
+	c.conditions,
+	c.going,
+	c.number_of_runners,
+	c.hcap_range,
+	c.age_range,
+	c.surface,
+	c.total_prize_money,
+	c.first_place_prize_money,
+	c.winning_time,
+	c.time_seconds,
+	c.relative_time,
+	c.relative_to_standard,
+	c.country,
+	c.main_race_comment,
+	c.meeting_id,
+	c.course_id,
+	c.course,
+	c.dam,
+	c.sire,
+	c.trainer,
+	c.jockey,
+	c.data_type,
+	d.distance_difference
+FROM combined c
+LEFT JOIN distances d
+ON c.horse_id = d.horse_id
+WHERE c.horse_id <> input_horse_id;
 END;
 $$;
 
 
-ALTER FUNCTION public.select_collateral_form_data(input_date date) OWNER TO doadmin;
+ALTER FUNCTION public.select_collateral_form_data_by_race_id(input_date date, input_race_id integer, todays_race_date date, input_horse_id integer) OWNER TO tomwattley;
 
 --
--- Name: select_form_data_by_race_id(date, integer); Type: FUNCTION; Schema: public; Owner: doadmin
+-- Name: select_form_data_by_race_id(date, integer); Type: FUNCTION; Schema: public; Owner: tomwattley
 --
 
 CREATE FUNCTION public.select_form_data_by_race_id(input_date date, input_race_id integer) RETURNS TABLE(horse_name character varying, age integer, horse_sex character varying, draw integer, headgear character varying, weight_carried character varying, weight_carried_lbs smallint, extra_weight smallint, jockey_claim smallint, finishing_position character varying, total_distance_beaten numeric, industry_sp character varying, betfair_win_sp numeric, betfair_place_sp numeric, official_rating smallint, ts smallint, rpr smallint, tfr smallint, tfig smallint, in_play_high numeric, in_play_low numeric, in_race_comment text, tf_comment text, tfr_view character varying, race_id integer, horse_id integer, jockey_id integer, trainer_id integer, owner_id integer, sire_id integer, dam_id integer, unique_id character varying, race_time timestamp without time zone, race_date date, race_title character varying, race_type character varying, race_class smallint, distance character varying, distance_yards numeric, distance_meters numeric, distance_kilometers numeric, conditions character varying, going character varying, number_of_runners smallint, hcap_range character varying, age_range character varying, surface character varying, total_prize_money integer, first_place_prize_money integer, winning_time character varying, time_seconds numeric, relative_time numeric, relative_to_standard character varying, country character varying, main_race_comment text, meeting_id character varying, course_id smallint, course character varying, dam character varying, sire character varying, trainer character varying, jockey character varying, data_type character varying)
@@ -1047,7 +1316,69 @@ CREATE FUNCTION public.select_form_data_by_race_id(input_date date, input_race_i
 BEGIN
     RETURN QUERY 
 with todays_form as (
-SELECT pd.*, 'today'::character varying AS data_type
+SELECT pd.horse_name,
+pd.age,
+pd.horse_sex,
+pd.draw,
+pd.headgear,
+pd.weight_carried,
+pd.weight_carried_lbs,
+pd.extra_weight,
+pd.jockey_claim,
+pd.finishing_position,
+pd.total_distance_beaten,
+pd.industry_sp,
+pd.betfair_win_sp,
+pd.betfair_place_sp,
+pd.official_rating,
+CAST(NULL AS SMALLINT) as ts,  
+CAST(NULL AS SMALLINT) as rpr, 
+CAST(NULL AS SMALLINT) as tfr, 
+CAST(NULL AS SMALLINT) as tfig, 
+pd.in_play_high,
+pd.in_play_low,
+pd.in_race_comment,
+pd.tf_comment,
+pd.tfr_view,
+pd.race_id,
+pd.horse_id,
+pd.jockey_id,
+pd.trainer_id,
+pd.owner_id,
+pd.sire_id,
+pd.dam_id,
+pd.unique_id,
+pd.race_time,
+pd.race_date,
+pd.race_title,
+pd.race_type,
+pd.race_class,
+pd.distance,
+pd.distance_yards,
+pd.distance_meters,
+pd.distance_kilometers,
+pd.conditions,
+pd.going,
+pd.number_of_runners,
+pd.hcap_range,
+pd.age_range,
+pd.surface,
+pd.total_prize_money,
+pd.first_place_prize_money,
+pd.winning_time,
+pd.time_seconds,
+pd.relative_time,
+pd.relative_to_standard,
+pd.country,
+pd.main_race_comment,
+pd.meeting_id,
+pd.course_id,
+pd.course,
+pd.dam,
+pd.sire,
+pd.trainer,
+pd.jockey, 
+'today'::character varying AS data_type
 FROM public.unioned_performance_data pd
 WHERE pd.horse_id IN (
     SELECT pd.horse_id
@@ -1078,73 +1409,10 @@ END;
 $$;
 
 
-ALTER FUNCTION public.select_form_data_by_race_id(input_date date, input_race_id integer) OWNER TO doadmin;
+ALTER FUNCTION public.select_form_data_by_race_id(input_date date, input_race_id integer) OWNER TO tomwattley;
 
 --
--- Name: select_graph_form_data_by_race_id(date, integer); Type: FUNCTION; Schema: public; Owner: doadmin
---
-
-CREATE FUNCTION public.select_graph_form_data_by_race_id(input_date date, input_race_id integer) RETURNS TABLE(horse_name character varying, official_rating smallint, ts smallint, rpr smallint, tfr smallint, tfig smallint, race_id integer, horse_id integer, unique_id character varying, race_time timestamp without time zone, race_date date)
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-    RETURN QUERY
-with todays_form as (
-SELECT pd.horse_name,
-		pd.official_rating,
-        CAST(NULL AS SMALLINT) as ts,  
-        CAST(NULL AS SMALLINT) as rpr, 
-        CAST(NULL AS SMALLINT) as tfr, 
-        CAST(NULL AS SMALLINT) as tfig, 
-        pd.race_id,
-		pd.horse_id,
-		pd.unique_id,
-		pd.race_time,
-		pd.race_date
-FROM public.unioned_performance_data pd
-WHERE pd.horse_id IN (
-    SELECT pd.horse_id
-    FROM public.unioned_performance_data pd
-    WHERE pd.race_date = input_date
-	AND pd.race_id = input_race_id
-)
-	AND pd.race_date = input_date),
-historical_form as (
-SELECT pd.horse_name,
-		pd.official_rating,
-		pd.ts,
-		pd.rpr,
-		pd.tfr,
-		pd.tfig,
-		pd.race_id,
-		pd.horse_id,
-		pd.unique_id,
-		pd.race_time,
-		pd.race_date
-FROM public.unioned_performance_data pd
-WHERE pd.horse_id IN (
-    SELECT pd.horse_id
-    FROM public.unioned_performance_data pd
-    WHERE pd.race_date = input_date
-	AND pd.race_id = input_race_id
-)
-AND pd.race_date < input_date)
-
-SELECT * 
-FROM todays_form
-UNION
-SELECT *
-FROM historical_form
-ORDER BY horse_name, race_time DESC;
-
-END;
-$$;
-
-
-ALTER FUNCTION public.select_graph_form_data_by_race_id(input_date date, input_race_id integer) OWNER TO doadmin;
-
---
--- Name: select_race_date_race_times(date); Type: FUNCTION; Schema: public; Owner: doadmin
+-- Name: select_race_date_race_times(date); Type: FUNCTION; Schema: public; Owner: tomwattley
 --
 
 CREATE FUNCTION public.select_race_date_race_times(input_date date) RETURNS TABLE(race_id integer, race_time timestamp without time zone, race_date date, race_title character varying, race_type character varying, race_class smallint, distance character varying, distance_yards numeric, distance_meters numeric, distance_kilometers numeric, conditions character varying, going character varying, number_of_runners smallint, hcap_range character varying, age_range character varying, surface character varying, total_prize_money integer, first_place_prize_money integer, course_id smallint, course character varying, data_type character varying)
@@ -1185,10 +1453,10 @@ END;
 $$;
 
 
-ALTER FUNCTION public.select_race_date_race_times(input_date date) OWNER TO doadmin;
+ALTER FUNCTION public.select_race_date_race_times(input_date date) OWNER TO tomwattley;
 
 --
--- Name: select_results_data_by_race_id(date, integer); Type: FUNCTION; Schema: public; Owner: doadmin
+-- Name: select_results_data_by_race_id(date, integer); Type: FUNCTION; Schema: public; Owner: tomwattley
 --
 
 CREATE FUNCTION public.select_results_data_by_race_id(input_date date, input_race_id integer) RETURNS TABLE(race_time timestamp without time zone, race_date date, race_title character varying, race_type character varying, race_class smallint, distance character varying, conditions character varying, going character varying, number_of_runners smallint, hcap_range character varying, age_range character varying, surface character varying, total_prize_money integer, winning_time character varying, relative_time numeric, relative_to_standard character varying, main_race_comment text, course_id smallint, course character varying, race_id integer, horse_name character varying, horse_id integer, age integer, draw integer, headgear character varying, weight_carried character varying, finishing_position character varying, total_distance_beaten numeric, betfair_win_sp numeric, official_rating smallint, ts smallint, rpr smallint, tfr smallint, tfig smallint, in_play_high numeric, in_play_low numeric, tf_comment text, tfr_view character varying)
@@ -1249,10 +1517,75 @@ END;
 $$;
 
 
-ALTER FUNCTION public.select_results_data_by_race_id(input_date date, input_race_id integer) OWNER TO doadmin;
+ALTER FUNCTION public.select_results_data_by_race_id(input_date date, input_race_id integer) OWNER TO tomwattley;
 
 --
--- Name: get_my_list(); Type: FUNCTION; Schema: rp_raw; Owner: doadmin
+-- Name: update_historical_price_data(); Type: PROCEDURE; Schema: public; Owner: postgres
+--
+
+CREATE PROCEDURE public.update_historical_price_data()
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    INSERT INTO public.historical_price_data (
+        race_time,
+        race_date,
+        horse_name,
+        horse_id,
+        course_id,
+        meeting_id,
+        race_id,
+        runner_id,
+        race_key,
+        unique_id,
+        bf_unique_id,
+        price_change
+    )
+    SELECT DISTINCT ON (pd.unique_id, hpd.bf_unique_id)
+        pd.race_timestamp as race_time,
+        pd.race_date,
+        pd.horse_name,
+        pd.horse_id,
+        pd.course_id,
+        pd.meeting_id,
+        pd.race_id,
+        hpd.runner_id,
+        hpd.race_key,
+        pd.unique_id,
+        hpd.bf_unique_id,
+        hpd.price_change
+    FROM 
+        rp_raw.performance_data pd
+    LEFT JOIN 
+        public.course c ON pd.course_id = c.rp_id
+    INNER JOIN 
+        bf_raw.historical_price_data hpd ON 
+        pd.horse_name = hpd.horse AND
+        c.bf_name = hpd.course AND
+        pd.race_date::date = hpd.race_date::date
+    ORDER BY pd.unique_id, hpd.bf_unique_id, pd.race_timestamp DESC
+    ON CONFLICT (unique_id, bf_unique_id) DO UPDATE
+    SET 
+        race_time = EXCLUDED.race_time,
+        race_date = EXCLUDED.race_date,
+        horse_name = EXCLUDED.horse_name,
+        horse_id = EXCLUDED.horse_id,
+        course_id = EXCLUDED.course_id,
+        meeting_id = EXCLUDED.meeting_id,
+        race_id = EXCLUDED.race_id,
+        runner_id = EXCLUDED.runner_id,
+        race_key = EXCLUDED.race_key,
+        price_change = EXCLUDED.price_change;
+
+    COMMIT;
+END;
+$$;
+
+
+ALTER PROCEDURE public.update_historical_price_data() OWNER TO postgres;
+
+--
+-- Name: get_my_list(); Type: FUNCTION; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE FUNCTION rp_raw.get_my_list() RETURNS text[]
@@ -1264,10 +1597,10 @@ END;
 $$;
 
 
-ALTER FUNCTION rp_raw.get_my_list() OWNER TO doadmin;
+ALTER FUNCTION rp_raw.get_my_list() OWNER TO tomwattley;
 
 --
--- Name: insert_into_joined_performance_data(); Type: PROCEDURE; Schema: staging; Owner: doadmin
+-- Name: insert_into_joined_performance_data(); Type: PROCEDURE; Schema: staging; Owner: tomwattley
 --
 
 CREATE PROCEDURE staging.insert_into_joined_performance_data()
@@ -1505,15 +1838,22 @@ SELECT 	horse_name,
 		race_id,
 		unique_id,
 		now()
-	FROM joined_data WHERE rn = 1;
+	FROM joined_data WHERE rn = 1
+		ON CONFLICT (unique_id)
+		    DO UPDATE SET
+		        ts = EXCLUDED.ts,
+		        rpr = EXCLUDED.rpr,
+		        tfr = EXCLUDED.tfr,
+		        tfig = EXCLUDED.tfig,
+		        created_at = now();
 END;
 $$;
 
 
-ALTER PROCEDURE staging.insert_into_joined_performance_data() OWNER TO doadmin;
+ALTER PROCEDURE staging.insert_into_joined_performance_data() OWNER TO tomwattley;
 
 --
--- Name: insert_into_todays_joined_performance_data(); Type: PROCEDURE; Schema: staging; Owner: doadmin
+-- Name: insert_into_todays_joined_performance_data(); Type: PROCEDURE; Schema: staging; Owner: tomwattley
 --
 
 CREATE PROCEDURE staging.insert_into_todays_joined_performance_data()
@@ -1751,14 +2091,51 @@ END;
 $$;
 
 
-ALTER PROCEDURE staging.insert_into_todays_joined_performance_data() OWNER TO doadmin;
+ALTER PROCEDURE staging.insert_into_todays_joined_performance_data() OWNER TO tomwattley;
 
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
 --
--- Name: rp_raw_performance_data; Type: TABLE; Schema: backup; Owner: doadmin
+-- Name: public_race_data; Type: TABLE; Schema: backup; Owner: postgres
+--
+
+CREATE TABLE backup.public_race_data (
+    race_time timestamp without time zone,
+    race_date date,
+    race_title character varying(132),
+    race_type character varying(32),
+    race_class smallint,
+    distance character varying(16),
+    distance_yards numeric(10,2),
+    distance_meters numeric(10,2),
+    distance_kilometers numeric(10,2),
+    conditions character varying(32),
+    going character varying(32),
+    number_of_runners smallint,
+    hcap_range character varying(32),
+    age_range character varying(32),
+    surface character varying(32),
+    total_prize_money integer,
+    first_place_prize_money integer,
+    winning_time character varying(32),
+    time_seconds numeric(10,2),
+    relative_time numeric(10,2),
+    relative_to_standard character varying(16),
+    country character varying(64),
+    main_race_comment text,
+    meeting_id character varying(132),
+    race_id integer,
+    course_id smallint,
+    created_at timestamp without time zone
+);
+
+
+ALTER TABLE backup.public_race_data OWNER TO postgres;
+
+--
+-- Name: rp_raw_performance_data; Type: TABLE; Schema: backup; Owner: tomwattley
 --
 
 CREATE TABLE backup.rp_raw_performance_data (
@@ -1817,10 +2194,10 @@ CREATE TABLE backup.rp_raw_performance_data (
 );
 
 
-ALTER TABLE backup.rp_raw_performance_data OWNER TO doadmin;
+ALTER TABLE backup.rp_raw_performance_data OWNER TO tomwattley;
 
 --
--- Name: rp_raw_performance_data_deduped; Type: TABLE; Schema: backup; Owner: doadmin
+-- Name: rp_raw_performance_data_deduped; Type: TABLE; Schema: backup; Owner: tomwattley
 --
 
 CREATE TABLE backup.rp_raw_performance_data_deduped (
@@ -1879,10 +2256,10 @@ CREATE TABLE backup.rp_raw_performance_data_deduped (
 );
 
 
-ALTER TABLE backup.rp_raw_performance_data_deduped OWNER TO doadmin;
+ALTER TABLE backup.rp_raw_performance_data_deduped OWNER TO tomwattley;
 
 --
--- Name: tf_raw_performance_data; Type: TABLE; Schema: backup; Owner: doadmin
+-- Name: tf_raw_performance_data; Type: TABLE; Schema: backup; Owner: tomwattley
 --
 
 CREATE TABLE backup.tf_raw_performance_data (
@@ -1929,10 +2306,10 @@ CREATE TABLE backup.tf_raw_performance_data (
 );
 
 
-ALTER TABLE backup.tf_raw_performance_data OWNER TO doadmin;
+ALTER TABLE backup.tf_raw_performance_data OWNER TO tomwattley;
 
 --
--- Name: tf_raw_performance_data_deduped; Type: TABLE; Schema: backup; Owner: doadmin
+-- Name: tf_raw_performance_data_deduped; Type: TABLE; Schema: backup; Owner: tomwattley
 --
 
 CREATE TABLE backup.tf_raw_performance_data_deduped (
@@ -1979,340 +2356,120 @@ CREATE TABLE backup.tf_raw_performance_data_deduped (
 );
 
 
-ALTER TABLE backup.tf_raw_performance_data_deduped OWNER TO doadmin;
+ALTER TABLE backup.tf_raw_performance_data_deduped OWNER TO tomwattley;
 
 --
--- Name: todays_price_data; Type: TABLE; Schema: bf_raw; Owner: doadmin
+-- Name: historical_price_data; Type: TABLE; Schema: bf_raw; Owner: postgres
 --
 
-CREATE TABLE bf_raw.todays_price_data (
-    race_time timestamp without time zone,
-    horse_id integer,
-    horse_name character varying(132),
-    course character varying(132),
-    betfair_win_sp numeric(6,2),
-    betfair_place_sp numeric(6,2),
-    created_at timestamp with time zone,
-    status character varying(64)
+CREATE TABLE bf_raw.historical_price_data (
+    horse text,
+    course text,
+    race_time timestamp with time zone,
+    race_type text,
+    runner_id bigint,
+    race_key text,
+    bf_unique_id text,
+    min_price double precision,
+    max_price double precision,
+    latest_price double precision,
+    earliest_price double precision,
+    price_change double precision,
+    non_runners boolean,
+    race_date date
 );
 
 
-ALTER TABLE bf_raw.todays_price_data OWNER TO doadmin;
+ALTER TABLE bf_raw.historical_price_data OWNER TO postgres;
 
 --
--- Name: todays_performance_data; Type: TABLE; Schema: rp_raw; Owner: doadmin
+-- Name: matched_historical_price_data; Type: TABLE; Schema: bf_raw; Owner: postgres
 --
 
-CREATE TABLE rp_raw.todays_performance_data (
-    race_timestamp timestamp without time zone,
+CREATE TABLE bf_raw.matched_historical_price_data (
+    race_time timestamp with time zone,
+    race_date text,
+    horse_name text,
+    horse_id text,
+    course_id text,
+    meeting_id text,
+    unique_id text,
+    race_id text,
+    runner_id bigint,
+    race_key text,
+    bf_unique_id text,
+    price_change double precision
+);
+
+
+ALTER TABLE bf_raw.matched_historical_price_data OWNER TO postgres;
+
+--
+-- Name: historical_price_data; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.historical_price_data (
+    race_time timestamp without time zone,
     race_date character varying(32),
-    course_name character varying(132),
-    race_class character varying(132),
     horse_name character varying(132),
-    horse_type character varying(16),
-    horse_age character varying(16),
-    headgear character varying(16),
-    conditions character varying(32),
-    horse_price character varying(16),
-    race_title text,
-    distance character varying(32),
-    distance_full character varying(32),
-    going character varying(32),
-    number_of_runners character varying(32),
-    total_prize_money integer,
-    first_place_prize_money integer,
-    winning_time character varying(32),
-    official_rating character varying(16),
-    horse_weight character varying(16),
-    draw character varying(16),
-    country character varying(16),
-    surface character varying(16),
-    finishing_position character varying(16),
-    total_distance_beaten character varying(32),
-    ts_value character varying(16),
-    rpr_value character varying(16),
-    extra_weight numeric(10,2),
-    comment text,
-    race_time character varying(32),
-    currency character varying(16),
-    course character varying(132),
-    jockey_name character varying(132),
-    jockey_claim character varying(16),
-    trainer_name character varying(132),
-    sire_name character varying(132),
-    dam_name character varying(132),
-    dams_sire character varying(132),
-    owner_name character varying(132),
     horse_id character varying(32),
-    trainer_id character varying(32),
-    jockey_id character varying(32),
-    sire_id character varying(32),
-    dam_id character varying(32),
-    dams_sire_id character varying(32),
-    owner_id character varying(32),
-    race_id character varying(32),
     course_id character varying(32),
     meeting_id character varying(132),
-    unique_id character varying(132),
-    debug_link text,
-    created_at timestamp without time zone
-);
-
-
-ALTER TABLE rp_raw.todays_performance_data OWNER TO doadmin;
-
---
--- Name: todays_performance_data; Type: TABLE; Schema: tf_raw; Owner: doadmin
---
-
-CREATE TABLE tf_raw.todays_performance_data (
-    tf_rating character varying(16),
-    tf_speed_figure character varying(16),
-    draw character varying(16),
-    trainer_name character varying(132),
-    trainer_id character varying(32),
-    jockey_name character varying(132),
-    jockey_id character varying(32),
-    sire_name character varying(132),
-    sire_id character varying(32),
-    dam_name character varying(132),
-    dam_id character varying(32),
-    finishing_position character varying(16),
-    horse_name character varying(132),
-    horse_id character varying(32),
-    horse_name_link character varying(132),
-    horse_age character varying(16),
-    equipment character varying(16),
-    official_rating character varying(16),
-    fractional_price character varying(64),
-    betfair_win_sp character varying(16),
-    betfair_place_sp character varying(16),
-    in_play_prices character varying(16),
-    tf_comment text,
-    course text,
-    race_date character varying(32),
-    race_time character varying(32),
-    race_timestamp timestamp without time zone,
-    course_id character varying(32),
-    race text,
-    race_id character varying(132),
-    distance character varying(32),
-    going character varying(16),
-    prize character varying(16),
-    hcap_range character varying(16),
-    age_range character varying(16),
-    race_type character varying(16),
-    main_race_comment text,
-    debug_link text,
-    created_at timestamp without time zone,
-    unique_id character varying(132)
-);
-
-
-ALTER TABLE tf_raw.todays_performance_data OWNER TO doadmin;
-
---
--- Name: missing_todays_races; Type: VIEW; Schema: errors; Owner: doadmin
---
-
-CREATE VIEW errors.missing_todays_races AS
- WITH rp_data AS (
-         SELECT DISTINCT todays_performance_data.race_date,
-            todays_performance_data.course,
-            todays_performance_data.race_timestamp
-           FROM rp_raw.todays_performance_data
-          WHERE ((todays_performance_data.race_date)::date >= CURRENT_DATE)
-          ORDER BY todays_performance_data.race_date, todays_performance_data.course, todays_performance_data.race_timestamp
-        ), tf_data AS (
-         SELECT DISTINCT todays_performance_data.race_date,
-            todays_performance_data.course,
-            todays_performance_data.race_timestamp
-           FROM tf_raw.todays_performance_data
-          WHERE ((todays_performance_data.race_date)::date >= CURRENT_DATE)
-        ), ordered AS (
-         SELECT rp.race_date,
-            rp.course,
-            rp.race_timestamp,
-                CASE
-                    WHEN ((rp.race_timestamp IS NOT NULL) AND (tf.race_timestamp IS NOT NULL)) THEN true
-                    ELSE false
-                END AS both_sets
-           FROM (rp_data rp
-             LEFT JOIN tf_data tf ON ((rp.race_timestamp = tf.race_timestamp)))
-          ORDER BY rp.race_date, rp.course, rp.race_timestamp
-        )
- SELECT race_date,
-    course,
-    race_timestamp,
-    both_sets
-   FROM ordered;
-
-
-ALTER VIEW errors.missing_todays_races OWNER TO doadmin;
-
---
--- Name: staging_entity_unmatched; Type: TABLE; Schema: errors; Owner: doadmin
---
-
-CREATE TABLE errors.staging_entity_unmatched (
-    entity text,
-    race_timestamp timestamp without time zone,
-    name text,
-    debug_link text
-);
-
-
-ALTER TABLE errors.staging_entity_unmatched OWNER TO doadmin;
-
---
--- Name: staging_todays_transformed_performance_data_rejected; Type: TABLE; Schema: errors; Owner: doadmin
---
-
-CREATE TABLE errors.staging_todays_transformed_performance_data_rejected (
-    race_time timestamp without time zone,
-    race_date date,
-    horse_name text,
-    age bigint,
-    horse_sex text,
-    draw bigint,
-    headgear text,
-    weight_carried text,
-    weight_carried_lbs bigint,
-    extra_weight bigint,
-    jockey_claim text,
-    finishing_position text,
-    total_distance_beaten double precision,
-    industry_sp text,
-    betfair_win_sp double precision,
-    betfair_place_sp double precision,
-    official_rating bigint,
-    ts bigint,
-    rpr bigint,
-    tfig bigint,
-    tfr bigint,
-    in_play_high double precision,
-    in_play_low double precision,
-    in_race_comment text,
-    tf_comment text,
-    tfr_view text,
-    course_id bigint,
-    horse_id bigint,
-    jockey_id bigint,
-    trainer_id bigint,
-    owner_id bigint,
-    sire_id bigint,
-    dam_id bigint,
-    unique_id text,
-    created_at timestamp without time zone
-);
-
-
-ALTER TABLE errors.staging_todays_transformed_performance_data_rejected OWNER TO doadmin;
-
---
--- Name: staging_transformed_performance_data_rejected; Type: TABLE; Schema: errors; Owner: doadmin
---
-
-CREATE TABLE errors.staging_transformed_performance_data_rejected (
-    race_time timestamp without time zone,
-    race_date date,
-    horse_name character varying(132),
-    age integer,
-    draw integer,
-    headgear character varying(64),
-    weight_carried character varying(16),
-    weight_carried_lbs smallint,
-    extra_weight smallint,
-    jockey_claim smallint,
-    finishing_position character varying(6),
-    industry_sp character varying(16),
-    betfair_win_sp numeric(6,2),
-    betfair_place_sp numeric(6,2),
-    official_rating smallint,
-    ts smallint,
-    rpr smallint,
-    tfr smallint,
-    tfig smallint,
-    in_play_high numeric(6,2),
-    in_play_low numeric(6,2),
-    in_race_comment text,
-    tf_comment text,
-    tfr_view character varying(16),
-    course_id smallint,
-    horse_id integer,
-    jockey_id integer,
-    trainer_id integer,
-    owner_id integer,
-    sire_id integer,
-    dam_id integer,
-    unique_id character varying(132),
-    created_at timestamp without time zone
-);
-
-
-ALTER TABLE errors.staging_transformed_performance_data_rejected OWNER TO doadmin;
-
---
--- Name: todays_performance_data; Type: TABLE; Schema: errors; Owner: doadmin
---
-
-CREATE TABLE errors.todays_performance_data (
-    error_url text,
-    error_message text,
-    error_processing_time timestamp without time zone
-);
-
-
-ALTER TABLE errors.todays_performance_data OWNER TO doadmin;
-
---
--- Name: performance_data; Type: TABLE; Schema: public; Owner: doadmin
---
-
-CREATE TABLE public.performance_data (
-    race_time timestamp without time zone NOT NULL,
-    race_date date NOT NULL,
-    horse_name character varying(132) NOT NULL,
-    age integer,
-    horse_sex character varying(32),
-    draw integer,
-    headgear character varying(64),
-    weight_carried character varying(16),
-    weight_carried_lbs smallint,
-    extra_weight smallint,
-    jockey_claim smallint,
-    finishing_position character varying(6),
-    total_distance_beaten numeric(10,2),
-    industry_sp character varying(16),
-    betfair_win_sp numeric(6,2),
-    betfair_place_sp numeric(6,2),
-    official_rating smallint,
-    ts smallint,
-    rpr smallint,
-    tfr smallint,
-    tfig smallint,
-    in_play_high numeric(6,2),
-    in_play_low numeric(6,2),
-    in_race_comment text,
-    tf_comment text,
-    tfr_view character varying(16),
-    race_id integer NOT NULL,
-    course_id smallint NOT NULL,
-    horse_id integer NOT NULL,
-    jockey_id integer NOT NULL,
-    trainer_id integer NOT NULL,
-    owner_id integer NOT NULL,
-    sire_id integer NOT NULL,
-    dam_id integer NOT NULL,
+    race_id character varying(32),
+    runner_id integer,
+    race_key character varying(132),
     unique_id character varying(132) NOT NULL,
-    created_at timestamp without time zone NOT NULL
+    bf_unique_id character varying(132) NOT NULL,
+    price_change numeric(4,2)
 );
 
 
-ALTER TABLE public.performance_data OWNER TO doadmin;
+ALTER TABLE public.historical_price_data OWNER TO postgres;
 
 --
--- Name: performance_data; Type: TABLE; Schema: rp_raw; Owner: doadmin
+-- Name: missing_price_data; Type: VIEW; Schema: bf_raw; Owner: postgres
+--
+
+CREATE VIEW bf_raw.missing_price_data AS
+ SELECT hpd.horse,
+    hpd.course,
+    hpd.race_time,
+    hpd.race_type,
+    hpd.runner_id,
+    hpd.race_key,
+    hpd.bf_unique_id,
+    hpd.price_change,
+    hpd.race_date
+   FROM (bf_raw.historical_price_data hpd
+     LEFT JOIN public.historical_price_data phd ON ((hpd.bf_unique_id = (phd.bf_unique_id)::text)))
+  WHERE (phd.bf_unique_id IS NULL);
+
+
+ALTER VIEW bf_raw.missing_price_data OWNER TO postgres;
+
+--
+-- Name: course; Type: TABLE; Schema: public; Owner: tomwattley
+--
+
+CREATE TABLE public.course (
+    name character varying(132),
+    id smallint NOT NULL,
+    rp_name character varying(132),
+    rp_id character varying(4),
+    tf_name character varying(132),
+    tf_id character varying(4),
+    country_id character varying(4),
+    error_id smallint,
+    surface_id smallint,
+    bf_name character varying(132),
+    bf_id integer
+);
+
+
+ALTER TABLE public.course OWNER TO tomwattley;
+
+--
+-- Name: performance_data; Type: TABLE; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE TABLE rp_raw.performance_data (
@@ -2371,10 +2528,460 @@ CREATE TABLE rp_raw.performance_data (
 );
 
 
-ALTER TABLE rp_raw.performance_data OWNER TO doadmin;
+ALTER TABLE rp_raw.performance_data OWNER TO tomwattley;
 
 --
--- Name: missing_raw_data; Type: VIEW; Schema: metrics; Owner: doadmin
+-- Name: missing_price_performance_data; Type: VIEW; Schema: bf_raw; Owner: postgres
+--
+
+CREATE VIEW bf_raw.missing_price_performance_data AS
+ SELECT pd.race_timestamp,
+    pd.race_date,
+    pd.course_name,
+    pd.race_class,
+    pd.horse_name,
+    pd.horse_id,
+    pd.course_id,
+    pd.race_id,
+    pd.meeting_id,
+    pd.unique_id,
+    c.bf_name,
+    c.bf_id
+   FROM (rp_raw.performance_data pd
+     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.rp_id)::text)))
+  WHERE ((pd.race_date)::date IN ( SELECT DISTINCT missing_price_data.race_date
+           FROM bf_raw.missing_price_data));
+
+
+ALTER VIEW bf_raw.missing_price_performance_data OWNER TO postgres;
+
+--
+-- Name: horse; Type: TABLE; Schema: public; Owner: tomwattley
+--
+
+CREATE TABLE public.horse (
+    rp_id character varying(32),
+    name character varying(132),
+    tf_id character varying(32),
+    id integer NOT NULL
+);
+
+
+ALTER TABLE public.horse OWNER TO tomwattley;
+
+--
+-- Name: performance_data; Type: TABLE; Schema: tf_raw; Owner: tomwattley
+--
+
+CREATE TABLE tf_raw.performance_data (
+    tf_rating character varying(16),
+    tf_speed_figure character varying(16),
+    draw character varying(16),
+    trainer_name character varying(132),
+    trainer_id character varying(32),
+    jockey_name character varying(132),
+    jockey_id character varying(32),
+    sire_name character varying(132),
+    sire_id character varying(32),
+    dam_name character varying(132),
+    dam_id character varying(32),
+    finishing_position character varying(16),
+    horse_name character varying(132),
+    horse_id character varying(32),
+    horse_name_link character varying(132),
+    horse_age character varying(16),
+    equipment character varying(16),
+    official_rating character varying(16),
+    fractional_price character varying(64),
+    betfair_win_sp character varying(16),
+    betfair_place_sp character varying(16),
+    in_play_prices character varying(16),
+    tf_comment text,
+    course text,
+    race_date character varying(32),
+    race_time character varying(32),
+    race_timestamp timestamp without time zone,
+    course_id character varying(32),
+    race text,
+    race_id character varying(132),
+    distance character varying(32),
+    going character varying(16),
+    prize character varying(16),
+    hcap_range character varying(16),
+    age_range character varying(16),
+    race_type character varying(16),
+    main_race_comment text,
+    debug_link text,
+    created_at timestamp without time zone,
+    unique_id character varying(132)
+);
+
+
+ALTER TABLE tf_raw.performance_data OWNER TO tomwattley;
+
+--
+-- Name: missing_price_performance_data_tmp; Type: VIEW; Schema: bf_raw; Owner: postgres
+--
+
+CREATE VIEW bf_raw.missing_price_performance_data_tmp AS
+ SELECT DISTINCT ON (pd.unique_id) pd.race_timestamp,
+    pd.race_date,
+    pd.course_name,
+    pd.race_class,
+    pd.horse_name AS rp_horse_name,
+    pd.horse_id,
+    pd.course_id,
+    pd.race_id,
+    pd.meeting_id,
+    pd.unique_id,
+    c.bf_name,
+    c.bf_id,
+    tf.horse_name AS tf_horse_name
+   FROM (((rp_raw.performance_data pd
+     LEFT JOIN public.course c ON (((pd.course_id)::text = (c.rp_id)::text)))
+     LEFT JOIN public.horse h ON (((pd.horse_id)::text = (h.rp_id)::text)))
+     LEFT JOIN tf_raw.performance_data tf ON (((h.tf_id)::text = (tf.horse_id)::text)))
+  WHERE ((pd.race_date)::date IN ( SELECT DISTINCT missing_price_data.race_date
+           FROM bf_raw.missing_price_data));
+
+
+ALTER VIEW bf_raw.missing_price_performance_data_tmp OWNER TO postgres;
+
+--
+-- Name: todays_price_data; Type: TABLE; Schema: bf_raw; Owner: tomwattley
+--
+
+CREATE TABLE bf_raw.todays_price_data (
+    race_time timestamp without time zone,
+    race_date date,
+    horse_id integer,
+    horse_name character varying(132),
+    course character varying(132),
+    betfair_win_sp numeric(6,2),
+    betfair_place_sp numeric(6,2),
+    created_at timestamp without time zone,
+    status character varying(64),
+    market_id_win character varying(32),
+    market_id_place character varying(32)
+);
+
+
+ALTER TABLE bf_raw.todays_price_data OWNER TO tomwattley;
+
+--
+-- Name: todays_performance_data; Type: TABLE; Schema: rp_raw; Owner: tomwattley
+--
+
+CREATE TABLE rp_raw.todays_performance_data (
+    race_timestamp timestamp without time zone,
+    race_date character varying(32),
+    course_name character varying(132),
+    race_class character varying(132),
+    horse_name character varying(132),
+    horse_type character varying(16),
+    horse_age character varying(16),
+    headgear character varying(16),
+    conditions character varying(32),
+    horse_price character varying(16),
+    race_title text,
+    distance character varying(32),
+    distance_full character varying(32),
+    going character varying(32),
+    number_of_runners character varying(32),
+    total_prize_money integer,
+    first_place_prize_money integer,
+    winning_time character varying(32),
+    official_rating character varying(16),
+    horse_weight character varying(16),
+    draw character varying(16),
+    country character varying(16),
+    surface character varying(16),
+    finishing_position character varying(16),
+    total_distance_beaten character varying(32),
+    ts_value character varying(16),
+    rpr_value character varying(16),
+    extra_weight numeric(10,2),
+    comment text,
+    race_time character varying(32),
+    currency character varying(16),
+    course character varying(132),
+    jockey_name character varying(132),
+    jockey_claim character varying(16),
+    trainer_name character varying(132),
+    sire_name character varying(132),
+    dam_name character varying(132),
+    dams_sire character varying(132),
+    owner_name character varying(132),
+    horse_id character varying(32),
+    trainer_id character varying(32),
+    jockey_id character varying(32),
+    sire_id character varying(32),
+    dam_id character varying(32),
+    dams_sire_id character varying(32),
+    owner_id character varying(32),
+    race_id character varying(32),
+    course_id character varying(32),
+    meeting_id character varying(132),
+    unique_id character varying(132),
+    debug_link text,
+    created_at timestamp without time zone
+);
+
+
+ALTER TABLE rp_raw.todays_performance_data OWNER TO tomwattley;
+
+--
+-- Name: todays_performance_data; Type: TABLE; Schema: tf_raw; Owner: tomwattley
+--
+
+CREATE TABLE tf_raw.todays_performance_data (
+    tf_rating character varying(16),
+    tf_speed_figure character varying(16),
+    draw character varying(16),
+    trainer_name character varying(132),
+    trainer_id character varying(32),
+    jockey_name character varying(132),
+    jockey_id character varying(32),
+    sire_name character varying(132),
+    sire_id character varying(32),
+    dam_name character varying(132),
+    dam_id character varying(32),
+    finishing_position character varying(16),
+    horse_name character varying(132),
+    horse_id character varying(32),
+    horse_name_link character varying(132),
+    horse_age character varying(16),
+    equipment character varying(16),
+    official_rating character varying(16),
+    fractional_price character varying(64),
+    betfair_win_sp character varying(16),
+    betfair_place_sp character varying(16),
+    in_play_prices character varying(16),
+    tf_comment text,
+    course text,
+    race_date character varying(32),
+    race_time character varying(32),
+    race_timestamp timestamp without time zone,
+    course_id character varying(32),
+    race text,
+    race_id character varying(132),
+    distance character varying(32),
+    going character varying(16),
+    prize character varying(16),
+    hcap_range character varying(16),
+    age_range character varying(16),
+    race_type character varying(16),
+    main_race_comment text,
+    debug_link text,
+    created_at timestamp without time zone,
+    unique_id character varying(132)
+);
+
+
+ALTER TABLE tf_raw.todays_performance_data OWNER TO tomwattley;
+
+--
+-- Name: missing_todays_races; Type: VIEW; Schema: errors; Owner: tomwattley
+--
+
+CREATE VIEW errors.missing_todays_races AS
+ WITH rp_data AS (
+         SELECT DISTINCT todays_performance_data.race_date,
+            todays_performance_data.course,
+            todays_performance_data.race_timestamp
+           FROM rp_raw.todays_performance_data
+          WHERE ((todays_performance_data.race_date)::date >= CURRENT_DATE)
+          ORDER BY todays_performance_data.race_date, todays_performance_data.course, todays_performance_data.race_timestamp
+        ), tf_data AS (
+         SELECT DISTINCT todays_performance_data.race_date,
+            todays_performance_data.course,
+            todays_performance_data.race_timestamp
+           FROM tf_raw.todays_performance_data
+          WHERE ((todays_performance_data.race_date)::date >= CURRENT_DATE)
+        ), ordered AS (
+         SELECT rp.race_date,
+            rp.course,
+            rp.race_timestamp,
+                CASE
+                    WHEN ((rp.race_timestamp IS NOT NULL) AND (tf.race_timestamp IS NOT NULL)) THEN true
+                    ELSE false
+                END AS both_sets
+           FROM (rp_data rp
+             LEFT JOIN tf_data tf ON ((rp.race_timestamp = tf.race_timestamp)))
+          ORDER BY rp.race_date, rp.course, rp.race_timestamp
+        )
+ SELECT race_date,
+    course,
+    race_timestamp,
+    both_sets
+   FROM ordered;
+
+
+ALTER VIEW errors.missing_todays_races OWNER TO tomwattley;
+
+--
+-- Name: staging_entity_unmatched; Type: TABLE; Schema: errors; Owner: tomwattley
+--
+
+CREATE TABLE errors.staging_entity_unmatched (
+    entity text,
+    race_timestamp timestamp without time zone,
+    name text,
+    debug_link text
+);
+
+
+ALTER TABLE errors.staging_entity_unmatched OWNER TO tomwattley;
+
+--
+-- Name: staging_todays_transformed_performance_data_rejected; Type: TABLE; Schema: errors; Owner: tomwattley
+--
+
+CREATE TABLE errors.staging_todays_transformed_performance_data_rejected (
+    race_time timestamp without time zone,
+    race_date date,
+    horse_name text,
+    age bigint,
+    horse_sex text,
+    draw bigint,
+    headgear text,
+    weight_carried text,
+    weight_carried_lbs bigint,
+    extra_weight bigint,
+    jockey_claim text,
+    finishing_position text,
+    total_distance_beaten double precision,
+    industry_sp text,
+    betfair_win_sp double precision,
+    betfair_place_sp double precision,
+    official_rating bigint,
+    ts bigint,
+    rpr bigint,
+    tfig bigint,
+    tfr bigint,
+    in_play_high double precision,
+    in_play_low double precision,
+    in_race_comment text,
+    tf_comment text,
+    tfr_view text,
+    course_id bigint,
+    horse_id bigint,
+    jockey_id bigint,
+    trainer_id bigint,
+    owner_id bigint,
+    sire_id bigint,
+    dam_id bigint,
+    unique_id text,
+    created_at timestamp without time zone
+);
+
+
+ALTER TABLE errors.staging_todays_transformed_performance_data_rejected OWNER TO tomwattley;
+
+--
+-- Name: staging_transformed_performance_data_rejected; Type: TABLE; Schema: errors; Owner: tomwattley
+--
+
+CREATE TABLE errors.staging_transformed_performance_data_rejected (
+    race_time timestamp without time zone,
+    race_date date,
+    horse_name character varying(132),
+    age integer,
+    draw integer,
+    headgear character varying(64),
+    weight_carried character varying(16),
+    weight_carried_lbs smallint,
+    extra_weight smallint,
+    jockey_claim smallint,
+    finishing_position character varying(6),
+    industry_sp character varying(16),
+    betfair_win_sp numeric(6,2),
+    betfair_place_sp numeric(6,2),
+    official_rating smallint,
+    ts smallint,
+    rpr smallint,
+    tfr smallint,
+    tfig smallint,
+    in_play_high numeric(6,2),
+    in_play_low numeric(6,2),
+    in_race_comment text,
+    tf_comment text,
+    tfr_view character varying(16),
+    course_id smallint,
+    horse_id integer,
+    jockey_id integer,
+    trainer_id integer,
+    owner_id integer,
+    sire_id integer,
+    dam_id integer,
+    unique_id character varying(132),
+    created_at timestamp without time zone
+);
+
+
+ALTER TABLE errors.staging_transformed_performance_data_rejected OWNER TO tomwattley;
+
+--
+-- Name: todays_performance_data; Type: TABLE; Schema: errors; Owner: tomwattley
+--
+
+CREATE TABLE errors.todays_performance_data (
+    error_url text,
+    error_message text,
+    error_processing_time timestamp without time zone
+);
+
+
+ALTER TABLE errors.todays_performance_data OWNER TO tomwattley;
+
+--
+-- Name: performance_data; Type: TABLE; Schema: public; Owner: tomwattley
+--
+
+CREATE TABLE public.performance_data (
+    race_time timestamp without time zone NOT NULL,
+    race_date date NOT NULL,
+    horse_name character varying(132) NOT NULL,
+    age integer,
+    horse_sex character varying(32),
+    draw integer,
+    headgear character varying(64),
+    weight_carried character varying(16),
+    weight_carried_lbs smallint,
+    extra_weight smallint,
+    jockey_claim smallint,
+    finishing_position character varying(6),
+    total_distance_beaten numeric(10,2),
+    industry_sp character varying(16),
+    betfair_win_sp numeric(6,2),
+    betfair_place_sp numeric(6,2),
+    official_rating smallint,
+    ts smallint,
+    rpr smallint,
+    tfr smallint,
+    tfig smallint,
+    in_play_high numeric(6,2),
+    in_play_low numeric(6,2),
+    in_race_comment text,
+    tf_comment text,
+    tfr_view character varying(16),
+    race_id integer NOT NULL,
+    course_id smallint NOT NULL,
+    horse_id integer NOT NULL,
+    jockey_id integer NOT NULL,
+    trainer_id integer NOT NULL,
+    owner_id integer NOT NULL,
+    sire_id integer NOT NULL,
+    dam_id integer NOT NULL,
+    unique_id character varying(132) NOT NULL,
+    created_at timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE public.performance_data OWNER TO tomwattley;
+
+--
+-- Name: missing_raw_data; Type: VIEW; Schema: metrics; Owner: tomwattley
 --
 
 CREATE VIEW metrics.missing_raw_data AS
@@ -2385,10 +2992,10 @@ CREATE VIEW metrics.missing_raw_data AS
   WHERE (pd.unique_id IS NULL);
 
 
-ALTER VIEW metrics.missing_raw_data OWNER TO doadmin;
+ALTER VIEW metrics.missing_raw_data OWNER TO tomwattley;
 
 --
--- Name: joined_performance_data; Type: TABLE; Schema: staging; Owner: doadmin
+-- Name: joined_performance_data; Type: TABLE; Schema: staging; Owner: tomwattley
 --
 
 CREATE TABLE staging.joined_performance_data (
@@ -2454,10 +3061,10 @@ CREATE TABLE staging.joined_performance_data (
 );
 
 
-ALTER TABLE staging.joined_performance_data OWNER TO doadmin;
+ALTER TABLE staging.joined_performance_data OWNER TO tomwattley;
 
 --
--- Name: missing_raw_to_stg; Type: VIEW; Schema: metrics; Owner: doadmin
+-- Name: missing_raw_to_stg; Type: VIEW; Schema: metrics; Owner: tomwattley
 --
 
 CREATE VIEW metrics.missing_raw_to_stg AS
@@ -2468,10 +3075,10 @@ CREATE VIEW metrics.missing_raw_to_stg AS
   WHERE (spd.unique_id IS NULL);
 
 
-ALTER VIEW metrics.missing_raw_to_stg OWNER TO doadmin;
+ALTER VIEW metrics.missing_raw_to_stg OWNER TO tomwattley;
 
 --
--- Name: transformed_performance_data; Type: TABLE; Schema: staging; Owner: doadmin
+-- Name: transformed_performance_data; Type: TABLE; Schema: staging; Owner: tomwattley
 --
 
 CREATE TABLE staging.transformed_performance_data (
@@ -2514,10 +3121,10 @@ CREATE TABLE staging.transformed_performance_data (
 );
 
 
-ALTER TABLE staging.transformed_performance_data OWNER TO doadmin;
+ALTER TABLE staging.transformed_performance_data OWNER TO tomwattley;
 
 --
--- Name: missing_stg_to_cns; Type: VIEW; Schema: metrics; Owner: doadmin
+-- Name: missing_stg_to_cns; Type: VIEW; Schema: metrics; Owner: tomwattley
 --
 
 CREATE VIEW metrics.missing_stg_to_cns AS
@@ -2528,10 +3135,10 @@ CREATE VIEW metrics.missing_stg_to_cns AS
   WHERE (pd.unique_id IS NULL);
 
 
-ALTER VIEW metrics.missing_stg_to_cns OWNER TO doadmin;
+ALTER VIEW metrics.missing_stg_to_cns OWNER TO tomwattley;
 
 --
--- Name: processing_times; Type: TABLE; Schema: metrics; Owner: doadmin
+-- Name: processing_times; Type: TABLE; Schema: metrics; Owner: tomwattley
 --
 
 CREATE TABLE metrics.processing_times (
@@ -2540,78 +3147,10 @@ CREATE TABLE metrics.processing_times (
 );
 
 
-ALTER TABLE metrics.processing_times OWNER TO doadmin;
+ALTER TABLE metrics.processing_times OWNER TO tomwattley;
 
 --
--- Name: course; Type: TABLE; Schema: public; Owner: doadmin
---
-
-CREATE TABLE public.course (
-    name character varying(132),
-    id smallint NOT NULL,
-    rp_name character varying(132),
-    rp_id character varying(4),
-    tf_name character varying(132),
-    tf_id character varying(4),
-    country_id character varying(4),
-    error_id smallint
-);
-
-
-ALTER TABLE public.course OWNER TO doadmin;
-
---
--- Name: performance_data; Type: TABLE; Schema: tf_raw; Owner: doadmin
---
-
-CREATE TABLE tf_raw.performance_data (
-    tf_rating character varying(16),
-    tf_speed_figure character varying(16),
-    draw character varying(16),
-    trainer_name character varying(132),
-    trainer_id character varying(32),
-    jockey_name character varying(132),
-    jockey_id character varying(32),
-    sire_name character varying(132),
-    sire_id character varying(32),
-    dam_name character varying(132),
-    dam_id character varying(32),
-    finishing_position character varying(16),
-    horse_name character varying(132),
-    horse_id character varying(32),
-    horse_name_link character varying(132),
-    horse_age character varying(16),
-    equipment character varying(16),
-    official_rating character varying(16),
-    fractional_price character varying(64),
-    betfair_win_sp character varying(16),
-    betfair_place_sp character varying(16),
-    in_play_prices character varying(16),
-    tf_comment text,
-    course text,
-    race_date character varying(32),
-    race_time character varying(32),
-    race_timestamp timestamp without time zone,
-    course_id character varying(32),
-    race text,
-    race_id character varying(132),
-    distance character varying(32),
-    going character varying(16),
-    prize character varying(16),
-    hcap_range character varying(16),
-    age_range character varying(16),
-    race_type character varying(16),
-    main_race_comment text,
-    debug_link text,
-    created_at timestamp without time zone,
-    unique_id character varying(132)
-);
-
-
-ALTER TABLE tf_raw.performance_data OWNER TO doadmin;
-
---
--- Name: record_count_differences_vw; Type: VIEW; Schema: metrics; Owner: doadmin
+-- Name: record_count_differences_vw; Type: VIEW; Schema: metrics; Owner: tomwattley
 --
 
 CREATE VIEW metrics.record_count_differences_vw AS
@@ -2642,10 +3181,10 @@ CREATE VIEW metrics.record_count_differences_vw AS
   ORDER BY COALESCE(rp.race_date, tf.race_date) DESC, COALESCE(rp.course_name, tf.course_name), rp.course_id;
 
 
-ALTER VIEW metrics.record_count_differences_vw OWNER TO doadmin;
+ALTER VIEW metrics.record_count_differences_vw OWNER TO tomwattley;
 
 --
--- Name: bf_horse; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: bf_horse; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.bf_horse (
@@ -2655,10 +3194,24 @@ CREATE TABLE public.bf_horse (
 );
 
 
-ALTER TABLE public.bf_horse OWNER TO doadmin;
+ALTER TABLE public.bf_horse OWNER TO tomwattley;
 
 --
--- Name: country; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: bf_market; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.bf_market (
+    race_time timestamp without time zone,
+    race_id integer,
+    market_id_win character varying(16),
+    market_id_place character varying(16)
+);
+
+
+ALTER TABLE public.bf_market OWNER TO postgres;
+
+--
+-- Name: country; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.country (
@@ -2667,10 +3220,10 @@ CREATE TABLE public.country (
 );
 
 
-ALTER TABLE public.country OWNER TO doadmin;
+ALTER TABLE public.country OWNER TO tomwattley;
 
 --
--- Name: dam; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: dam; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.dam (
@@ -2681,10 +3234,10 @@ CREATE TABLE public.dam (
 );
 
 
-ALTER TABLE public.dam OWNER TO doadmin;
+ALTER TABLE public.dam OWNER TO tomwattley;
 
 --
--- Name: dam_dam_id_seq; Type: SEQUENCE; Schema: public; Owner: doadmin
+-- Name: dam_dam_id_seq; Type: SEQUENCE; Schema: public; Owner: tomwattley
 --
 
 CREATE SEQUENCE public.dam_dam_id_seq
@@ -2695,10 +3248,10 @@ CREATE SEQUENCE public.dam_dam_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.dam_dam_id_seq OWNER TO doadmin;
+ALTER SEQUENCE public.dam_dam_id_seq OWNER TO tomwattley;
 
 --
--- Name: dam_id_seq; Type: SEQUENCE; Schema: public; Owner: doadmin
+-- Name: dam_id_seq; Type: SEQUENCE; Schema: public; Owner: tomwattley
 --
 
 CREATE SEQUENCE public.dam_id_seq
@@ -2710,31 +3263,31 @@ CREATE SEQUENCE public.dam_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.dam_id_seq OWNER TO doadmin;
+ALTER SEQUENCE public.dam_id_seq OWNER TO tomwattley;
 
 --
--- Name: dam_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: doadmin
+-- Name: dam_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: tomwattley
 --
 
 ALTER SEQUENCE public.dam_id_seq OWNED BY public.dam.id;
 
 
 --
--- Name: horse; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: distance; Type: TABLE; Schema: public; Owner: postgres
 --
 
-CREATE TABLE public.horse (
-    rp_id character varying(32),
-    name character varying(132),
-    tf_id character varying(32),
-    id integer NOT NULL
+CREATE TABLE public.distance (
+    distance text,
+    distance_yards bigint,
+    distance_meters double precision,
+    distance_kilometers double precision
 );
 
 
-ALTER TABLE public.horse OWNER TO doadmin;
+ALTER TABLE public.distance OWNER TO postgres;
 
 --
--- Name: horse_horse_id_seq; Type: SEQUENCE; Schema: public; Owner: doadmin
+-- Name: horse_horse_id_seq; Type: SEQUENCE; Schema: public; Owner: tomwattley
 --
 
 CREATE SEQUENCE public.horse_horse_id_seq
@@ -2745,10 +3298,10 @@ CREATE SEQUENCE public.horse_horse_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.horse_horse_id_seq OWNER TO doadmin;
+ALTER SEQUENCE public.horse_horse_id_seq OWNER TO tomwattley;
 
 --
--- Name: horse_id_seq; Type: SEQUENCE; Schema: public; Owner: doadmin
+-- Name: horse_id_seq; Type: SEQUENCE; Schema: public; Owner: tomwattley
 --
 
 CREATE SEQUENCE public.horse_id_seq
@@ -2760,17 +3313,17 @@ CREATE SEQUENCE public.horse_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.horse_id_seq OWNER TO doadmin;
+ALTER SEQUENCE public.horse_id_seq OWNER TO tomwattley;
 
 --
--- Name: horse_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: doadmin
+-- Name: horse_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: tomwattley
 --
 
 ALTER SEQUENCE public.horse_id_seq OWNED BY public.horse.id;
 
 
 --
--- Name: jockey; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: jockey; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.jockey (
@@ -2781,10 +3334,10 @@ CREATE TABLE public.jockey (
 );
 
 
-ALTER TABLE public.jockey OWNER TO doadmin;
+ALTER TABLE public.jockey OWNER TO tomwattley;
 
 --
--- Name: jockey_id_seq; Type: SEQUENCE; Schema: public; Owner: doadmin
+-- Name: jockey_id_seq; Type: SEQUENCE; Schema: public; Owner: tomwattley
 --
 
 CREATE SEQUENCE public.jockey_id_seq
@@ -2796,17 +3349,17 @@ CREATE SEQUENCE public.jockey_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.jockey_id_seq OWNER TO doadmin;
+ALTER SEQUENCE public.jockey_id_seq OWNER TO tomwattley;
 
 --
--- Name: jockey_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: doadmin
+-- Name: jockey_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: tomwattley
 --
 
 ALTER SEQUENCE public.jockey_id_seq OWNED BY public.jockey.id;
 
 
 --
--- Name: jockey_jockey_id_seq; Type: SEQUENCE; Schema: public; Owner: doadmin
+-- Name: jockey_jockey_id_seq; Type: SEQUENCE; Schema: public; Owner: tomwattley
 --
 
 CREATE SEQUENCE public.jockey_jockey_id_seq
@@ -2817,10 +3370,10 @@ CREATE SEQUENCE public.jockey_jockey_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.jockey_jockey_id_seq OWNER TO doadmin;
+ALTER SEQUENCE public.jockey_jockey_id_seq OWNER TO tomwattley;
 
 --
--- Name: missing_performance_data_vw; Type: VIEW; Schema: public; Owner: doadmin
+-- Name: missing_performance_data_vw; Type: VIEW; Schema: public; Owner: tomwattley
 --
 
 CREATE VIEW public.missing_performance_data_vw AS
@@ -2889,10 +3442,10 @@ CREATE VIEW public.missing_performance_data_vw AS
   WHERE ((pd.unique_id IS NULL) AND ((spd.race_date)::text > '2010-01-01'::text));
 
 
-ALTER VIEW public.missing_performance_data_vw OWNER TO doadmin;
+ALTER VIEW public.missing_performance_data_vw OWNER TO tomwattley;
 
 --
--- Name: race_data; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: race_data; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.race_data (
@@ -2926,10 +3479,10 @@ CREATE TABLE public.race_data (
 );
 
 
-ALTER TABLE public.race_data OWNER TO doadmin;
+ALTER TABLE public.race_data OWNER TO tomwattley;
 
 --
--- Name: missing_race_data_vw; Type: VIEW; Schema: public; Owner: doadmin
+-- Name: missing_race_data_vw; Type: VIEW; Schema: public; Owner: tomwattley
 --
 
 CREATE VIEW public.missing_race_data_vw AS
@@ -2997,10 +3550,10 @@ CREATE VIEW public.missing_race_data_vw AS
   WHERE (pd.race_id IS NULL);
 
 
-ALTER VIEW public.missing_race_data_vw OWNER TO doadmin;
+ALTER VIEW public.missing_race_data_vw OWNER TO tomwattley;
 
 --
--- Name: todays_joined_performance_data; Type: TABLE; Schema: staging; Owner: doadmin
+-- Name: todays_joined_performance_data; Type: TABLE; Schema: staging; Owner: tomwattley
 --
 
 CREATE TABLE staging.todays_joined_performance_data (
@@ -3066,10 +3619,10 @@ CREATE TABLE staging.todays_joined_performance_data (
 );
 
 
-ALTER TABLE staging.todays_joined_performance_data OWNER TO doadmin;
+ALTER TABLE staging.todays_joined_performance_data OWNER TO tomwattley;
 
 --
--- Name: missing_todays_performance_data_vw; Type: VIEW; Schema: public; Owner: doadmin
+-- Name: missing_todays_performance_data_vw; Type: VIEW; Schema: public; Owner: tomwattley
 --
 
 CREATE VIEW public.missing_todays_performance_data_vw AS
@@ -3136,10 +3689,10 @@ CREATE VIEW public.missing_todays_performance_data_vw AS
    FROM staging.todays_joined_performance_data spd;
 
 
-ALTER VIEW public.missing_todays_performance_data_vw OWNER TO doadmin;
+ALTER VIEW public.missing_todays_performance_data_vw OWNER TO tomwattley;
 
 --
--- Name: missing_todays_race_data_vw; Type: VIEW; Schema: public; Owner: doadmin
+-- Name: missing_todays_race_data_vw; Type: VIEW; Schema: public; Owner: tomwattley
 --
 
 CREATE VIEW public.missing_todays_race_data_vw AS
@@ -3207,10 +3760,10 @@ CREATE VIEW public.missing_todays_race_data_vw AS
   WHERE (pd.race_id IS NULL);
 
 
-ALTER VIEW public.missing_todays_race_data_vw OWNER TO doadmin;
+ALTER VIEW public.missing_todays_race_data_vw OWNER TO tomwattley;
 
 --
--- Name: owner; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: owner; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.owner (
@@ -3220,10 +3773,10 @@ CREATE TABLE public.owner (
 );
 
 
-ALTER TABLE public.owner OWNER TO doadmin;
+ALTER TABLE public.owner OWNER TO tomwattley;
 
 --
--- Name: owner_id_seq; Type: SEQUENCE; Schema: public; Owner: doadmin
+-- Name: owner_id_seq; Type: SEQUENCE; Schema: public; Owner: tomwattley
 --
 
 CREATE SEQUENCE public.owner_id_seq
@@ -3235,17 +3788,17 @@ CREATE SEQUENCE public.owner_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.owner_id_seq OWNER TO doadmin;
+ALTER SEQUENCE public.owner_id_seq OWNER TO tomwattley;
 
 --
--- Name: owner_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: doadmin
+-- Name: owner_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: tomwattley
 --
 
 ALTER SEQUENCE public.owner_id_seq OWNED BY public.owner.id;
 
 
 --
--- Name: sire; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: sire; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.sire (
@@ -3256,10 +3809,10 @@ CREATE TABLE public.sire (
 );
 
 
-ALTER TABLE public.sire OWNER TO doadmin;
+ALTER TABLE public.sire OWNER TO tomwattley;
 
 --
--- Name: sire_id_seq; Type: SEQUENCE; Schema: public; Owner: doadmin
+-- Name: sire_id_seq; Type: SEQUENCE; Schema: public; Owner: tomwattley
 --
 
 CREATE SEQUENCE public.sire_id_seq
@@ -3271,17 +3824,17 @@ CREATE SEQUENCE public.sire_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.sire_id_seq OWNER TO doadmin;
+ALTER SEQUENCE public.sire_id_seq OWNER TO tomwattley;
 
 --
--- Name: sire_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: doadmin
+-- Name: sire_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: tomwattley
 --
 
 ALTER SEQUENCE public.sire_id_seq OWNED BY public.sire.id;
 
 
 --
--- Name: sire_sire_id_seq; Type: SEQUENCE; Schema: public; Owner: doadmin
+-- Name: sire_sire_id_seq; Type: SEQUENCE; Schema: public; Owner: tomwattley
 --
 
 CREATE SEQUENCE public.sire_sire_id_seq
@@ -3292,10 +3845,22 @@ CREATE SEQUENCE public.sire_sire_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.sire_sire_id_seq OWNER TO doadmin;
+ALTER SEQUENCE public.sire_sire_id_seq OWNER TO tomwattley;
 
 --
--- Name: todays_performance_data; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: surface; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.surface (
+    name character varying(132),
+    id smallint NOT NULL
+);
+
+
+ALTER TABLE public.surface OWNER TO postgres;
+
+--
+-- Name: todays_performance_data; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.todays_performance_data (
@@ -3338,10 +3903,10 @@ CREATE TABLE public.todays_performance_data (
 );
 
 
-ALTER TABLE public.todays_performance_data OWNER TO doadmin;
+ALTER TABLE public.todays_performance_data OWNER TO tomwattley;
 
 --
--- Name: todays_race_data; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: todays_race_data; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.todays_race_data (
@@ -3375,10 +3940,10 @@ CREATE TABLE public.todays_race_data (
 );
 
 
-ALTER TABLE public.todays_race_data OWNER TO doadmin;
+ALTER TABLE public.todays_race_data OWNER TO tomwattley;
 
 --
--- Name: trainer; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: trainer; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.trainer (
@@ -3389,10 +3954,10 @@ CREATE TABLE public.trainer (
 );
 
 
-ALTER TABLE public.trainer OWNER TO doadmin;
+ALTER TABLE public.trainer OWNER TO tomwattley;
 
 --
--- Name: trainer_id_seq; Type: SEQUENCE; Schema: public; Owner: doadmin
+-- Name: trainer_id_seq; Type: SEQUENCE; Schema: public; Owner: tomwattley
 --
 
 CREATE SEQUENCE public.trainer_id_seq
@@ -3404,17 +3969,17 @@ CREATE SEQUENCE public.trainer_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.trainer_id_seq OWNER TO doadmin;
+ALTER SEQUENCE public.trainer_id_seq OWNER TO tomwattley;
 
 --
--- Name: trainer_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: doadmin
+-- Name: trainer_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: tomwattley
 --
 
 ALTER SEQUENCE public.trainer_id_seq OWNED BY public.trainer.id;
 
 
 --
--- Name: trainer_trainer_id_seq; Type: SEQUENCE; Schema: public; Owner: doadmin
+-- Name: trainer_trainer_id_seq; Type: SEQUENCE; Schema: public; Owner: tomwattley
 --
 
 CREATE SEQUENCE public.trainer_trainer_id_seq
@@ -3425,10 +3990,10 @@ CREATE SEQUENCE public.trainer_trainer_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.trainer_trainer_id_seq OWNER TO doadmin;
+ALTER SEQUENCE public.trainer_trainer_id_seq OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data (
@@ -3493,15 +4058,16 @@ CREATE TABLE public.unioned_performance_data (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 )
 PARTITION BY RANGE (race_date);
 
 
-ALTER TABLE public.unioned_performance_data OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2010; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2010; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data_2010 (
@@ -3566,14 +4132,15 @@ CREATE TABLE public.unioned_performance_data_2010 (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 );
 
 
-ALTER TABLE public.unioned_performance_data_2010 OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data_2010 OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2011; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2011; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data_2011 (
@@ -3638,14 +4205,15 @@ CREATE TABLE public.unioned_performance_data_2011 (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 );
 
 
-ALTER TABLE public.unioned_performance_data_2011 OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data_2011 OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2012; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2012; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data_2012 (
@@ -3710,14 +4278,15 @@ CREATE TABLE public.unioned_performance_data_2012 (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 );
 
 
-ALTER TABLE public.unioned_performance_data_2012 OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data_2012 OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2013; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2013; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data_2013 (
@@ -3782,14 +4351,15 @@ CREATE TABLE public.unioned_performance_data_2013 (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 );
 
 
-ALTER TABLE public.unioned_performance_data_2013 OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data_2013 OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2014; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2014; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data_2014 (
@@ -3854,14 +4424,15 @@ CREATE TABLE public.unioned_performance_data_2014 (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 );
 
 
-ALTER TABLE public.unioned_performance_data_2014 OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data_2014 OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2015; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2015; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data_2015 (
@@ -3926,14 +4497,15 @@ CREATE TABLE public.unioned_performance_data_2015 (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 );
 
 
-ALTER TABLE public.unioned_performance_data_2015 OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data_2015 OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2016; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2016; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data_2016 (
@@ -3998,14 +4570,15 @@ CREATE TABLE public.unioned_performance_data_2016 (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 );
 
 
-ALTER TABLE public.unioned_performance_data_2016 OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data_2016 OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2017; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2017; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data_2017 (
@@ -4070,14 +4643,15 @@ CREATE TABLE public.unioned_performance_data_2017 (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 );
 
 
-ALTER TABLE public.unioned_performance_data_2017 OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data_2017 OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2018; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2018; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data_2018 (
@@ -4142,14 +4716,15 @@ CREATE TABLE public.unioned_performance_data_2018 (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 );
 
 
-ALTER TABLE public.unioned_performance_data_2018 OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data_2018 OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2019; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2019; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data_2019 (
@@ -4214,14 +4789,15 @@ CREATE TABLE public.unioned_performance_data_2019 (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 );
 
 
-ALTER TABLE public.unioned_performance_data_2019 OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data_2019 OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2020; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2020; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data_2020 (
@@ -4286,14 +4862,15 @@ CREATE TABLE public.unioned_performance_data_2020 (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 );
 
 
-ALTER TABLE public.unioned_performance_data_2020 OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data_2020 OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2021; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2021; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data_2021 (
@@ -4358,14 +4935,15 @@ CREATE TABLE public.unioned_performance_data_2021 (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 );
 
 
-ALTER TABLE public.unioned_performance_data_2021 OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data_2021 OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2022; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2022; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data_2022 (
@@ -4430,14 +5008,15 @@ CREATE TABLE public.unioned_performance_data_2022 (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 );
 
 
-ALTER TABLE public.unioned_performance_data_2022 OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data_2022 OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2023; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2023; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data_2023 (
@@ -4502,14 +5081,15 @@ CREATE TABLE public.unioned_performance_data_2023 (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 );
 
 
-ALTER TABLE public.unioned_performance_data_2023 OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data_2023 OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2024; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2024; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data_2024 (
@@ -4574,14 +5154,15 @@ CREATE TABLE public.unioned_performance_data_2024 (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 );
 
 
-ALTER TABLE public.unioned_performance_data_2024 OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data_2024 OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2025; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2025; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data_2025 (
@@ -4646,14 +5227,15 @@ CREATE TABLE public.unioned_performance_data_2025 (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 );
 
 
-ALTER TABLE public.unioned_performance_data_2025 OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data_2025 OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2026; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2026; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data_2026 (
@@ -4718,14 +5300,15 @@ CREATE TABLE public.unioned_performance_data_2026 (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 );
 
 
-ALTER TABLE public.unioned_performance_data_2026 OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data_2026 OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2027; Type: TABLE; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2027; Type: TABLE; Schema: public; Owner: tomwattley
 --
 
 CREATE TABLE public.unioned_performance_data_2027 (
@@ -4790,54 +5373,15 @@ CREATE TABLE public.unioned_performance_data_2027 (
     dam character varying(132),
     sire character varying(132),
     trainer character varying(132),
-    jockey character varying(132)
+    jockey character varying(132),
+    price_move numeric(6,2)
 );
 
 
-ALTER TABLE public.unioned_performance_data_2027 OWNER TO doadmin;
+ALTER TABLE public.unioned_performance_data_2027 OWNER TO tomwattley;
 
 --
--- Name: users; Type: TABLE; Schema: public; Owner: doadmin
---
-
-CREATE TABLE public.users (
-    id integer NOT NULL,
-    username character varying(255) NOT NULL,
-    hashed_password character varying(255) NOT NULL,
-    email character varying(255) NOT NULL,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    is_active boolean DEFAULT true,
-    is_admin boolean DEFAULT false
-);
-
-
-ALTER TABLE public.users OWNER TO doadmin;
-
---
--- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: doadmin
---
-
-CREATE SEQUENCE public.users_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.users_id_seq OWNER TO doadmin;
-
---
--- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: doadmin
---
-
-ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
-
-
---
--- Name: best_horses; Type: VIEW; Schema: rp_raw; Owner: doadmin
+-- Name: best_horses; Type: VIEW; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE VIEW rp_raw.best_horses AS
@@ -4848,22 +5392,34 @@ CREATE VIEW rp_raw.best_horses AS
   WHERE ((rd.race_class = 1) AND ((rd.race_type)::text = 'Flat'::text) AND (rd.race_time > '2010-01-01 00:00:00'::timestamp without time zone));
 
 
-ALTER VIEW rp_raw.best_horses OWNER TO doadmin;
+ALTER VIEW rp_raw.best_horses OWNER TO tomwattley;
 
 --
--- Name: days_results_links; Type: TABLE; Schema: rp_raw; Owner: doadmin
+-- Name: checked_horse; Type: TABLE; Schema: rp_raw; Owner: postgres
+--
+
+CREATE TABLE rp_raw.checked_horse (
+    horse_id text,
+    horse_name text
+);
+
+
+ALTER TABLE rp_raw.checked_horse OWNER TO postgres;
+
+--
+-- Name: days_results_links; Type: TABLE; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE TABLE rp_raw.days_results_links (
     date date,
-    link text
+    link_url text
 );
 
 
-ALTER TABLE rp_raw.days_results_links OWNER TO doadmin;
+ALTER TABLE rp_raw.days_results_links OWNER TO tomwattley;
 
 --
--- Name: missing_dates; Type: VIEW; Schema: rp_raw; Owner: doadmin
+-- Name: missing_dates; Type: VIEW; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE VIEW rp_raw.missing_dates AS
@@ -4875,30 +5431,105 @@ CREATE VIEW rp_raw.missing_dates AS
   ORDER BY gs.date DESC;
 
 
-ALTER VIEW rp_raw.missing_dates OWNER TO doadmin;
+ALTER VIEW rp_raw.missing_dates OWNER TO tomwattley;
 
 --
--- Name: missing_links; Type: VIEW; Schema: rp_raw; Owner: doadmin
+-- Name: missing_links; Type: VIEW; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE VIEW rp_raw.missing_links AS
  WITH courses AS (
          SELECT dl.date,
-            dl.link,
-            split_part(split_part(dl.link, '://'::text, 2), '/'::text, 4) AS course_part
+            dl.link_url AS link,
+            split_part(split_part(dl.link_url, '://'::text, 2), '/'::text, 4) AS course_part
            FROM rp_raw.days_results_links dl
         )
- SELECT DISTINCT cr.link,
+ SELECT DISTINCT cr.link AS link_url,
     cr.date
    FROM (courses cr
      LEFT JOIN rp_raw.performance_data pd ON ((cr.link = pd.debug_link)))
-  WHERE ((pd.debug_link IS NULL) AND (cr.date > '2010-01-01'::date) AND (cr.course_part = ANY (ARRAY['aintree'::text, 'ascot'::text, 'ayr'::text, 'ballinrobe'::text, 'bangor-on-dee'::text, 'bath'::text, 'bellewstown'::text, 'beverley'::text, 'brighton'::text, 'carlisle'::text, 'cartmel'::text, 'catterick'::text, 'chelmsford-aw'::text, 'cheltenham'::text, 'chepstow'::text, 'chester'::text, 'clonmel'::text, 'cork'::text, 'curragh'::text, 'doncaster'::text, 'down-royal'::text, 'downpatrick'::text, 'dundalk-aw'::text, 'epsom'::text, 'exeter'::text, 'fairyhouse'::text, 'fakenham'::text, 'ffos-las'::text, 'fontwell'::text, 'galway'::text, 'goodwood'::text, 'gowran-park'::text, 'hamilton'::text, 'haydock'::text, 'hereford'::text, 'hexham'::text, 'huntingdon'::text, 'kelso'::text, 'kempton'::text, 'kempton-aw'::text, 'kilbeggan'::text, 'killarney'::text, 'laytown'::text, 'leicester'::text, 'leopardstown'::text, 'limerick'::text, 'lingfield'::text, 'lingfield-aw'::text, 'listowel'::text, 'ludlow'::text, 'market-rasen'::text, 'musselburgh'::text, 'naas'::text, 'navan'::text, 'newbury'::text, 'newcastle'::text, 'newcastle-aw'::text, 'newmarket'::text, 'newmarket-july'::text, 'newton-abbot'::text, 'nottingham'::text, 'perth'::text, 'plumpton'::text, 'pontefract'::text, 'punchestown'::text, 'redcar'::text, 'ripon'::text, 'roscommon'::text, 'salisbury'::text, 'sandown'::text, 'sedgefield'::text, 'sligo'::text, 'southwell'::text, 'southwell-aw'::text, 'stratford'::text, 'taunton'::text, 'thirsk'::text, 'thurles'::text, 'tipperary'::text, 'towcester'::text, 'tramore'::text, 'uttoxeter'::text, 'warwick'::text, 'wetherby'::text, 'wexford'::text, 'wexford-rh'::text, 'wincanton'::text, 'windsor'::text, 'wolverhampton-aw'::text, 'worcester'::text, 'yarmouth'::text, 'york'::text])) AND (cr.link <> ALL (ARRAY['https://www.racingpost.com/results/87/wetherby/2011-10-12/539792'::text, 'https://www.racingpost.com/results/513/wolverhampton-aw/2007-12-10/444939'::text, 'https://www.racingpost.com/results/16/musselburgh/2019-11-06/742103'::text, 'https://www.racingpost.com/results/101/worcester/2023-05-26/839708'::text, 'https://www.racingpost.com/results/15/doncaster/2009-12-12/494914'::text, 'https://www.racingpost.com/results/83/towcester/2011-03-17/525075'::text, 'https://www.racingpost.com/results/16/musselburgh/2019-11-06/742103'::text, 'https://www.racingpost.com/results/393/lingfield-aw/2022-03-04/804298'::text, 'https://www.racingpost.com/results/25/hexham/2021-05-01/781541'::text, 'https://www.racingpost.com/results/1138/dundalk-aw/2010-10-03/515581'::text, 'https://www.racingpost.com/results/17/epsom/2014-08-25/608198'::text, 'https://www.racingpost.com/results/57/sedgefield/2014-11-25/613650'::text, 'https://www.racingpost.com/results/1083/chelmsford-aw/2017-02-23/668139'::text, 'https://www.racingpost.com/results/41/perth/2017-09-11/682957'::text, 'https://www.racingpost.com/results/1138/dundalk-aw/2020-03-20/754104'::text, 'https://www.racingpost.com/results/20/fontwell/2016-09-30/658390'::text, 'https://www.racingpost.com/results/9/cartmel/2018-05-30/701255'::text, 'https://www.racingpost.com/results/34/ludlow/2014-05-11/600195'::text, 'https://www.racingpost.com/results/8/carlisle/2011-02-21/523611'::text, 'https://www.racingpost.com/results/513/wolverhampton-aw/2023-07-11/843383'::text, 'https://www.racingpost.com/results/513/wolverhampton-aw/2023-07-11/843383'::text, 'https://www.racingpost.com/results/90/wincanton/2016-12-26/664813'::text, 'https://www.racingpost.com/results/393/lingfield-aw/2013-06-22/580503'::text, 'https://www.racingpost.com/results/1083/chelmsford-aw/2023-10-19/849854'::text, 'https://www.racingpost.com/results/1083/chelmsford-aw/2023-10-19/849854'::text, 'https://www.racingpost.com/results/393/lingfield-aw/2013-06-22/580503'::text, 'https://www.racingpost.com/results/44/plumpton/2021-03-01/777465'::text, 'https://www.racingpost.com/results/1083/chelmsford-aw/2018-11-13/714479'::text, 'https://www.racingpost.com/results/54/sandown/2019-12-07/744492'::text, 'https://www.racingpost.com/results/4/bangor-on-dee/2022-10-25/822558'::text, 'https://www.racingpost.com/results/67/stratford/2023-06-20/842207'::text, 'https://www.racingpost.com/results/23/haydock/2018-12-30/717697'::text, 'https://www.racingpost.com/results/44/plumpton/2022-04-18/807343'::text, 'https://www.racingpost.com/results/37/newcastle/2024-03-05/860189'::text, 'https://www.racingpost.com/results/27/kelso/2024-04-15/863253'::text, 'https://www.racingpost.com/results/35/market-rasen/2024-05-10/865428'::text])));
+  WHERE ((pd.debug_link IS NULL) AND (cr.date > '2010-01-01'::date) AND (cr.date < (CURRENT_DATE - '2 days'::interval)) AND (cr.course_part = ANY (ARRAY['aintree'::text, 'ascot'::text, 'ayr'::text, 'ballinrobe'::text, 'bangor-on-dee'::text, 'bath'::text, 'bellewstown'::text, 'beverley'::text, 'brighton'::text, 'carlisle'::text, 'cartmel'::text, 'catterick'::text, 'chelmsford-aw'::text, 'cheltenham'::text, 'chepstow'::text, 'chester'::text, 'clonmel'::text, 'cork'::text, 'curragh'::text, 'doncaster'::text, 'down-royal'::text, 'downpatrick'::text, 'dundalk-aw'::text, 'epsom'::text, 'exeter'::text, 'fairyhouse'::text, 'fakenham'::text, 'ffos-las'::text, 'fontwell'::text, 'galway'::text, 'goodwood'::text, 'gowran-park'::text, 'hamilton'::text, 'haydock'::text, 'hereford'::text, 'hexham'::text, 'huntingdon'::text, 'kelso'::text, 'kempton'::text, 'kempton-aw'::text, 'kilbeggan'::text, 'killarney'::text, 'laytown'::text, 'leicester'::text, 'leopardstown'::text, 'limerick'::text, 'lingfield'::text, 'lingfield-aw'::text, 'listowel'::text, 'ludlow'::text, 'market-rasen'::text, 'musselburgh'::text, 'naas'::text, 'navan'::text, 'newbury'::text, 'newcastle'::text, 'newcastle-aw'::text, 'newmarket'::text, 'newmarket-july'::text, 'newton-abbot'::text, 'nottingham'::text, 'perth'::text, 'plumpton'::text, 'pontefract'::text, 'punchestown'::text, 'redcar'::text, 'ripon'::text, 'roscommon'::text, 'salisbury'::text, 'sandown'::text, 'sedgefield'::text, 'sligo'::text, 'southwell'::text, 'southwell-aw'::text, 'stratford'::text, 'taunton'::text, 'thirsk'::text, 'thurles'::text, 'tipperary'::text, 'towcester'::text, 'tramore'::text, 'uttoxeter'::text, 'warwick'::text, 'wetherby'::text, 'wexford'::text, 'wexford-rh'::text, 'wincanton'::text, 'windsor'::text, 'wolverhampton-aw'::text, 'worcester'::text, 'yarmouth'::text, 'york'::text])) AND (cr.link <> ALL (ARRAY['https://www.racingpost.com/results/87/wetherby/2011-10-12/539792'::text, 'https://www.racingpost.com/results/513/wolverhampton-aw/2007-12-10/444939'::text, 'https://www.racingpost.com/results/16/musselburgh/2019-11-06/742103'::text, 'https://www.racingpost.com/results/101/worcester/2023-05-26/839708'::text, 'https://www.racingpost.com/results/15/doncaster/2009-12-12/494914'::text, 'https://www.racingpost.com/results/83/towcester/2011-03-17/525075'::text, 'https://www.racingpost.com/results/16/musselburgh/2019-11-06/742103'::text, 'https://www.racingpost.com/results/393/lingfield-aw/2022-03-04/804298'::text, 'https://www.racingpost.com/results/25/hexham/2021-05-01/781541'::text, 'https://www.racingpost.com/results/1138/dundalk-aw/2010-10-03/515581'::text, 'https://www.racingpost.com/results/17/epsom/2014-08-25/608198'::text, 'https://www.racingpost.com/results/57/sedgefield/2014-11-25/613650'::text, 'https://www.racingpost.com/results/1083/chelmsford-aw/2017-02-23/668139'::text, 'https://www.racingpost.com/results/41/perth/2017-09-11/682957'::text, 'https://www.racingpost.com/results/1138/dundalk-aw/2020-03-20/754104'::text, 'https://www.racingpost.com/results/20/fontwell/2016-09-30/658390'::text, 'https://www.racingpost.com/results/9/cartmel/2018-05-30/701255'::text, 'https://www.racingpost.com/results/34/ludlow/2014-05-11/600195'::text, 'https://www.racingpost.com/results/8/carlisle/2011-02-21/523611'::text, 'https://www.racingpost.com/results/513/wolverhampton-aw/2023-07-11/843383'::text, 'https://www.racingpost.com/results/513/wolverhampton-aw/2023-07-11/843383'::text, 'https://www.racingpost.com/results/90/wincanton/2016-12-26/664813'::text, 'https://www.racingpost.com/results/393/lingfield-aw/2013-06-22/580503'::text, 'https://www.racingpost.com/results/1083/chelmsford-aw/2023-10-19/849854'::text, 'https://www.racingpost.com/results/1083/chelmsford-aw/2023-10-19/849854'::text, 'https://www.racingpost.com/results/393/lingfield-aw/2013-06-22/580503'::text, 'https://www.racingpost.com/results/44/plumpton/2021-03-01/777465'::text, 'https://www.racingpost.com/results/1083/chelmsford-aw/2018-11-13/714479'::text, 'https://www.racingpost.com/results/54/sandown/2019-12-07/744492'::text, 'https://www.racingpost.com/results/4/bangor-on-dee/2022-10-25/822558'::text, 'https://www.racingpost.com/results/67/stratford/2023-06-20/842207'::text, 'https://www.racingpost.com/results/23/haydock/2018-12-30/717697'::text, 'https://www.racingpost.com/results/44/plumpton/2022-04-18/807343'::text, 'https://www.racingpost.com/results/37/newcastle/2024-03-05/860189'::text, 'https://www.racingpost.com/results/27/kelso/2024-04-15/863253'::text, 'https://www.racingpost.com/results/35/market-rasen/2024-05-10/865428'::text])));
 
 
-ALTER VIEW rp_raw.missing_links OWNER TO doadmin;
+ALTER VIEW rp_raw.missing_links OWNER TO tomwattley;
 
 --
--- Name: todays_races; Type: VIEW; Schema: rp_raw; Owner: doadmin
+-- Name: non_uk_group_links; Type: TABLE; Schema: rp_raw; Owner: postgres
+--
+
+CREATE TABLE rp_raw.non_uk_group_links (
+    horse_id bigint,
+    horse_name text,
+    link text
+);
+
+
+ALTER TABLE rp_raw.non_uk_group_links OWNER TO postgres;
+
+--
+-- Name: non_uk_performance_data; Type: TABLE; Schema: rp_raw; Owner: postgres
+--
+
+CREATE TABLE rp_raw.non_uk_performance_data (
+    race_timestamp timestamp without time zone,
+    race_date character varying(32),
+    course_name character varying(132),
+    race_class character varying(132),
+    horse_name character varying(132),
+    horse_type character varying(16),
+    horse_age character varying(16),
+    headgear character varying(16),
+    conditions character varying(32),
+    horse_price character varying(16),
+    race_title text,
+    distance character varying(32),
+    distance_full character varying(32),
+    going character varying(32),
+    number_of_runners character varying(32),
+    total_prize_money integer,
+    first_place_prize_money integer,
+    winning_time character varying(32),
+    official_rating character varying(16),
+    horse_weight character varying(16),
+    draw character varying(16),
+    country character varying(16),
+    surface character varying(16),
+    finishing_position character varying(16),
+    total_distance_beaten character varying(32),
+    ts_value character varying(16),
+    rpr_value character varying(16),
+    extra_weight numeric(10,2),
+    comment text,
+    race_time character varying(32),
+    currency character varying(16),
+    course character varying(132),
+    jockey_name character varying(132),
+    jockey_claim character varying(16),
+    trainer_name character varying(132),
+    sire_name character varying(132),
+    dam_name character varying(132),
+    dams_sire character varying(132),
+    owner_name character varying(132),
+    horse_id character varying(32),
+    trainer_id character varying(32),
+    jockey_id character varying(32),
+    sire_id character varying(32),
+    dam_id character varying(32),
+    dams_sire_id character varying(32),
+    owner_id character varying(32),
+    race_id character varying(32),
+    course_id character varying(32),
+    meeting_id character varying(132),
+    unique_id character varying(132),
+    debug_link text,
+    created_at timestamp without time zone
+);
+
+
+ALTER TABLE rp_raw.non_uk_performance_data OWNER TO postgres;
+
+--
+-- Name: todays_races; Type: VIEW; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE VIEW rp_raw.todays_races AS
@@ -4910,24 +5541,10 @@ CREATE VIEW rp_raw.todays_races AS
   ORDER BY race_date, course, race_timestamp;
 
 
-ALTER VIEW rp_raw.todays_races OWNER TO doadmin;
+ALTER VIEW rp_raw.todays_races OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data; Type: TABLE; Schema: rp_raw; Owner: doadmin
---
-
-CREATE TABLE rp_raw.unioned_performance_data (
-    horse_id integer,
-    race_id integer,
-    race_date date,
-    performance_metric character varying(100)
-);
-
-
-ALTER TABLE rp_raw.unioned_performance_data OWNER TO doadmin;
-
---
--- Name: unmatched_dams; Type: VIEW; Schema: rp_raw; Owner: doadmin
+-- Name: unmatched_dams; Type: VIEW; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE VIEW rp_raw.unmatched_dams AS
@@ -5028,10 +5645,10 @@ CREATE VIEW rp_raw.unmatched_dams AS
      LEFT JOIN public.course c ON (((u.course_id)::text = (c.rp_id)::text)));
 
 
-ALTER VIEW rp_raw.unmatched_dams OWNER TO doadmin;
+ALTER VIEW rp_raw.unmatched_dams OWNER TO tomwattley;
 
 --
--- Name: unmatched_horses; Type: VIEW; Schema: rp_raw; Owner: doadmin
+-- Name: unmatched_horses; Type: VIEW; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE VIEW rp_raw.unmatched_horses AS
@@ -5132,10 +5749,10 @@ CREATE VIEW rp_raw.unmatched_horses AS
      LEFT JOIN public.course c ON (((u.course_id)::text = (c.rp_id)::text)));
 
 
-ALTER VIEW rp_raw.unmatched_horses OWNER TO doadmin;
+ALTER VIEW rp_raw.unmatched_horses OWNER TO tomwattley;
 
 --
--- Name: unmatched_jockeys; Type: VIEW; Schema: rp_raw; Owner: doadmin
+-- Name: unmatched_jockeys; Type: VIEW; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE VIEW rp_raw.unmatched_jockeys AS
@@ -5236,10 +5853,10 @@ CREATE VIEW rp_raw.unmatched_jockeys AS
      LEFT JOIN public.course c ON (((u.course_id)::text = (c.rp_id)::text)));
 
 
-ALTER VIEW rp_raw.unmatched_jockeys OWNER TO doadmin;
+ALTER VIEW rp_raw.unmatched_jockeys OWNER TO tomwattley;
 
 --
--- Name: unmatched_owners; Type: VIEW; Schema: rp_raw; Owner: doadmin
+-- Name: unmatched_owners; Type: VIEW; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE VIEW rp_raw.unmatched_owners AS
@@ -5269,10 +5886,10 @@ CREATE VIEW rp_raw.unmatched_owners AS
    FROM unioned_data u;
 
 
-ALTER VIEW rp_raw.unmatched_owners OWNER TO doadmin;
+ALTER VIEW rp_raw.unmatched_owners OWNER TO tomwattley;
 
 --
--- Name: unmatched_sires; Type: VIEW; Schema: rp_raw; Owner: doadmin
+-- Name: unmatched_sires; Type: VIEW; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE VIEW rp_raw.unmatched_sires AS
@@ -5373,10 +5990,10 @@ CREATE VIEW rp_raw.unmatched_sires AS
      LEFT JOIN public.course c ON (((u.course_id)::text = (c.rp_id)::text)));
 
 
-ALTER VIEW rp_raw.unmatched_sires OWNER TO doadmin;
+ALTER VIEW rp_raw.unmatched_sires OWNER TO tomwattley;
 
 --
--- Name: unmatched_trainers; Type: VIEW; Schema: rp_raw; Owner: doadmin
+-- Name: unmatched_trainers; Type: VIEW; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE VIEW rp_raw.unmatched_trainers AS
@@ -5477,10 +6094,10 @@ CREATE VIEW rp_raw.unmatched_trainers AS
      LEFT JOIN public.course c ON (((u.course_id)::text = (c.rp_id)::text)));
 
 
-ALTER VIEW rp_raw.unmatched_trainers OWNER TO doadmin;
+ALTER VIEW rp_raw.unmatched_trainers OWNER TO tomwattley;
 
 --
--- Name: missing_performance_data_vw; Type: VIEW; Schema: staging; Owner: doadmin
+-- Name: missing_performance_data_vw; Type: VIEW; Schema: staging; Owner: tomwattley
 --
 
 CREATE VIEW staging.missing_performance_data_vw AS
@@ -5596,10 +6213,10 @@ CREATE VIEW staging.missing_performance_data_vw AS
   WHERE (rn = 1);
 
 
-ALTER VIEW staging.missing_performance_data_vw OWNER TO doadmin;
+ALTER VIEW staging.missing_performance_data_vw OWNER TO tomwattley;
 
 --
--- Name: todays_transformed_performance_data; Type: TABLE; Schema: staging; Owner: doadmin
+-- Name: todays_transformed_performance_data; Type: TABLE; Schema: staging; Owner: tomwattley
 --
 
 CREATE TABLE staging.todays_transformed_performance_data (
@@ -5642,10 +6259,10 @@ CREATE TABLE staging.todays_transformed_performance_data (
 );
 
 
-ALTER TABLE staging.todays_transformed_performance_data OWNER TO doadmin;
+ALTER TABLE staging.todays_transformed_performance_data OWNER TO tomwattley;
 
 --
--- Name: todays_transformed_race_data; Type: TABLE; Schema: staging; Owner: doadmin
+-- Name: todays_transformed_race_data; Type: TABLE; Schema: staging; Owner: tomwattley
 --
 
 CREATE TABLE staging.todays_transformed_race_data (
@@ -5679,10 +6296,10 @@ CREATE TABLE staging.todays_transformed_race_data (
 );
 
 
-ALTER TABLE staging.todays_transformed_race_data OWNER TO doadmin;
+ALTER TABLE staging.todays_transformed_race_data OWNER TO tomwattley;
 
 --
--- Name: transformed_race_data; Type: TABLE; Schema: staging; Owner: doadmin
+-- Name: transformed_race_data; Type: TABLE; Schema: staging; Owner: tomwattley
 --
 
 CREATE TABLE staging.transformed_race_data (
@@ -5716,22 +6333,22 @@ CREATE TABLE staging.transformed_race_data (
 );
 
 
-ALTER TABLE staging.transformed_race_data OWNER TO doadmin;
+ALTER TABLE staging.transformed_race_data OWNER TO tomwattley;
 
 --
--- Name: days_results_links; Type: TABLE; Schema: tf_raw; Owner: doadmin
+-- Name: days_results_links; Type: TABLE; Schema: tf_raw; Owner: tomwattley
 --
 
 CREATE TABLE tf_raw.days_results_links (
     date date,
-    link text
+    link_url text
 );
 
 
-ALTER TABLE tf_raw.days_results_links OWNER TO doadmin;
+ALTER TABLE tf_raw.days_results_links OWNER TO tomwattley;
 
 --
--- Name: missing_dates; Type: VIEW; Schema: tf_raw; Owner: doadmin
+-- Name: missing_dates; Type: VIEW; Schema: tf_raw; Owner: tomwattley
 --
 
 CREATE VIEW tf_raw.missing_dates AS
@@ -5743,205 +6360,199 @@ CREATE VIEW tf_raw.missing_dates AS
   ORDER BY gs.date DESC;
 
 
-ALTER VIEW tf_raw.missing_dates OWNER TO doadmin;
+ALTER VIEW tf_raw.missing_dates OWNER TO tomwattley;
 
 --
--- Name: missing_links; Type: VIEW; Schema: tf_raw; Owner: doadmin
+-- Name: missing_links; Type: VIEW; Schema: tf_raw; Owner: tomwattley
 --
 
 CREATE VIEW tf_raw.missing_links AS
  WITH courses AS (
          SELECT dl.date,
-            dl.link,
-            split_part(split_part(dl.link, '://'::text, 2), '/'::text, 4) AS course_part
+            dl.link_url AS link,
+            split_part(split_part(dl.link_url, '://'::text, 2), '/'::text, 4) AS course_part
            FROM tf_raw.days_results_links dl
         )
- SELECT DISTINCT cr.link,
+ SELECT DISTINCT cr.link AS link_url,
     cr.date
    FROM (courses cr
      LEFT JOIN tf_raw.performance_data pd ON ((cr.link = pd.debug_link)))
-  WHERE ((pd.debug_link IS NULL) AND (cr.date > '2005-01-01'::date) AND (cr.course_part = ANY (ARRAY['aintree'::text, 'ascot'::text, 'ayr'::text, 'ballinrobe'::text, 'bangor-on-dee'::text, 'bath'::text, 'bellewstown'::text, 'beverley'::text, 'brighton'::text, 'carlisle'::text, 'cartmel'::text, 'catterick-bridge'::text, 'chelmsford-city'::text, 'cheltenham'::text, 'chepstow'::text, 'chester'::text, 'clonmel'::text, 'cork'::text, 'curragh'::text, 'doncaster'::text, 'down-royal'::text, 'downpatrick'::text, 'dundalk'::text, 'epsom-downs'::text, 'exeter'::text, 'fairyhouse'::text, 'fakenham'::text, 'ffos-las'::text, 'fontwell-park'::text, 'galway'::text, 'goodwood'::text, 'gowran-park'::text, 'hamilton-park'::text, 'haydock-park'::text, 'hereford'::text, 'hexham'::text, 'huntingdon'::text, 'kelso'::text, 'kempton-park'::text, 'kilbeggan'::text, 'killarney'::text, 'laytown'::text, 'leicester'::text, 'leopardstown'::text, 'limerick'::text, 'lingfield-park'::text, 'listowel'::text, 'ludlow'::text, 'market-rasen'::text, 'musselburgh'::text, 'naas'::text, 'navan'::text, 'newbury'::text, 'newcastle'::text, 'newmarket'::text, 'newton-abbot'::text, 'nottingham'::text, 'perth'::text, 'plumpton'::text, 'pontefract'::text, 'punchestown'::text, 'redcar'::text, 'ripon'::text, 'roscommon'::text, 'salisbury'::text, 'sandown'::text, 'sandown-park'::text, 'sedgefield'::text, 'sligo'::text, 'southwell'::text, 'stratford-on-avon'::text, 'taunton'::text, 'thirsk'::text, 'thurles'::text, 'tipperary'::text, 'towcester'::text, 'tramore'::text, 'uttoxeter'::text, 'warwick'::text, 'wetherby'::text, 'wexford'::text, 'wincanton'::text, 'windsor'::text, 'wolverhampton'::text, 'worcester'::text, 'yarmouth'::text, 'york'::text])));
+  WHERE ((pd.debug_link IS NULL) AND (cr.date > '2010-01-01'::date) AND (cr.date < (CURRENT_DATE - '2 days'::interval)) AND (cr.course_part IN ( SELECT course.tf_name
+           FROM public.course)));
 
 
-ALTER VIEW tf_raw.missing_links OWNER TO doadmin;
+ALTER VIEW tf_raw.missing_links OWNER TO tomwattley;
 
 --
--- Name: unioned_performance_data_2010; Type: TABLE ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2010; Type: TABLE ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.unioned_performance_data ATTACH PARTITION public.unioned_performance_data_2010 FOR VALUES FROM ('2010-01-01') TO ('2011-01-01');
 
 
 --
--- Name: unioned_performance_data_2011; Type: TABLE ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2011; Type: TABLE ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.unioned_performance_data ATTACH PARTITION public.unioned_performance_data_2011 FOR VALUES FROM ('2011-01-01') TO ('2012-01-01');
 
 
 --
--- Name: unioned_performance_data_2012; Type: TABLE ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2012; Type: TABLE ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.unioned_performance_data ATTACH PARTITION public.unioned_performance_data_2012 FOR VALUES FROM ('2012-01-01') TO ('2013-01-01');
 
 
 --
--- Name: unioned_performance_data_2013; Type: TABLE ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2013; Type: TABLE ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.unioned_performance_data ATTACH PARTITION public.unioned_performance_data_2013 FOR VALUES FROM ('2013-01-01') TO ('2014-01-01');
 
 
 --
--- Name: unioned_performance_data_2014; Type: TABLE ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2014; Type: TABLE ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.unioned_performance_data ATTACH PARTITION public.unioned_performance_data_2014 FOR VALUES FROM ('2014-01-01') TO ('2015-01-01');
 
 
 --
--- Name: unioned_performance_data_2015; Type: TABLE ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2015; Type: TABLE ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.unioned_performance_data ATTACH PARTITION public.unioned_performance_data_2015 FOR VALUES FROM ('2015-01-01') TO ('2016-01-01');
 
 
 --
--- Name: unioned_performance_data_2016; Type: TABLE ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2016; Type: TABLE ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.unioned_performance_data ATTACH PARTITION public.unioned_performance_data_2016 FOR VALUES FROM ('2016-01-01') TO ('2017-01-01');
 
 
 --
--- Name: unioned_performance_data_2017; Type: TABLE ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2017; Type: TABLE ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.unioned_performance_data ATTACH PARTITION public.unioned_performance_data_2017 FOR VALUES FROM ('2017-01-01') TO ('2018-01-01');
 
 
 --
--- Name: unioned_performance_data_2018; Type: TABLE ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2018; Type: TABLE ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.unioned_performance_data ATTACH PARTITION public.unioned_performance_data_2018 FOR VALUES FROM ('2018-01-01') TO ('2019-01-01');
 
 
 --
--- Name: unioned_performance_data_2019; Type: TABLE ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2019; Type: TABLE ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.unioned_performance_data ATTACH PARTITION public.unioned_performance_data_2019 FOR VALUES FROM ('2019-01-01') TO ('2020-01-01');
 
 
 --
--- Name: unioned_performance_data_2020; Type: TABLE ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2020; Type: TABLE ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.unioned_performance_data ATTACH PARTITION public.unioned_performance_data_2020 FOR VALUES FROM ('2020-01-01') TO ('2021-01-01');
 
 
 --
--- Name: unioned_performance_data_2021; Type: TABLE ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2021; Type: TABLE ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.unioned_performance_data ATTACH PARTITION public.unioned_performance_data_2021 FOR VALUES FROM ('2021-01-01') TO ('2022-01-01');
 
 
 --
--- Name: unioned_performance_data_2022; Type: TABLE ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2022; Type: TABLE ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.unioned_performance_data ATTACH PARTITION public.unioned_performance_data_2022 FOR VALUES FROM ('2022-01-01') TO ('2023-01-01');
 
 
 --
--- Name: unioned_performance_data_2023; Type: TABLE ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2023; Type: TABLE ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.unioned_performance_data ATTACH PARTITION public.unioned_performance_data_2023 FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
 
 
 --
--- Name: unioned_performance_data_2024; Type: TABLE ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2024; Type: TABLE ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.unioned_performance_data ATTACH PARTITION public.unioned_performance_data_2024 FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
 
 
 --
--- Name: unioned_performance_data_2025; Type: TABLE ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2025; Type: TABLE ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.unioned_performance_data ATTACH PARTITION public.unioned_performance_data_2025 FOR VALUES FROM ('2025-01-01') TO ('2026-01-01');
 
 
 --
--- Name: unioned_performance_data_2026; Type: TABLE ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2026; Type: TABLE ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.unioned_performance_data ATTACH PARTITION public.unioned_performance_data_2026 FOR VALUES FROM ('2026-01-01') TO ('2027-01-01');
 
 
 --
--- Name: unioned_performance_data_2027; Type: TABLE ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2027; Type: TABLE ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.unioned_performance_data ATTACH PARTITION public.unioned_performance_data_2027 FOR VALUES FROM ('2027-01-01') TO ('2028-01-01');
 
 
 --
--- Name: dam id; Type: DEFAULT; Schema: public; Owner: doadmin
+-- Name: dam id; Type: DEFAULT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.dam ALTER COLUMN id SET DEFAULT nextval('public.dam_id_seq'::regclass);
 
 
 --
--- Name: horse id; Type: DEFAULT; Schema: public; Owner: doadmin
+-- Name: horse id; Type: DEFAULT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.horse ALTER COLUMN id SET DEFAULT nextval('public.horse_id_seq'::regclass);
 
 
 --
--- Name: jockey id; Type: DEFAULT; Schema: public; Owner: doadmin
+-- Name: jockey id; Type: DEFAULT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.jockey ALTER COLUMN id SET DEFAULT nextval('public.jockey_id_seq'::regclass);
 
 
 --
--- Name: owner id; Type: DEFAULT; Schema: public; Owner: doadmin
+-- Name: owner id; Type: DEFAULT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.owner ALTER COLUMN id SET DEFAULT nextval('public.owner_id_seq'::regclass);
 
 
 --
--- Name: sire id; Type: DEFAULT; Schema: public; Owner: doadmin
+-- Name: sire id; Type: DEFAULT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.sire ALTER COLUMN id SET DEFAULT nextval('public.sire_id_seq'::regclass);
 
 
 --
--- Name: trainer id; Type: DEFAULT; Schema: public; Owner: doadmin
+-- Name: trainer id; Type: DEFAULT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.trainer ALTER COLUMN id SET DEFAULT nextval('public.trainer_id_seq'::regclass);
 
 
 --
--- Name: users id; Type: DEFAULT; Schema: public; Owner: doadmin
---
-
-ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
-
-
---
--- Name: course course_pkey; Type: CONSTRAINT; Schema: public; Owner: doadmin
+-- Name: course course_pkey; Type: CONSTRAINT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.course
@@ -5949,7 +6560,7 @@ ALTER TABLE ONLY public.course
 
 
 --
--- Name: dam dam_pkey; Type: CONSTRAINT; Schema: public; Owner: doadmin
+-- Name: dam dam_pkey; Type: CONSTRAINT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.dam
@@ -5957,7 +6568,15 @@ ALTER TABLE ONLY public.dam
 
 
 --
--- Name: horse horse_pkey; Type: CONSTRAINT; Schema: public; Owner: doadmin
+-- Name: historical_price_data historical_price_data_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.historical_price_data
+    ADD CONSTRAINT historical_price_data_pkey PRIMARY KEY (unique_id, bf_unique_id);
+
+
+--
+-- Name: horse horse_pkey; Type: CONSTRAINT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.horse
@@ -5965,7 +6584,7 @@ ALTER TABLE ONLY public.horse
 
 
 --
--- Name: jockey jockey_pkey; Type: CONSTRAINT; Schema: public; Owner: doadmin
+-- Name: jockey jockey_pkey; Type: CONSTRAINT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.jockey
@@ -5973,7 +6592,7 @@ ALTER TABLE ONLY public.jockey
 
 
 --
--- Name: owner owner_pkey; Type: CONSTRAINT; Schema: public; Owner: doadmin
+-- Name: owner owner_pkey; Type: CONSTRAINT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.owner
@@ -5981,7 +6600,7 @@ ALTER TABLE ONLY public.owner
 
 
 --
--- Name: race_data race_data_pkey; Type: CONSTRAINT; Schema: public; Owner: doadmin
+-- Name: race_data race_data_pkey; Type: CONSTRAINT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.race_data
@@ -5989,7 +6608,7 @@ ALTER TABLE ONLY public.race_data
 
 
 --
--- Name: owner rp_owner_unique_id; Type: CONSTRAINT; Schema: public; Owner: doadmin
+-- Name: owner rp_owner_unique_id; Type: CONSTRAINT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.owner
@@ -5997,7 +6616,7 @@ ALTER TABLE ONLY public.owner
 
 
 --
--- Name: dam rp_tf_dam_unique_id; Type: CONSTRAINT; Schema: public; Owner: doadmin
+-- Name: dam rp_tf_dam_unique_id; Type: CONSTRAINT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.dam
@@ -6005,7 +6624,7 @@ ALTER TABLE ONLY public.dam
 
 
 --
--- Name: horse rp_tf_horse_unique_id; Type: CONSTRAINT; Schema: public; Owner: doadmin
+-- Name: horse rp_tf_horse_unique_id; Type: CONSTRAINT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.horse
@@ -6013,7 +6632,7 @@ ALTER TABLE ONLY public.horse
 
 
 --
--- Name: jockey rp_tf_jockey_unique_id; Type: CONSTRAINT; Schema: public; Owner: doadmin
+-- Name: jockey rp_tf_jockey_unique_id; Type: CONSTRAINT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.jockey
@@ -6021,7 +6640,7 @@ ALTER TABLE ONLY public.jockey
 
 
 --
--- Name: sire rp_tf_sire_unique_id; Type: CONSTRAINT; Schema: public; Owner: doadmin
+-- Name: sire rp_tf_sire_unique_id; Type: CONSTRAINT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.sire
@@ -6029,7 +6648,7 @@ ALTER TABLE ONLY public.sire
 
 
 --
--- Name: sire rp_tf_sire_unique_id_v2; Type: CONSTRAINT; Schema: public; Owner: doadmin
+-- Name: sire rp_tf_sire_unique_id_v2; Type: CONSTRAINT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.sire
@@ -6037,7 +6656,7 @@ ALTER TABLE ONLY public.sire
 
 
 --
--- Name: trainer rp_tf_trainer_unique_id_v2; Type: CONSTRAINT; Schema: public; Owner: doadmin
+-- Name: trainer rp_tf_trainer_unique_id_v2; Type: CONSTRAINT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.trainer
@@ -6045,7 +6664,7 @@ ALTER TABLE ONLY public.trainer
 
 
 --
--- Name: sire sire_pkey; Type: CONSTRAINT; Schema: public; Owner: doadmin
+-- Name: sire sire_pkey; Type: CONSTRAINT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.sire
@@ -6053,7 +6672,7 @@ ALTER TABLE ONLY public.sire
 
 
 --
--- Name: todays_race_data todays_race_data_pkey; Type: CONSTRAINT; Schema: public; Owner: doadmin
+-- Name: todays_race_data todays_race_data_pkey; Type: CONSTRAINT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.todays_race_data
@@ -6061,7 +6680,7 @@ ALTER TABLE ONLY public.todays_race_data
 
 
 --
--- Name: todays_performance_data todays_unique_id_pd; Type: CONSTRAINT; Schema: public; Owner: doadmin
+-- Name: todays_performance_data todays_unique_id_pd; Type: CONSTRAINT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.todays_performance_data
@@ -6069,7 +6688,7 @@ ALTER TABLE ONLY public.todays_performance_data
 
 
 --
--- Name: trainer trainer_pkey; Type: CONSTRAINT; Schema: public; Owner: doadmin
+-- Name: trainer trainer_pkey; Type: CONSTRAINT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.trainer
@@ -6077,7 +6696,7 @@ ALTER TABLE ONLY public.trainer
 
 
 --
--- Name: performance_data unique_id_pd; Type: CONSTRAINT; Schema: public; Owner: doadmin
+-- Name: performance_data unique_id_pd; Type: CONSTRAINT; Schema: public; Owner: tomwattley
 --
 
 ALTER TABLE ONLY public.performance_data
@@ -6085,31 +6704,7 @@ ALTER TABLE ONLY public.performance_data
 
 
 --
--- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: doadmin
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_email_key UNIQUE (email);
-
-
---
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: doadmin
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
-
-
---
--- Name: users users_username_key; Type: CONSTRAINT; Schema: public; Owner: doadmin
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_username_key UNIQUE (username);
-
-
---
--- Name: transformed_race_data race_id_stg_tns; Type: CONSTRAINT; Schema: staging; Owner: doadmin
+-- Name: transformed_race_data race_id_stg_tns; Type: CONSTRAINT; Schema: staging; Owner: tomwattley
 --
 
 ALTER TABLE ONLY staging.transformed_race_data
@@ -6117,7 +6712,7 @@ ALTER TABLE ONLY staging.transformed_race_data
 
 
 --
--- Name: todays_transformed_race_data race_id_todays_stg_tns; Type: CONSTRAINT; Schema: staging; Owner: doadmin
+-- Name: todays_transformed_race_data race_id_todays_stg_tns; Type: CONSTRAINT; Schema: staging; Owner: tomwattley
 --
 
 ALTER TABLE ONLY staging.todays_transformed_race_data
@@ -6125,7 +6720,15 @@ ALTER TABLE ONLY staging.todays_transformed_race_data
 
 
 --
--- Name: transformed_performance_data unique_id_stg_tns; Type: CONSTRAINT; Schema: staging; Owner: doadmin
+-- Name: joined_performance_data stg_jnd_unique_id; Type: CONSTRAINT; Schema: staging; Owner: tomwattley
+--
+
+ALTER TABLE ONLY staging.joined_performance_data
+    ADD CONSTRAINT stg_jnd_unique_id UNIQUE (unique_id);
+
+
+--
+-- Name: transformed_performance_data unique_id_stg_tns; Type: CONSTRAINT; Schema: staging; Owner: tomwattley
 --
 
 ALTER TABLE ONLY staging.transformed_performance_data
@@ -6133,7 +6736,7 @@ ALTER TABLE ONLY staging.transformed_performance_data
 
 
 --
--- Name: todays_transformed_performance_data unique_id_todays_stg_tns; Type: CONSTRAINT; Schema: staging; Owner: doadmin
+-- Name: todays_transformed_performance_data unique_id_todays_stg_tns; Type: CONSTRAINT; Schema: staging; Owner: tomwattley
 --
 
 ALTER TABLE ONLY staging.todays_transformed_performance_data
@@ -6141,1183 +6744,1288 @@ ALTER TABLE ONLY staging.todays_transformed_performance_data
 
 
 --
--- Name: idx_course_rp_course_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_bf_horse_bf_id; Type: INDEX; Schema: public; Owner: tomwattley
+--
+
+CREATE INDEX idx_bf_horse_bf_id ON public.bf_horse USING btree (bf_id);
+
+
+--
+-- Name: idx_bf_horse_id; Type: INDEX; Schema: public; Owner: tomwattley
+--
+
+CREATE INDEX idx_bf_horse_id ON public.bf_horse USING btree (id);
+
+
+--
+-- Name: idx_bf_market_market_id_place; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_bf_market_market_id_place ON public.bf_market USING btree (market_id_place);
+
+
+--
+-- Name: idx_bf_market_market_id_win; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_bf_market_market_id_win ON public.bf_market USING btree (market_id_win);
+
+
+--
+-- Name: idx_bf_market_race_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_bf_market_race_id ON public.bf_market USING btree (race_id);
+
+
+--
+-- Name: idx_course_rp_course_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_course_rp_course_id ON public.course USING btree (rp_id);
 
 
 --
--- Name: idx_course_tf_course_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_course_tf_course_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_course_tf_course_id ON public.course USING btree (tf_id);
 
 
 --
--- Name: idx_dam_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_dam_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_dam_id ON public.dam USING btree (rp_id);
 
 
 --
--- Name: idx_dam_name; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_dam_name; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_dam_name ON public.dam USING btree (name);
 
 
 --
--- Name: idx_horse_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_historical_price_data_bf_unique_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_historical_price_data_bf_unique_id ON public.historical_price_data USING btree (bf_unique_id);
+
+
+--
+-- Name: idx_historical_price_data_unique_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_historical_price_data_unique_id ON public.historical_price_data USING btree (unique_id);
+
+
+--
+-- Name: idx_horse_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_horse_id ON public.horse USING btree (rp_id);
 
 
 --
--- Name: idx_horse_id_upd; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_horse_id_upd; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_horse_id_upd ON ONLY public.unioned_performance_data USING btree (horse_id);
 
 
 --
--- Name: idx_horse_name; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_horse_name; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_horse_name ON public.horse USING btree (name);
 
 
 --
--- Name: idx_jockey_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_jockey_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_jockey_id ON public.jockey USING btree (rp_id);
 
 
 --
--- Name: idx_jockey_name; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_jockey_name; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_jockey_name ON public.jockey USING btree (name);
 
 
 --
--- Name: idx_performance_data_course_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_performance_data_course_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_performance_data_course_id ON public.performance_data USING btree (course_id);
 
 
 --
--- Name: idx_performance_data_dam_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_performance_data_dam_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_performance_data_dam_id ON public.performance_data USING btree (dam_id);
 
 
 --
--- Name: idx_performance_data_horse_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_performance_data_horse_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_performance_data_horse_id ON public.performance_data USING btree (horse_id);
 
 
 --
--- Name: idx_performance_data_jockey_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_performance_data_jockey_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_performance_data_jockey_id ON public.performance_data USING btree (jockey_id);
 
 
 --
--- Name: idx_performance_data_owner_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_performance_data_owner_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_performance_data_owner_id ON public.performance_data USING btree (owner_id);
 
 
 --
--- Name: idx_performance_data_race_date; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_performance_data_race_date; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_performance_data_race_date ON public.performance_data USING btree (race_date);
 
 
 --
--- Name: idx_performance_data_sire_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_performance_data_sire_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_performance_data_sire_id ON public.performance_data USING btree (sire_id);
 
 
 --
--- Name: idx_performance_data_trainer_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_performance_data_trainer_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_performance_data_trainer_id ON public.performance_data USING btree (trainer_id);
 
 
 --
--- Name: idx_performance_data_unique_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_performance_data_unique_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_performance_data_unique_id ON public.performance_data USING btree (unique_id);
 
 
 --
--- Name: idx_race_data_course_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_race_data_course_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_race_data_course_id ON public.race_data USING btree (course_id);
 
 
 --
--- Name: idx_race_data_meeting_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_race_data_meeting_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_race_data_meeting_id ON public.race_data USING btree (meeting_id);
 
 
 --
--- Name: idx_race_data_race_date; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_race_data_race_date; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_race_data_race_date ON public.race_data USING btree (race_date);
 
 
 --
--- Name: idx_race_data_race_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_race_data_race_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_race_data_race_id ON public.race_data USING btree (race_id);
 
 
 --
--- Name: idx_race_date_upd; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_race_date_upd; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_race_date_upd ON ONLY public.unioned_performance_data USING btree (race_date);
 
 
 --
--- Name: idx_race_id_upd; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_race_id_upd; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_race_id_upd ON ONLY public.unioned_performance_data USING btree (race_id);
 
 
 --
--- Name: idx_sire_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_sire_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_sire_id ON public.sire USING btree (rp_id);
 
 
 --
--- Name: idx_sire_name; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_sire_name; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_sire_name ON public.sire USING btree (name);
 
 
 --
--- Name: idx_tf_dam_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_tf_dam_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_tf_dam_id ON public.dam USING btree (tf_id);
 
 
 --
--- Name: idx_tf_horse_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_tf_horse_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_tf_horse_id ON public.horse USING btree (tf_id);
 
 
 --
--- Name: idx_tf_jockey_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_tf_jockey_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_tf_jockey_id ON public.jockey USING btree (tf_id);
 
 
 --
--- Name: idx_tf_sire_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_tf_sire_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_tf_sire_id ON public.sire USING btree (tf_id);
 
 
 --
--- Name: idx_tf_trainer_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_tf_trainer_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_tf_trainer_id ON public.trainer USING btree (tf_id);
 
 
 --
--- Name: idx_todays_performance_data_course_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_todays_performance_data_course_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_todays_performance_data_course_id ON public.todays_performance_data USING btree (course_id);
 
 
 --
--- Name: idx_todays_performance_data_dam_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_todays_performance_data_dam_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_todays_performance_data_dam_id ON public.todays_performance_data USING btree (dam_id);
 
 
 --
--- Name: idx_todays_performance_data_horse_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_todays_performance_data_horse_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_todays_performance_data_horse_id ON public.todays_performance_data USING btree (horse_id);
 
 
 --
--- Name: idx_todays_performance_data_jockey_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_todays_performance_data_jockey_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_todays_performance_data_jockey_id ON public.todays_performance_data USING btree (jockey_id);
 
 
 --
--- Name: idx_todays_performance_data_owner_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_todays_performance_data_owner_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_todays_performance_data_owner_id ON public.todays_performance_data USING btree (owner_id);
 
 
 --
--- Name: idx_todays_performance_data_race_date; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_todays_performance_data_race_date; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_todays_performance_data_race_date ON public.todays_performance_data USING btree (race_date);
 
 
 --
--- Name: idx_todays_performance_data_sire_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_todays_performance_data_sire_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_todays_performance_data_sire_id ON public.todays_performance_data USING btree (sire_id);
 
 
 --
--- Name: idx_todays_performance_data_trainer_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_todays_performance_data_trainer_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_todays_performance_data_trainer_id ON public.todays_performance_data USING btree (trainer_id);
 
 
 --
--- Name: idx_todays_performance_data_unique_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_todays_performance_data_unique_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_todays_performance_data_unique_id ON public.todays_performance_data USING btree (unique_id);
 
 
 --
--- Name: idx_todays_race_data_course_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_todays_race_data_course_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_todays_race_data_course_id ON public.todays_race_data USING btree (course_id);
 
 
 --
--- Name: idx_todays_race_data_meeting_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_todays_race_data_meeting_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_todays_race_data_meeting_id ON public.todays_race_data USING btree (meeting_id);
 
 
 --
--- Name: idx_todays_race_data_race_date; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_todays_race_data_race_date; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_todays_race_data_race_date ON public.todays_race_data USING btree (race_date);
 
 
 --
--- Name: idx_todays_race_data_race_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_todays_race_data_race_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_todays_race_data_race_id ON public.todays_race_data USING btree (race_id);
 
 
 --
--- Name: idx_trainer_id; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_trainer_id; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_trainer_id ON public.trainer USING btree (rp_id);
 
 
 --
--- Name: idx_trainer_name; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: idx_trainer_name; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX idx_trainer_name ON public.trainer USING btree (name);
 
 
 --
--- Name: unioned_performance_data_2010_horse_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2010_horse_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2010_horse_id_idx ON public.unioned_performance_data_2010 USING btree (horse_id);
 
 
 --
--- Name: unioned_performance_data_2010_race_date_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2010_race_date_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2010_race_date_idx ON public.unioned_performance_data_2010 USING btree (race_date);
 
 
 --
--- Name: unioned_performance_data_2010_race_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2010_race_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2010_race_id_idx ON public.unioned_performance_data_2010 USING btree (race_id);
 
 
 --
--- Name: unioned_performance_data_2011_horse_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2011_horse_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2011_horse_id_idx ON public.unioned_performance_data_2011 USING btree (horse_id);
 
 
 --
--- Name: unioned_performance_data_2011_race_date_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2011_race_date_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2011_race_date_idx ON public.unioned_performance_data_2011 USING btree (race_date);
 
 
 --
--- Name: unioned_performance_data_2011_race_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2011_race_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2011_race_id_idx ON public.unioned_performance_data_2011 USING btree (race_id);
 
 
 --
--- Name: unioned_performance_data_2012_horse_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2012_horse_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2012_horse_id_idx ON public.unioned_performance_data_2012 USING btree (horse_id);
 
 
 --
--- Name: unioned_performance_data_2012_race_date_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2012_race_date_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2012_race_date_idx ON public.unioned_performance_data_2012 USING btree (race_date);
 
 
 --
--- Name: unioned_performance_data_2012_race_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2012_race_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2012_race_id_idx ON public.unioned_performance_data_2012 USING btree (race_id);
 
 
 --
--- Name: unioned_performance_data_2013_horse_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2013_horse_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2013_horse_id_idx ON public.unioned_performance_data_2013 USING btree (horse_id);
 
 
 --
--- Name: unioned_performance_data_2013_race_date_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2013_race_date_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2013_race_date_idx ON public.unioned_performance_data_2013 USING btree (race_date);
 
 
 --
--- Name: unioned_performance_data_2013_race_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2013_race_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2013_race_id_idx ON public.unioned_performance_data_2013 USING btree (race_id);
 
 
 --
--- Name: unioned_performance_data_2014_horse_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2014_horse_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2014_horse_id_idx ON public.unioned_performance_data_2014 USING btree (horse_id);
 
 
 --
--- Name: unioned_performance_data_2014_race_date_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2014_race_date_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2014_race_date_idx ON public.unioned_performance_data_2014 USING btree (race_date);
 
 
 --
--- Name: unioned_performance_data_2014_race_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2014_race_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2014_race_id_idx ON public.unioned_performance_data_2014 USING btree (race_id);
 
 
 --
--- Name: unioned_performance_data_2015_horse_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2015_horse_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2015_horse_id_idx ON public.unioned_performance_data_2015 USING btree (horse_id);
 
 
 --
--- Name: unioned_performance_data_2015_race_date_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2015_race_date_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2015_race_date_idx ON public.unioned_performance_data_2015 USING btree (race_date);
 
 
 --
--- Name: unioned_performance_data_2015_race_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2015_race_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2015_race_id_idx ON public.unioned_performance_data_2015 USING btree (race_id);
 
 
 --
--- Name: unioned_performance_data_2016_horse_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2016_horse_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2016_horse_id_idx ON public.unioned_performance_data_2016 USING btree (horse_id);
 
 
 --
--- Name: unioned_performance_data_2016_race_date_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2016_race_date_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2016_race_date_idx ON public.unioned_performance_data_2016 USING btree (race_date);
 
 
 --
--- Name: unioned_performance_data_2016_race_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2016_race_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2016_race_id_idx ON public.unioned_performance_data_2016 USING btree (race_id);
 
 
 --
--- Name: unioned_performance_data_2017_horse_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2017_horse_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2017_horse_id_idx ON public.unioned_performance_data_2017 USING btree (horse_id);
 
 
 --
--- Name: unioned_performance_data_2017_race_date_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2017_race_date_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2017_race_date_idx ON public.unioned_performance_data_2017 USING btree (race_date);
 
 
 --
--- Name: unioned_performance_data_2017_race_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2017_race_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2017_race_id_idx ON public.unioned_performance_data_2017 USING btree (race_id);
 
 
 --
--- Name: unioned_performance_data_2018_horse_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2018_horse_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2018_horse_id_idx ON public.unioned_performance_data_2018 USING btree (horse_id);
 
 
 --
--- Name: unioned_performance_data_2018_race_date_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2018_race_date_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2018_race_date_idx ON public.unioned_performance_data_2018 USING btree (race_date);
 
 
 --
--- Name: unioned_performance_data_2018_race_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2018_race_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2018_race_id_idx ON public.unioned_performance_data_2018 USING btree (race_id);
 
 
 --
--- Name: unioned_performance_data_2019_horse_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2019_horse_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2019_horse_id_idx ON public.unioned_performance_data_2019 USING btree (horse_id);
 
 
 --
--- Name: unioned_performance_data_2019_race_date_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2019_race_date_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2019_race_date_idx ON public.unioned_performance_data_2019 USING btree (race_date);
 
 
 --
--- Name: unioned_performance_data_2019_race_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2019_race_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2019_race_id_idx ON public.unioned_performance_data_2019 USING btree (race_id);
 
 
 --
--- Name: unioned_performance_data_2020_horse_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2020_horse_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2020_horse_id_idx ON public.unioned_performance_data_2020 USING btree (horse_id);
 
 
 --
--- Name: unioned_performance_data_2020_race_date_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2020_race_date_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2020_race_date_idx ON public.unioned_performance_data_2020 USING btree (race_date);
 
 
 --
--- Name: unioned_performance_data_2020_race_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2020_race_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2020_race_id_idx ON public.unioned_performance_data_2020 USING btree (race_id);
 
 
 --
--- Name: unioned_performance_data_2021_horse_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2021_horse_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2021_horse_id_idx ON public.unioned_performance_data_2021 USING btree (horse_id);
 
 
 --
--- Name: unioned_performance_data_2021_race_date_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2021_race_date_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2021_race_date_idx ON public.unioned_performance_data_2021 USING btree (race_date);
 
 
 --
--- Name: unioned_performance_data_2021_race_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2021_race_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2021_race_id_idx ON public.unioned_performance_data_2021 USING btree (race_id);
 
 
 --
--- Name: unioned_performance_data_2022_horse_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2022_horse_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2022_horse_id_idx ON public.unioned_performance_data_2022 USING btree (horse_id);
 
 
 --
--- Name: unioned_performance_data_2022_race_date_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2022_race_date_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2022_race_date_idx ON public.unioned_performance_data_2022 USING btree (race_date);
 
 
 --
--- Name: unioned_performance_data_2022_race_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2022_race_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2022_race_id_idx ON public.unioned_performance_data_2022 USING btree (race_id);
 
 
 --
--- Name: unioned_performance_data_2023_horse_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2023_horse_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2023_horse_id_idx ON public.unioned_performance_data_2023 USING btree (horse_id);
 
 
 --
--- Name: unioned_performance_data_2023_race_date_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2023_race_date_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2023_race_date_idx ON public.unioned_performance_data_2023 USING btree (race_date);
 
 
 --
--- Name: unioned_performance_data_2023_race_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2023_race_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2023_race_id_idx ON public.unioned_performance_data_2023 USING btree (race_id);
 
 
 --
--- Name: unioned_performance_data_2024_horse_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2024_horse_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2024_horse_id_idx ON public.unioned_performance_data_2024 USING btree (horse_id);
 
 
 --
--- Name: unioned_performance_data_2024_race_date_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2024_race_date_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2024_race_date_idx ON public.unioned_performance_data_2024 USING btree (race_date);
 
 
 --
--- Name: unioned_performance_data_2024_race_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2024_race_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2024_race_id_idx ON public.unioned_performance_data_2024 USING btree (race_id);
 
 
 --
--- Name: unioned_performance_data_2025_horse_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2025_horse_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2025_horse_id_idx ON public.unioned_performance_data_2025 USING btree (horse_id);
 
 
 --
--- Name: unioned_performance_data_2025_race_date_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2025_race_date_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2025_race_date_idx ON public.unioned_performance_data_2025 USING btree (race_date);
 
 
 --
--- Name: unioned_performance_data_2025_race_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2025_race_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2025_race_id_idx ON public.unioned_performance_data_2025 USING btree (race_id);
 
 
 --
--- Name: unioned_performance_data_2026_horse_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2026_horse_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2026_horse_id_idx ON public.unioned_performance_data_2026 USING btree (horse_id);
 
 
 --
--- Name: unioned_performance_data_2026_race_date_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2026_race_date_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2026_race_date_idx ON public.unioned_performance_data_2026 USING btree (race_date);
 
 
 --
--- Name: unioned_performance_data_2026_race_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2026_race_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2026_race_id_idx ON public.unioned_performance_data_2026 USING btree (race_id);
 
 
 --
--- Name: unioned_performance_data_2027_horse_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2027_horse_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2027_horse_id_idx ON public.unioned_performance_data_2027 USING btree (horse_id);
 
 
 --
--- Name: unioned_performance_data_2027_race_date_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2027_race_date_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2027_race_date_idx ON public.unioned_performance_data_2027 USING btree (race_date);
 
 
 --
--- Name: unioned_performance_data_2027_race_id_idx; Type: INDEX; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2027_race_id_idx; Type: INDEX; Schema: public; Owner: tomwattley
 --
 
 CREATE INDEX unioned_performance_data_2027_race_id_idx ON public.unioned_performance_data_2027 USING btree (race_id);
 
 
 --
--- Name: idx_rp_raw_performance_data_dam_id; Type: INDEX; Schema: rp_raw; Owner: doadmin
+-- Name: idx_rp_raw_non_uk_performance_data_dam_id; Type: INDEX; Schema: rp_raw; Owner: tomwattley
+--
+
+CREATE INDEX idx_rp_raw_non_uk_performance_data_dam_id ON rp_raw.performance_data USING btree (dam_id);
+
+
+--
+-- Name: idx_rp_raw_non_uk_performance_data_horse_id; Type: INDEX; Schema: rp_raw; Owner: tomwattley
+--
+
+CREATE INDEX idx_rp_raw_non_uk_performance_data_horse_id ON rp_raw.performance_data USING btree (horse_id);
+
+
+--
+-- Name: idx_rp_raw_non_uk_performance_data_jockey_id; Type: INDEX; Schema: rp_raw; Owner: tomwattley
+--
+
+CREATE INDEX idx_rp_raw_non_uk_performance_data_jockey_id ON rp_raw.performance_data USING btree (jockey_id);
+
+
+--
+-- Name: idx_rp_raw_non_uk_performance_data_owner_id; Type: INDEX; Schema: rp_raw; Owner: tomwattley
+--
+
+CREATE INDEX idx_rp_raw_non_uk_performance_data_owner_id ON rp_raw.performance_data USING btree (owner_id);
+
+
+--
+-- Name: idx_rp_raw_non_uk_performance_data_race_date; Type: INDEX; Schema: rp_raw; Owner: tomwattley
+--
+
+CREATE INDEX idx_rp_raw_non_uk_performance_data_race_date ON rp_raw.performance_data USING btree (race_date);
+
+
+--
+-- Name: idx_rp_raw_non_uk_performance_data_race_date_course_id; Type: INDEX; Schema: rp_raw; Owner: tomwattley
+--
+
+CREATE INDEX idx_rp_raw_non_uk_performance_data_race_date_course_id ON rp_raw.performance_data USING btree (race_date, course_id);
+
+
+--
+-- Name: idx_rp_raw_non_uk_performance_data_sire_id; Type: INDEX; Schema: rp_raw; Owner: tomwattley
+--
+
+CREATE INDEX idx_rp_raw_non_uk_performance_data_sire_id ON rp_raw.performance_data USING btree (sire_id);
+
+
+--
+-- Name: idx_rp_raw_non_uk_performance_data_trainer_id; Type: INDEX; Schema: rp_raw; Owner: tomwattley
+--
+
+CREATE INDEX idx_rp_raw_non_uk_performance_data_trainer_id ON rp_raw.performance_data USING btree (trainer_id);
+
+
+--
+-- Name: idx_rp_raw_performance_data_dam_id; Type: INDEX; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE INDEX idx_rp_raw_performance_data_dam_id ON rp_raw.performance_data USING btree (dam_id);
 
 
 --
--- Name: idx_rp_raw_performance_data_horse_id; Type: INDEX; Schema: rp_raw; Owner: doadmin
+-- Name: idx_rp_raw_performance_data_horse_id; Type: INDEX; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE INDEX idx_rp_raw_performance_data_horse_id ON rp_raw.performance_data USING btree (horse_id);
 
 
 --
--- Name: idx_rp_raw_performance_data_jockey_id; Type: INDEX; Schema: rp_raw; Owner: doadmin
+-- Name: idx_rp_raw_performance_data_jockey_id; Type: INDEX; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE INDEX idx_rp_raw_performance_data_jockey_id ON rp_raw.performance_data USING btree (jockey_id);
 
 
 --
--- Name: idx_rp_raw_performance_data_owner_id; Type: INDEX; Schema: rp_raw; Owner: doadmin
+-- Name: idx_rp_raw_performance_data_owner_id; Type: INDEX; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE INDEX idx_rp_raw_performance_data_owner_id ON rp_raw.performance_data USING btree (owner_id);
 
 
 --
--- Name: idx_rp_raw_performance_data_race_date; Type: INDEX; Schema: rp_raw; Owner: doadmin
+-- Name: idx_rp_raw_performance_data_race_date; Type: INDEX; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE INDEX idx_rp_raw_performance_data_race_date ON rp_raw.performance_data USING btree (race_date);
 
 
 --
--- Name: idx_rp_raw_performance_data_race_date_course_id; Type: INDEX; Schema: rp_raw; Owner: doadmin
+-- Name: idx_rp_raw_performance_data_race_date_course_id; Type: INDEX; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE INDEX idx_rp_raw_performance_data_race_date_course_id ON rp_raw.performance_data USING btree (race_date, course_id);
 
 
 --
--- Name: idx_rp_raw_performance_data_sire_id; Type: INDEX; Schema: rp_raw; Owner: doadmin
+-- Name: idx_rp_raw_performance_data_sire_id; Type: INDEX; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE INDEX idx_rp_raw_performance_data_sire_id ON rp_raw.performance_data USING btree (sire_id);
 
 
 --
--- Name: idx_rp_raw_performance_data_trainer_id; Type: INDEX; Schema: rp_raw; Owner: doadmin
+-- Name: idx_rp_raw_performance_data_trainer_id; Type: INDEX; Schema: rp_raw; Owner: tomwattley
 --
 
 CREATE INDEX idx_rp_raw_performance_data_trainer_id ON rp_raw.performance_data USING btree (trainer_id);
 
 
 --
--- Name: idx_tf_raw_performance_data_dam_id; Type: INDEX; Schema: tf_raw; Owner: doadmin
+-- Name: idx_tf_raw_performance_data_dam_id; Type: INDEX; Schema: tf_raw; Owner: tomwattley
 --
 
 CREATE INDEX idx_tf_raw_performance_data_dam_id ON tf_raw.performance_data USING btree (dam_id);
 
 
 --
--- Name: idx_tf_raw_performance_data_horse_id; Type: INDEX; Schema: tf_raw; Owner: doadmin
+-- Name: idx_tf_raw_performance_data_horse_id; Type: INDEX; Schema: tf_raw; Owner: tomwattley
 --
 
 CREATE INDEX idx_tf_raw_performance_data_horse_id ON tf_raw.performance_data USING btree (horse_id);
 
 
 --
--- Name: idx_tf_raw_performance_data_jockey_id; Type: INDEX; Schema: tf_raw; Owner: doadmin
+-- Name: idx_tf_raw_performance_data_jockey_id; Type: INDEX; Schema: tf_raw; Owner: tomwattley
 --
 
 CREATE INDEX idx_tf_raw_performance_data_jockey_id ON tf_raw.performance_data USING btree (jockey_id);
 
 
 --
--- Name: idx_tf_raw_performance_data_race_date; Type: INDEX; Schema: tf_raw; Owner: doadmin
+-- Name: idx_tf_raw_performance_data_race_date; Type: INDEX; Schema: tf_raw; Owner: tomwattley
 --
 
 CREATE INDEX idx_tf_raw_performance_data_race_date ON tf_raw.performance_data USING btree (race_date);
 
 
 --
--- Name: idx_tf_raw_performance_data_race_date_course_id; Type: INDEX; Schema: tf_raw; Owner: doadmin
+-- Name: idx_tf_raw_performance_data_race_date_course_id; Type: INDEX; Schema: tf_raw; Owner: tomwattley
 --
 
 CREATE INDEX idx_tf_raw_performance_data_race_date_course_id ON tf_raw.performance_data USING btree (race_date, course_id);
 
 
 --
--- Name: idx_tf_raw_performance_data_sire_id; Type: INDEX; Schema: tf_raw; Owner: doadmin
+-- Name: idx_tf_raw_performance_data_sire_id; Type: INDEX; Schema: tf_raw; Owner: tomwattley
 --
 
 CREATE INDEX idx_tf_raw_performance_data_sire_id ON tf_raw.performance_data USING btree (sire_id);
 
 
 --
--- Name: idx_tf_raw_performance_data_trainer_id; Type: INDEX; Schema: tf_raw; Owner: doadmin
+-- Name: idx_tf_raw_performance_data_trainer_id; Type: INDEX; Schema: tf_raw; Owner: tomwattley
 --
 
 CREATE INDEX idx_tf_raw_performance_data_trainer_id ON tf_raw.performance_data USING btree (trainer_id);
 
 
 --
--- Name: unioned_performance_data_2010_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2010_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_horse_id_upd ATTACH PARTITION public.unioned_performance_data_2010_horse_id_idx;
 
 
 --
--- Name: unioned_performance_data_2010_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2010_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_date_upd ATTACH PARTITION public.unioned_performance_data_2010_race_date_idx;
 
 
 --
--- Name: unioned_performance_data_2010_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2010_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_id_upd ATTACH PARTITION public.unioned_performance_data_2010_race_id_idx;
 
 
 --
--- Name: unioned_performance_data_2011_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2011_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_horse_id_upd ATTACH PARTITION public.unioned_performance_data_2011_horse_id_idx;
 
 
 --
--- Name: unioned_performance_data_2011_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2011_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_date_upd ATTACH PARTITION public.unioned_performance_data_2011_race_date_idx;
 
 
 --
--- Name: unioned_performance_data_2011_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2011_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_id_upd ATTACH PARTITION public.unioned_performance_data_2011_race_id_idx;
 
 
 --
--- Name: unioned_performance_data_2012_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2012_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_horse_id_upd ATTACH PARTITION public.unioned_performance_data_2012_horse_id_idx;
 
 
 --
--- Name: unioned_performance_data_2012_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2012_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_date_upd ATTACH PARTITION public.unioned_performance_data_2012_race_date_idx;
 
 
 --
--- Name: unioned_performance_data_2012_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2012_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_id_upd ATTACH PARTITION public.unioned_performance_data_2012_race_id_idx;
 
 
 --
--- Name: unioned_performance_data_2013_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2013_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_horse_id_upd ATTACH PARTITION public.unioned_performance_data_2013_horse_id_idx;
 
 
 --
--- Name: unioned_performance_data_2013_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2013_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_date_upd ATTACH PARTITION public.unioned_performance_data_2013_race_date_idx;
 
 
 --
--- Name: unioned_performance_data_2013_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2013_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_id_upd ATTACH PARTITION public.unioned_performance_data_2013_race_id_idx;
 
 
 --
--- Name: unioned_performance_data_2014_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2014_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_horse_id_upd ATTACH PARTITION public.unioned_performance_data_2014_horse_id_idx;
 
 
 --
--- Name: unioned_performance_data_2014_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2014_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_date_upd ATTACH PARTITION public.unioned_performance_data_2014_race_date_idx;
 
 
 --
--- Name: unioned_performance_data_2014_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2014_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_id_upd ATTACH PARTITION public.unioned_performance_data_2014_race_id_idx;
 
 
 --
--- Name: unioned_performance_data_2015_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2015_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_horse_id_upd ATTACH PARTITION public.unioned_performance_data_2015_horse_id_idx;
 
 
 --
--- Name: unioned_performance_data_2015_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2015_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_date_upd ATTACH PARTITION public.unioned_performance_data_2015_race_date_idx;
 
 
 --
--- Name: unioned_performance_data_2015_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2015_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_id_upd ATTACH PARTITION public.unioned_performance_data_2015_race_id_idx;
 
 
 --
--- Name: unioned_performance_data_2016_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2016_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_horse_id_upd ATTACH PARTITION public.unioned_performance_data_2016_horse_id_idx;
 
 
 --
--- Name: unioned_performance_data_2016_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2016_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_date_upd ATTACH PARTITION public.unioned_performance_data_2016_race_date_idx;
 
 
 --
--- Name: unioned_performance_data_2016_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2016_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_id_upd ATTACH PARTITION public.unioned_performance_data_2016_race_id_idx;
 
 
 --
--- Name: unioned_performance_data_2017_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2017_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_horse_id_upd ATTACH PARTITION public.unioned_performance_data_2017_horse_id_idx;
 
 
 --
--- Name: unioned_performance_data_2017_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2017_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_date_upd ATTACH PARTITION public.unioned_performance_data_2017_race_date_idx;
 
 
 --
--- Name: unioned_performance_data_2017_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2017_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_id_upd ATTACH PARTITION public.unioned_performance_data_2017_race_id_idx;
 
 
 --
--- Name: unioned_performance_data_2018_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2018_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_horse_id_upd ATTACH PARTITION public.unioned_performance_data_2018_horse_id_idx;
 
 
 --
--- Name: unioned_performance_data_2018_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2018_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_date_upd ATTACH PARTITION public.unioned_performance_data_2018_race_date_idx;
 
 
 --
--- Name: unioned_performance_data_2018_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2018_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_id_upd ATTACH PARTITION public.unioned_performance_data_2018_race_id_idx;
 
 
 --
--- Name: unioned_performance_data_2019_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2019_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_horse_id_upd ATTACH PARTITION public.unioned_performance_data_2019_horse_id_idx;
 
 
 --
--- Name: unioned_performance_data_2019_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2019_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_date_upd ATTACH PARTITION public.unioned_performance_data_2019_race_date_idx;
 
 
 --
--- Name: unioned_performance_data_2019_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2019_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_id_upd ATTACH PARTITION public.unioned_performance_data_2019_race_id_idx;
 
 
 --
--- Name: unioned_performance_data_2020_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2020_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_horse_id_upd ATTACH PARTITION public.unioned_performance_data_2020_horse_id_idx;
 
 
 --
--- Name: unioned_performance_data_2020_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2020_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_date_upd ATTACH PARTITION public.unioned_performance_data_2020_race_date_idx;
 
 
 --
--- Name: unioned_performance_data_2020_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2020_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_id_upd ATTACH PARTITION public.unioned_performance_data_2020_race_id_idx;
 
 
 --
--- Name: unioned_performance_data_2021_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2021_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_horse_id_upd ATTACH PARTITION public.unioned_performance_data_2021_horse_id_idx;
 
 
 --
--- Name: unioned_performance_data_2021_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2021_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_date_upd ATTACH PARTITION public.unioned_performance_data_2021_race_date_idx;
 
 
 --
--- Name: unioned_performance_data_2021_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2021_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_id_upd ATTACH PARTITION public.unioned_performance_data_2021_race_id_idx;
 
 
 --
--- Name: unioned_performance_data_2022_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2022_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_horse_id_upd ATTACH PARTITION public.unioned_performance_data_2022_horse_id_idx;
 
 
 --
--- Name: unioned_performance_data_2022_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2022_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_date_upd ATTACH PARTITION public.unioned_performance_data_2022_race_date_idx;
 
 
 --
--- Name: unioned_performance_data_2022_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2022_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_id_upd ATTACH PARTITION public.unioned_performance_data_2022_race_id_idx;
 
 
 --
--- Name: unioned_performance_data_2023_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2023_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_horse_id_upd ATTACH PARTITION public.unioned_performance_data_2023_horse_id_idx;
 
 
 --
--- Name: unioned_performance_data_2023_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2023_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_date_upd ATTACH PARTITION public.unioned_performance_data_2023_race_date_idx;
 
 
 --
--- Name: unioned_performance_data_2023_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2023_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_id_upd ATTACH PARTITION public.unioned_performance_data_2023_race_id_idx;
 
 
 --
--- Name: unioned_performance_data_2024_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2024_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_horse_id_upd ATTACH PARTITION public.unioned_performance_data_2024_horse_id_idx;
 
 
 --
--- Name: unioned_performance_data_2024_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2024_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_date_upd ATTACH PARTITION public.unioned_performance_data_2024_race_date_idx;
 
 
 --
--- Name: unioned_performance_data_2024_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2024_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_id_upd ATTACH PARTITION public.unioned_performance_data_2024_race_id_idx;
 
 
 --
--- Name: unioned_performance_data_2025_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2025_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_horse_id_upd ATTACH PARTITION public.unioned_performance_data_2025_horse_id_idx;
 
 
 --
--- Name: unioned_performance_data_2025_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2025_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_date_upd ATTACH PARTITION public.unioned_performance_data_2025_race_date_idx;
 
 
 --
--- Name: unioned_performance_data_2025_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2025_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_id_upd ATTACH PARTITION public.unioned_performance_data_2025_race_id_idx;
 
 
 --
--- Name: unioned_performance_data_2026_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2026_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_horse_id_upd ATTACH PARTITION public.unioned_performance_data_2026_horse_id_idx;
 
 
 --
--- Name: unioned_performance_data_2026_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2026_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_date_upd ATTACH PARTITION public.unioned_performance_data_2026_race_date_idx;
 
 
 --
--- Name: unioned_performance_data_2026_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2026_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_id_upd ATTACH PARTITION public.unioned_performance_data_2026_race_id_idx;
 
 
 --
--- Name: unioned_performance_data_2027_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2027_horse_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_horse_id_upd ATTACH PARTITION public.unioned_performance_data_2027_horse_id_idx;
 
 
 --
--- Name: unioned_performance_data_2027_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2027_race_date_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_date_upd ATTACH PARTITION public.unioned_performance_data_2027_race_date_idx;
 
 
 --
--- Name: unioned_performance_data_2027_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: doadmin
+-- Name: unioned_performance_data_2027_race_id_idx; Type: INDEX ATTACH; Schema: public; Owner: tomwattley
 --
 
 ALTER INDEX public.idx_race_id_upd ATTACH PARTITION public.unioned_performance_data_2027_race_id_idx;

@@ -12,9 +12,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from src.data_models.raw.racing_post_model import RacingPostDataModel
-from src.data_models.raw.racing_post_model import (
-    table_string_field_lengths as rp_string_field_lengths,
-)
+from src.data_models.raw.racing_post_model import \
+    table_string_field_lengths as rp_string_field_lengths
 from src.raw import DataScrapingTask, run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
 from src.utils.logging_config import E, I

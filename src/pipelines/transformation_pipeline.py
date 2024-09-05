@@ -1,10 +1,11 @@
+import json
+
 from src.data_models.transform.race_model import RaceDataModel
 from src.data_models.transform.transformed_model import TransformedDataModel
 from src.storage.psql_db import get_db
 from src.transform.transform_data import transform_data
 from src.utils.logging_config import I, W
 from src.utils.processing_utils import pt, ptr
-import json
 
 db = get_db()
 
