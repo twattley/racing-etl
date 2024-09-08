@@ -18,27 +18,6 @@ def write_json(data: dict | list, file_path: str, indent: int = 4) -> None:
         print(f"Error writing to JSON file: {e}")
 
 
-def construct_cache_data():
-    market_ids = db.fetch_data(
-        """
-        SELECT race_time, race_id, market_id_win, market_id_place 
-        FROM public.bf_market
-        where race_time::date = current_date
-        """
-    )
-
-    market_ids["race_time"] = market_ids["race_time"].apply(
-        lambda x: x.strftime("%Y-%m-%dT%H:%M:%S")
-    )
-    if market_ids.empty:
-        raise ValueError("No market ids found for today")
-
-    write_json(
-        market_ids.to_dict("records"),
-        "../racing-api/src/cache/market_ids.json",
-    )
-
-
 def post_transform_today_checks():
     I("Running post-transform checks")
     todays_staging, todays_data = ptr(
@@ -140,10 +119,7 @@ def run_transformation_pipeline():
         lambda: db.call_procedure("insert_todays_betfair_market_data", "public"),
     )
 
-    pt(post_transform_today_checks, construct_cache_data)
-
-    db.call_procedure("insert_unioned_performance_data", "public")
-    db.call_procedure("amend_winning_position_of_first_place_horse", "public")
+    post_transform_today_checks()
 
 
 if __name__ == "__main__":

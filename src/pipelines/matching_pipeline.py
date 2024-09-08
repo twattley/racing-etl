@@ -2,9 +2,14 @@ from datetime import datetime
 
 import pandas as pd
 
-from src.entity_matching.betfair_matcher import entity_match_betfair
-from src.entity_matching.matcher import (entity_match, store_matching_results,
-                                         store_owner_data)
+from src.entity_matching.betfair_todays_matcher import (
+    process_todays_betfair_entity_matching,
+)
+from src.entity_matching.matcher import (
+    entity_match,
+    store_matching_results,
+    store_owner_data,
+)
 from src.storage.psql_db import get_db
 from src.utils.logging_config import I, W
 from src.utils.processing_utils import ptr
@@ -25,17 +30,19 @@ def insert_into_performance_data():
 
 
 def post_matching_data_checks():
-    todays_rp_raw, todays_staging = ptr(
+    todays_rp_raw, todays_staging, todays_bf_raw = ptr(
         lambda: db.fetch_data(
             "SELECT DISTINCT unique_id FROM rp_raw.todays_performance_data;"
         ),
         lambda: db.fetch_data(
             "SELECT DISTINCT unique_id FROM staging.todays_joined_performance_data;"
         ),
+        lambda: db.fetch_data("SELECT DISTINCT horse_id FROM bf_raw.unmatched_horses;"),
     )
 
     number_of_raw_records = len(todays_rp_raw)
     number_of_staging_records = len(todays_staging)
+    number_of_unmatched_bf_records = len(todays_bf_raw)
 
     if number_of_raw_records != number_of_staging_records:
         W(
@@ -43,6 +50,11 @@ def post_matching_data_checks():
         )
     else:
         I(f"SUCCESS: RAW: {number_of_raw_records} STAGING: {number_of_staging_records}")
+
+    if number_of_unmatched_bf_records != 0:
+        W(f"MISSING DATA BF: {number_of_unmatched_bf_records}")
+    else:
+        I(f"SUCCESS: BF: {number_of_unmatched_bf_records}")
 
 
 def missing_timeform_query(table, missing_dates):
@@ -128,27 +140,8 @@ def run_matching_pipeline():
     matched, unmatched = entity_match(tf_matching_data, rp_matching_data)
     store_matching_results(matched, unmatched)
     insert_into_performance_data()
+    process_todays_betfair_entity_matching()
     post_matching_data_checks()
-
-    I("Starting Betfair matching")
-    (
-        rp_data,
-        bf_data,
-    ) = ptr(
-        lambda: db.fetch_data(
-            """
-                    SELECT race_timestamp, h.id, horse_name 
-                    FROM rp_raw.todays_performance_data tpd
-                    LEFT JOIN horse h
-                    ON tpd.horse_id = h.rp_id
-            """
-        ),
-        lambda: db.fetch_data(
-            "SELECT race_time, horse_id, horse_name FROM bf_raw.todays_price_data"
-        ),
-    )
-    matched = entity_match_betfair(rp_data, bf_data)
-    db.store_data(matched, "bf_horse", "public", truncate=True)
 
 
 if __name__ == "__main__":

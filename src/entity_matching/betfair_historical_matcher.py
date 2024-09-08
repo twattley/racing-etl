@@ -1,9 +1,11 @@
-import pandas as pd
-from fuzzywuzzy import process
-import pytz
 from datetime import timedelta
+
+import pandas as pd
+import pytz
+from fuzzywuzzy import process
+
 from src.storage.psql_db import get_db
-from src.utils.logging_config import I, W
+from src.utils.logging_config import I
 from src.utils.processing_utils import ptr
 
 db = get_db()
@@ -83,8 +85,7 @@ def combine_records(rp_row, bf_row):
 
 
 def process_historical_betfair_entity_matching():
-    rf, bf = fetch_unmatched_data()
-    rf, bf = fix_dates(rf, bf)
+    rf, bf = fix_dates(*fetch_unmatched_data())
     combined_records = []
 
     for i, bf_row in bf.iterrows():

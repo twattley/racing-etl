@@ -6,8 +6,9 @@ import pandas as pd
 from selenium.webdriver.common.by import By
 
 from src.data_models.raw.timeform_model import TimeformDataModel
-from src.data_models.raw.timeform_model import \
-    table_string_field_lengths as tf_string_field_lengths
+from src.data_models.raw.timeform_model import (
+    table_string_field_lengths as tf_string_field_lengths,
+)
 from src.raw import DataScrapingTask, run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
 from src.utils.logging_config import I

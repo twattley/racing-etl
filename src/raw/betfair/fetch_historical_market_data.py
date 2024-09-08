@@ -1,11 +1,15 @@
 from calendar import monthrange
 from datetime import date
 
-from src.betfair.betfair_client import (
-    BetfairClient,
-    BetFairConnector,
+from api_helpers.betfair_client import (
+    BetfairApiHelper,
+    BetFairClient,
+    BetfairCredentials,
     BetfairHistoricalDataParams,
 )
+
+from src.config import config
+from src.utils.logging_config import I
 
 
 def get_current_month_range():
@@ -17,30 +21,31 @@ def get_current_month_range():
 
 
 def fetch_historical_market_data(params: BetfairHistoricalDataParams):
-    trading_client = BetfairClient(client=BetFairConnector())
-    trading_client.fetch_historical_market_data(params)
+    trading_client = BetFairClient(
+        BetfairCredentials(
+            username=config.bf_username,
+            password=config.bf_password,
+            app_key=config.bf_app_key,
+            certs_path=config.bf_certs_path,
+        )
+    )
+    trading_client.login()
+    betfair_service = BetfairApiHelper(trading_client)
+    betfair_service.fetch_historical_market_data(
+        params, config.betfair_historical_data_path
+    )
 
 
 if __name__ == "__main__":
-    # first_day, last_day = get_current_month_range()
-    # params = BetfairHistoricalDataParams(
-    #     from_day=first_day.day,
-    #     from_month=first_day.month,
-    #     from_year=first_day.year,
-    #     to_day=last_day.day,
-    #     to_month=last_day.month,
-    #     to_year=last_day.year,
-    #     market_types_collection=["WIN"],
-    #     countries_collection=["GB"],
-    #     file_type_collection=["M"],
-    # )
+    first_day, last_day = get_current_month_range()
+    I(f"Fetching historical market data from {first_day} to {last_day}")
     params = BetfairHistoricalDataParams(
-        from_day=1,
-        from_month=5,
-        from_year=2023,
-        to_day=31,
-        to_month=8,
-        to_year=2024,
+        from_day=first_day.day,
+        from_month=first_day.month,
+        from_year=first_day.year,
+        to_day=last_day.day,
+        to_month=last_day.month,
+        to_year=last_day.year,
         market_types_collection=["WIN"],
         countries_collection=["GB", "IE"],
         file_type_collection=["M"],

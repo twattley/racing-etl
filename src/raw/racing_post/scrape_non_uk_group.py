@@ -1,6 +1,3 @@
-import random
-import time
-
 import pandas as pd
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
@@ -61,7 +58,8 @@ if __name__ == "__main__":
     url = "https://www.racingpost.com/profile/horse/horse_id/horse_name/form"
 
     for i in range(1, 10000000):
-        df = db.fetch_data("""
+        df = db.fetch_data(
+            """
 
             SELECT DISTINCT horse_name, horse_id 
             FROM rp_raw.performance_data
@@ -69,7 +67,8 @@ if __name__ == "__main__":
             AND race_date > '2015-01-01'
             AND horse_id NOT IN (SELECT DISTINCT horse_id FROM rp_raw.checked_horse)
         
-        """)
+        """
+        )
 
         if df.empty:
             print("No more horses to check")

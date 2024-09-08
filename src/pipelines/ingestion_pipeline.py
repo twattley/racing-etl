@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from src.raw.betfair.fetch_market_data import fetch_market_data
+from src.raw.betfair.fetch_market_data import fetch_todays_market_data
 from src.raw.racing_post.scrape_data import process_rp_scrape_data
 from src.raw.racing_post.scrape_links import process_rp_scrape_links
 from src.raw.racing_post.scrape_todays_data import process_rp_scrape_days_data
@@ -69,15 +69,13 @@ def todays_pipeline():
             ([TODAY],),
         ),
     )
-    fetch_market_data()
+
+
+def run_ingestion_pipeline():
+    historical_pipeline()
+    todays_pipeline()
+    fetch_todays_market_data()
     post_racecards_scraping_checks()
-
-
-def run_ingestion_pipeline(historical=True, todays=True):
-    if historical:
-        historical_pipeline()
-    if todays:
-        todays_pipeline()
 
 
 if __name__ == "__main__":
