@@ -1,15 +1,18 @@
 import numpy as np
 import pandas as pd
 
-from src.transform.transform_data import (convert_horse_type_to_colour_sex,
-                                          convert_tf_rating,
-                                          create_distance_beaten_data,
-                                          create_distance_data,
-                                          create_headgear_data, create_pounds,
-                                          create_time_data,
-                                          get_inplay_high_and_low,
-                                          get_surfaces_from_tf_rating,
-                                          get_tf_rating_values)
+from src.transform.transform_data import (
+    convert_horse_type_to_colour_sex,
+    convert_tf_rating,
+    create_distance_beaten_data,
+    create_distance_data,
+    create_headgear_data,
+    create_pounds,
+    create_time_data,
+    get_inplay_high_and_low,
+    get_surfaces_from_tf_rating,
+    get_tf_rating_values,
+)
 
 
 def test_tf_rating_values():
