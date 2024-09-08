@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from src.raw.betfair.fetch_market_data import fetch_todays_market_data
+from src.raw.betfair.fetch_todays_market_data import fetch_todays_market_data
 from src.raw.racing_post.scrape_data import process_rp_scrape_data
 from src.raw.racing_post.scrape_links import process_rp_scrape_links
 from src.raw.racing_post.scrape_todays_data import process_rp_scrape_days_data
