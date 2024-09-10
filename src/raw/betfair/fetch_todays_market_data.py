@@ -7,11 +7,13 @@ from api_helpers.betfair_client import (
 
 from src.config import config
 from src.storage.psql_db import get_db
+from src.utils.logging_config import I
 
 db = get_db()
 
 
 def fetch_todays_market_data():
+    I("Fetching todays market data")
     trading_client = BetFairClient(
         BetfairCredentials(
             username=config.bf_username,
@@ -27,7 +29,7 @@ def fetch_todays_market_data():
         created_at=pd.Timestamp.now(),
         race_date=data["race_time"].dt.date,
     )
-
+    I(f"Found {data.shape[0]} markets")
     win_and_place = (
         pd.merge(
             data[data["market"] == "WIN"],
@@ -63,6 +65,7 @@ def fetch_todays_market_data():
         )
         .sort_values(by="race_time", ascending=True)
     )
+    I(f"Found {win_and_place.shape[0]} win and place markets")
     db.execute_query(
         """
         DELETE FROM bf_raw.todays_price_data 

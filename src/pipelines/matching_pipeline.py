@@ -30,19 +30,17 @@ def insert_into_performance_data():
 
 
 def post_matching_data_checks():
-    todays_rp_raw, todays_staging, todays_bf_raw = ptr(
+    todays_rp_raw, todays_staging = ptr(
         lambda: db.fetch_data(
             "SELECT DISTINCT unique_id FROM rp_raw.todays_performance_data;"
         ),
         lambda: db.fetch_data(
             "SELECT DISTINCT unique_id FROM staging.todays_joined_performance_data;"
         ),
-        lambda: db.fetch_data("SELECT DISTINCT horse_id FROM bf_raw.unmatched_horses;"),
     )
 
     number_of_raw_records = len(todays_rp_raw)
     number_of_staging_records = len(todays_staging)
-    number_of_unmatched_bf_records = len(todays_bf_raw)
 
     if number_of_raw_records != number_of_staging_records:
         W(
@@ -50,11 +48,6 @@ def post_matching_data_checks():
         )
     else:
         I(f"SUCCESS: RAW: {number_of_raw_records} STAGING: {number_of_staging_records}")
-
-    if number_of_unmatched_bf_records != 0:
-        W(f"MISSING DATA BF: {number_of_unmatched_bf_records}")
-    else:
-        I(f"SUCCESS: BF: {number_of_unmatched_bf_records}")
 
 
 def missing_timeform_query(table, missing_dates):

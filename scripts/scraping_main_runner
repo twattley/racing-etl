@@ -1,45 +1,12 @@
 export LOG_LEVEL="INFO"
 
-
 set -a
 source "/Users/tomwattley/Code/python/racing-api-project/racing-etl/.env"
 set +a
 cd $RACING_ETL_FOLDER 
 source $RACING_ETL_ENV
 export PYTHONPATH=$(pwd) 
+python3 $RACING_ETL_FOLDER/src/pipelines/daily_pipeline.py > $RACING_ETL_FOLDER/logs/daily_pipeline.log 2>&1
 
-case $1 in
-    "tf_scrape_links")
-        echo "Running tf_scrape_links"
-        python3 $RACING_ETL_FOLDER/src/raw/timeform/scrape_links.py
-        ;;
-    "tf_scrape_data")
-        echo "Running tf_scrape_data"
-        python3 $RACING_ETL_FOLDER/src/raw/timeform/scrape_data.py
-        ;;
-    "rp_scrape_links")
-        echo "Running rp_scrape_links"
-        python3 $RACING_ETL_FOLDER/src/raw/racing_post/scrape_links.py
-        ;;
-    "rp_scrape_data")
-        echo "Running rp_scrape_data"
-        python3 $RACING_ETL_FOLDER/src/raw/racing_post/scrape_data.py
-        ;;
-    "run_ingestion_pipeline")
-        echo "Running rp_scrape_data"
-        python3 $RACING_ETL_FOLDER/src/pipelines/scraping_pipeline.py > $RACING_ETL_FOLDER/logs/scraping_pipeline.log 2>&1
-        ;;
-    "run_entity_matching_pipeline")
-        echo "Running entity_matching_pipeline"
-        python3 $RACING_ETL_FOLDER/src/pipelines/matching_pipeline.py > $RACING_ETL_FOLDER/logs/matching_pipeline.log 2>&1
-        ;;
-    "run_daily_pipeline")
-        echo "Running daily_pipeline"
-        python3 $RACING_ETL_FOLDER/src/pipelines/daily_pipeline.py > $RACING_ETL_FOLDER/logs/daily_pipeline.log 2>&1
-        ;;
-    *)
-        echo "Invalid command"
-        ;;
-esac
 
 

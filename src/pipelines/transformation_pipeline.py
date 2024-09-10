@@ -116,7 +116,6 @@ def run_transformation_pipeline():
             "insert_todays_transformed_performance_data", "public"
         ),
         lambda: db.call_procedure("insert_todays_transformed_race_data", "public"),
-        lambda: db.call_procedure("insert_todays_betfair_market_data", "public"),
     )
 
     post_transform_today_checks()
