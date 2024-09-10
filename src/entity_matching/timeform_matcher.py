@@ -3,9 +3,35 @@ from fuzzywuzzy import fuzz
 
 from src.storage.psql_db import get_db
 from src.utils.logging_config import I, W
-from src.utils.processing_utils import pt
+from src.utils.processing_utils import pt, ptr
 
 db = get_db()
+
+
+def missing_timeform_query(table, missing_dates):
+    return f"""
+        SELECT pd.horse_name,
+            pd.horse_id,
+            pd.horse_age,
+            pd.jockey_id,
+            pd.jockey_name,
+            pd.trainer_id,
+            pd.trainer_name,
+            pd.sire_name,
+            pd.sire_id,
+            pd.dam_name,
+            pd.dam_id,
+            pd.race_timestamp,
+            pd.unique_id,
+            pd.race_date,
+            pd.debug_link,
+            c.id AS course_id
+        FROM tf_raw.{table} pd
+        LEFT JOIN public.course c 
+        ON pd.course_id = c.tf_id
+        WHERE pd.race_date 
+        IN {missing_dates}
+        """
 
 
 def format_names(
@@ -103,7 +129,7 @@ def create_fuzz_scores(
     return pd.DataFrame()
 
 
-def entity_match(
+def run_entity_matching(
     tf_matching_data: pd.DataFrame, rp_matching_data: pd.DataFrame
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     unmatched = []
@@ -151,11 +177,6 @@ def entity_match(
     return pd.DataFrame(matches), pd.DataFrame(unmatched)
 
 
-def store_owner_data(owner_data: pd.DataFrame) -> None:
-    if not owner_data.empty:
-        db.insert_records("owner", "public", owner_data, ["rp_id"])
-
-
 def store_matched_data(matched: pd.DataFrame, entity: str) -> None:
     if not matched.empty:
         db.insert_records(
@@ -193,3 +214,26 @@ def store_matching_results(matched: pd.DataFrame, unmatched: pd.DataFrame) -> No
         lambda: store_unmatched_data(unmatched, "jockey"),
         lambda: store_unmatched_data(unmatched, "trainer"),
     )
+
+
+def process_timeform_entity_matching(
+    rp_matching_data: pd.DataFrame, missing_dates: str
+) -> pd.DataFrame:
+    tf_hist_data, tf_present_data = ptr(
+        lambda: db.fetch_data(
+            missing_timeform_query("performance_data", missing_dates)
+        ),
+        lambda: db.fetch_data(
+            missing_timeform_query("todays_performance_data", missing_dates)
+        ),
+    )
+    tf_matching_data = pd.concat([tf_hist_data, tf_present_data]).drop_duplicates(
+        subset="unique_id"
+    )
+    I(f"Loading matching data for {len(missing_dates)} dates")
+    I(
+        f"Found {len(tf_matching_data)} records for dates :{tf_matching_data['race_date'].unique()}"
+    )
+
+    matched, unmatched = run_entity_matching(tf_matching_data, rp_matching_data)
+    store_matching_results(matched, unmatched)

@@ -20,7 +20,20 @@ def get_current_month_range():
     return first_day, last_day
 
 
-def fetch_historical_market_data(params: BetfairHistoricalDataParams):
+def fetch_historical_market_data():
+    first_day, last_day = get_current_month_range()
+    I(f"Fetching historical market data from {first_day} to {last_day}")
+    params = BetfairHistoricalDataParams(
+        from_day=first_day.day,
+        from_month=first_day.month,
+        from_year=first_day.year,
+        to_day=last_day.day,
+        to_month=last_day.month,
+        to_year=last_day.year,
+        market_types_collection=["WIN"],
+        countries_collection=["GB", "IE"],
+        file_type_collection=["M"],
+    )
     trading_client = BetFairClient(
         BetfairCredentials(
             username=config.bf_username,
@@ -37,17 +50,4 @@ def fetch_historical_market_data(params: BetfairHistoricalDataParams):
 
 
 if __name__ == "__main__":
-    first_day, last_day = get_current_month_range()
-    I(f"Fetching historical market data from {first_day} to {last_day}")
-    params = BetfairHistoricalDataParams(
-        from_day=first_day.day,
-        from_month=first_day.month,
-        from_year=first_day.year,
-        to_day=last_day.day,
-        to_month=last_day.month,
-        to_year=last_day.year,
-        market_types_collection=["WIN"],
-        countries_collection=["GB", "IE"],
-        file_type_collection=["M"],
-    )
-    fetch_historical_market_data(params)
+    fetch_historical_market_data()

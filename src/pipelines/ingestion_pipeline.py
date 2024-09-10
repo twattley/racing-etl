@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from src.raw.betfair.fetch_historical_market_data import fetch_historical_market_data
 from src.raw.betfair.fetch_todays_market_data import fetch_todays_market_data
 from src.raw.racing_post.scrape_data import process_rp_scrape_data
 from src.raw.racing_post.scrape_links import process_rp_scrape_links
@@ -15,6 +16,35 @@ db = get_db()
 
 TODAY = datetime.now().strftime("%Y-%m-%d")
 TOMORROW = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+
+
+def historical_pipeline():
+    I("Running historical pipeline")
+    pp(
+        (process_rp_scrape_links, None),
+        (process_tf_scrape_links, None),
+    )
+
+    pp(
+        (process_rp_scrape_data, None),
+        (process_tf_scrape_data, None),
+        (fetch_historical_market_data, None),
+    )
+
+
+def todays_pipeline():
+    I("Running todays pipeline")
+    pp(
+        (
+            process_rp_scrape_days_data,
+            ([TODAY],),
+        ),
+        (
+            process_tf_scrape_days_data,
+            ([TODAY],),
+        ),
+        (fetch_todays_market_data, None),
+    )
 
 
 def post_results_scraping_checks():
@@ -43,39 +73,18 @@ def post_racecards_scraping_checks():
         W(f"Missing racecards found: {missing_racecards['race_timestamp'].tolist()}")
 
 
-def historical_pipeline():
-    I("Running historical pipeline")
+def post_scraping_checks():
+    I("Running post-scraping checks...")
     pp(
-        (process_rp_scrape_links, None),
-        (process_tf_scrape_links, None),
-    )
-
-    pp(
-        (process_rp_scrape_data, None),
-        (process_tf_scrape_data, None),
-    )
-    post_results_scraping_checks()
-
-
-def todays_pipeline():
-    I("Running todays pipeline")
-    pp(
-        (
-            process_rp_scrape_days_data,
-            ([TODAY],),
-        ),
-        (
-            process_tf_scrape_days_data,
-            ([TODAY],),
-        ),
+        (post_racecards_scraping_checks, None),
+        (post_results_scraping_checks, None),
     )
 
 
 def run_ingestion_pipeline():
     historical_pipeline()
     todays_pipeline()
-    fetch_todays_market_data()
-    post_racecards_scraping_checks()
+    post_scraping_checks()
 
 
 if __name__ == "__main__":
