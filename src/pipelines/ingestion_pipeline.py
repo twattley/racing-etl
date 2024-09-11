@@ -1,6 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from src.raw.betfair.fetch_historical_market_data import fetch_historical_market_data
+from src.raw.betfair.process_historical_market_data import (
+    process_historical_market_data,
+)
 from src.raw.betfair.fetch_todays_market_data import fetch_todays_market_data
 from src.raw.racing_post.scrape_data import process_rp_scrape_data
 from src.raw.racing_post.scrape_links import process_rp_scrape_links
@@ -15,7 +18,6 @@ from src.utils.processing_utils import pp, ptr
 db = get_db()
 
 TODAY = datetime.now().strftime("%Y-%m-%d")
-TOMORROW = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
 
 
 def historical_pipeline():
@@ -30,6 +32,7 @@ def historical_pipeline():
         (process_tf_scrape_data, None),
         (fetch_historical_market_data, None),
     )
+    process_historical_market_data()
 
 
 def todays_pipeline():

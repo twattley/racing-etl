@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pandas as pd
 
-from src.entity_matching.matcher import entity_match
+from src.entity_matching.timeform_matcher import run_entity_matching
 
 
 def test_simple_pass():
@@ -61,7 +61,7 @@ def test_simple_pass():
         }
     )
 
-    matched, unmatched = entity_match(tf_matching_data, rp_entity_data)
+    matched, unmatched = run_entity_matching(tf_matching_data, rp_entity_data)
 
     expected = pd.DataFrame(
         {
@@ -133,7 +133,7 @@ def test_simple_fail():
         }
     )
 
-    matched, unmatched = entity_match(tf_matching_data, rp_entity_data)
+    matched, unmatched = run_entity_matching(tf_matching_data, rp_entity_data)
 
     expected = pd.DataFrame(
         {
@@ -204,7 +204,7 @@ def test_horse_mispelled():
         }
     )
 
-    matched, unmatched = entity_match(tf_matching_data, rp_entity_data)
+    matched, unmatched = run_entity_matching(tf_matching_data, rp_entity_data)
 
     expected = pd.DataFrame(
         {
@@ -276,7 +276,7 @@ def test_dam_mispelled():
         }
     )
 
-    matched, unmatched = entity_match(tf_matching_data, rp_entity_data)
+    matched, unmatched = run_entity_matching(tf_matching_data, rp_entity_data)
 
     expected = pd.DataFrame(
         {
@@ -369,7 +369,7 @@ def test_multiple_matchings_wrong_date():
         }
     )
 
-    matched, unmatched = entity_match(tf_matching_data, rp_entity_data)
+    matched, unmatched = run_entity_matching(tf_matching_data, rp_entity_data)
 
     pd.testing.assert_frame_equal(matched, expected)
 
@@ -462,7 +462,7 @@ def test_multiple_matchings_date():
         }
     )
 
-    matched, unmatched = entity_match(tf_matching_data, rp_entity_data)
+    matched, unmatched = run_entity_matching(tf_matching_data, rp_entity_data)
 
     pd.testing.assert_frame_equal(matched, expected)
     pd.testing.assert_frame_equal(unmatched, expected_unmatched)

@@ -160,10 +160,20 @@ def test_create_distance_data():
     expected_df = pd.DataFrame(
         {
             "distance": ["1m1½f", "7½f", "1m1⅛f", "6½f", "6f", "1m1f", "", np.nan],
+            "distance_full": [
+                "(1m1f100yds)",
+                "(7f92yds)",
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+            ],
             "distance_yards": [
-                2080.0,
-                1632.0,
-                2007.5,
+                2090.0,
+                1650.0,
+                np.nan,
                 1430.0,
                 1320.0,
                 1980.0,
@@ -171,16 +181,25 @@ def test_create_distance_data():
                 np.nan,
             ],
             "distance_meters": [
-                1901.95,
-                1492.3,
-                1835.66,
-                1307.59,
-                1207.01,
-                1810.51,
+                1911.096,
+                1508.76,
+                np.nan,
+                1307.592,
+                1207.008,
+                1810.512,
                 np.nan,
                 np.nan,
             ],
-            "distance_kilometers": [1.9, 1.49, 1.84, 1.31, 1.21, 1.81, np.nan, np.nan],
+            "distance_kilometers": [
+                1.911096,
+                1.50876,
+                np.nan,
+                1.307592,
+                1.207008,
+                1.810512,
+                np.nan,
+                np.nan,
+            ],
         }
     )
     pd.testing.assert_frame_equal(output_df, expected_df)

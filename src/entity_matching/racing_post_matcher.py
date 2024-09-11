@@ -40,11 +40,7 @@ def process_racing_post_entity_matching() -> (
             rp_trainer_data.assign(entity_type="trainer"),
         ]
     )
-
     missing_dates = tuple(rp_matching_data["race_date"].unique())
-    if len(missing_dates) == 1:
-        missing_dates = f"('{missing_dates[0]}')"
-        return rp_matching_data, missing_dates
 
     if not missing_dates:
         W("No missing data to match")
@@ -54,7 +50,12 @@ def process_racing_post_entity_matching() -> (
                 "insert_into_todays_joined_performance_data", "staging"
             ),
         )
-        return None, None
+        return pd.DataFrame(), None
+
+    if len(missing_dates) == 1:
+        missing_dates = f"('{missing_dates[0]}')"
+
+    return rp_matching_data, missing_dates
 
 
 if __name__ == "__main__":

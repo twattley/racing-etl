@@ -338,8 +338,8 @@ def process_market_data(market_data: list[dict]) -> pd.DataFrame:
 
 
 def process_historical_market_data():
-    path = f"{config.betfair_historical_data_path}/raw"
-    error_path = f"{config.betfair_historical_data_path}/errors"
+    path = f"{config.bf_historical_data_path}/raw"
+    error_path = f"{config.bf_historical_data_path}/errors"
 
     raw_files = [f"{path}/{file}" for file in os.listdir(path)]
 
@@ -364,11 +364,6 @@ def process_historical_market_data():
             os.rename(file, error_file)
             E(f"Moved {file} to {error_file}")
             continue
-
-    for file in raw_files:
-        market_data = open_compressed_file(file)
-        df = process_market_data(market_data)
-        db.store_data(df, "historical_price_data", "bf_raw")
 
 
 if __name__ == "__main__":

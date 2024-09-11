@@ -10,16 +10,14 @@ class Config(BaseSettings):
     bf_username: str
     bf_password: str
     bf_app_key: str
-    bf_certs_path: str
-    betfair_historical_data_path: str
-    pg_db_host: str
-    pg_db_user: str
-    pg_db_name: str
+    bf_certs_path: str = "/Users/tomwattley/.betfair/certs"
+    bf_historical_data_path: str = "./data/betfair"
+    pg_db_host: str = "localhost"
+    pg_db_user: str = "postgres"
+    pg_db_name: str = "racehorse-database"
     pg_db_password: str
-    pg_db_port: int
-    do_spaces_access_key_id: str
-    do_spaces_secret_access_key: str
-    chromedriver_path: str
+    pg_db_port: int = 5432
+    chromedriver_path: str = "./chromedriver/chromedriver"
 
 
 def load_config():

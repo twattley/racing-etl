@@ -44,9 +44,7 @@ def fetch_historical_market_data():
     )
     trading_client.login()
     betfair_service = BetfairApiHelper(trading_client)
-    betfair_service.fetch_historical_market_data(
-        params, config.betfair_historical_data_path
-    )
+    betfair_service.fetch_historical_market_data(params, config.bf_historical_data_path)
 
 
 if __name__ == "__main__":
