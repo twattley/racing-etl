@@ -24,6 +24,7 @@ def wait_for_page_load(driver: webdriver) -> None:
     """
     Logs which elements were not found on the page.
     """
+    print("Waiting for page load")
     elements = [
         (".rp-raceInfo", "Race Info"),
         ("div[data-test-selector='text-prizeMoney']", "Prize Money"),
@@ -56,8 +57,11 @@ def wait_for_page_load(driver: webdriver) -> None:
     if missing_elements:
         raise ValueError(f"Missing elements: {', '.join(missing_elements)}")
 
+    print("Page loaded successfully")
+
 
 def click_pedigree_button_if_needed(driver):
+    print("Clicking pedigree button if needed")
     pedigree_button = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located(
             (By.CSS_SELECTOR, "[data-test-selector='button-pedigree']")
@@ -65,8 +69,10 @@ def click_pedigree_button_if_needed(driver):
     )
     is_clicked = "ui-btn_toggleActive" in pedigree_button.get_attribute("class")
     if not is_clicked:
+        print("Clicking pedigree button")
         driver.execute_script("arguments[0].scrollIntoView(true);", pedigree_button)
         driver.execute_script("arguments[0].click();", pedigree_button)
+    print("Pedigree button clicked")
 
 
 def convert_to_24_hour(time_str: str) -> str:
@@ -80,9 +86,9 @@ def convert_to_24_hour(time_str: str) -> str:
 
 
 def create_race_timestamp(race_date: str, race_time: str, country: str) -> datetime:
-    if country in {"IRE", "UK", "FR"}:
-        race_time = convert_to_24_hour(race_time)
-        return datetime.strptime(f"{race_date} {race_time}", "%Y-%m-%d %H:%M")
+    # if country in {"IRE", "UK", "FR"}:
+    race_time = convert_to_24_hour(race_time)
+    return datetime.strptime(f"{race_date} {race_time}", "%Y-%m-%d %H:%M")
 
 
 def get_entity_data_from_link(entity_link):
@@ -255,30 +261,30 @@ def get_performance_data(driver):
         else:
             headgear = np.NaN
 
-        horse_data.append(
-            {
-                "horse_id": horse_id,
-                "horse_name": horse_name,
-                "horse_age": horse_age,
-                "jockey_id": jockey_id,
-                "jockey_name": jockey_name,
-                "jockey_claim": jockey_claim,
-                "trainer_id": trainer_id,
-                "trainer_name": trainer_name,
-                "owner_id": owner_id,
-                "owner_name": owner_name,
-                "horse_weight": horse_weight,
-                "official_rating": official_rating,
-                "finishing_position": horse_position,
-                "total_distance_beaten": total_distance_beaten,
-                "draw": draw,
-                "ts_value": ts_value,
-                "rpr_value": rpr_value,
-                "horse_price": horse_price,
-                "extra_weight": extra_weight,
-                "headgear": headgear,
-            }
-        )
+        horse_data_row = {
+            "horse_id": horse_id,
+            "horse_name": horse_name,
+            "horse_age": horse_age,
+            "jockey_id": jockey_id,
+            "jockey_name": jockey_name,
+            "jockey_claim": jockey_claim,
+            "trainer_id": trainer_id,
+            "trainer_name": trainer_name,
+            "owner_id": owner_id,
+            "owner_name": owner_name,
+            "horse_weight": horse_weight,
+            "official_rating": official_rating,
+            "finishing_position": horse_position,
+            "total_distance_beaten": total_distance_beaten,
+            "draw": draw,
+            "ts_value": ts_value,
+            "rpr_value": rpr_value,
+            "horse_price": horse_price,
+            "extra_weight": extra_weight,
+            "headgear": headgear,
+        }
+
+        horse_data.append(horse_data_row)
 
         order.append((index, horse_name))
 
@@ -388,23 +394,38 @@ def get_course_country_data(driver):
 
 
 def scrape_data(driver, result):
+    print("Scraping data")
     wait_for_page_load(driver)
     click_pedigree_button_if_needed(driver)
+    race_title = return_element_text_from_css(driver, "h2.rp-raceTimeCourseName__title")
+    race_title_lower = race_title.lower()
     created_at = datetime.now(pytz.timezone("Europe/London")).strftime(
         "%Y-%m-%d %H:%M:%S"
     )
     *_, course_id, course, race_date, race_id = result.split("/")
+    special_course_ids = {"565", "1231"}
+    is_class_1_race = any(
+        group in race_title_lower
+        for group in ["(group 1)", "(group 2)", "(group 3)", "(listed)"]
+    )
+    is_special_course = course_id in special_course_ids
+
+    if not (is_class_1_race or is_special_course):
+        return pd.DataFrame(
+            {
+                "race_title": ["NOT A CLASS 1 RACE OR SPECIAL COURSE"],
+                "debug_link": [result],
+            }
+        )
     driver.get(result)
     surface, country, course_name = get_course_country_data(driver)
     race_time = return_element_text_from_css(
         driver,
         "span.rp-raceTimeCourseName__time[data-test-selector='text-raceTime']",
     )
-    race_title = return_element_text_from_css(driver, "h2.rp-raceTimeCourseName__title")
     conditions = get_optional_element_text(
         driver, "span.rp-raceTimeCourseName_ratingBandAndAgesAllowed"
     )
-    race_class = get_optional_element_text(driver, "span.rp-raceTimeCourseName_class")
     distance = return_element_text_from_css(
         driver, "span.rp-raceTimeCourseName_distance"
     )
@@ -430,7 +451,7 @@ def scrape_data(driver, result):
         race_time=race_time,
         race_timestamp=race_timestamp,
         conditions=conditions,
-        race_class=race_class,
+        race_class="1",
         distance=distance,
         distance_full=distance_full,
         going=going,
@@ -468,6 +489,7 @@ def scrape_data(driver, result):
     performance_data = performance_data.dropna(subset=["race_timestamp"])
     if performance_data.empty:
         E(f"No data for {result} failure to scrape timestamp")
+    print("Data scraped successfully")
     return performance_data[
         [
             "race_timestamp",
@@ -531,9 +553,9 @@ def process_rp_scrape_data():
     task = DataScrapingTask(
         driver=get_headless_driver,
         schema="rp_raw",
-        source_view="missing_links",
-        dest_table="performance_data",
-        job_name="scrape_rp_data",
+        source_view="missing_non_uk_ire_links",
+        dest_table="non_uk_performance_data",
+        job_name="scrape_non_uk_rp_data",
         scraper_func=scrape_data,
         data_model=RacingPostDataModel,
         string_fields=rp_string_field_lengths,
