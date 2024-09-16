@@ -41,7 +41,9 @@ def process_scraping_data(task: DataScrapingTask) -> None:
     driver = select_source_driver(task)
     # dataframes_list = []
 
-    # for link in filtered_links_df.link_url.unique():
+    # filtered_links_df = db.fetch_data(f"SELECT * FROM {task.schema}.{task.source_view}")
+
+    # for sample_link in filtered_links_df.link_url.unique():
     for _ in range(1000000):
         filtered_links_df = db.fetch_data(
             f"SELECT * FROM {task.schema}.{task.source_view}"
@@ -55,9 +57,9 @@ def process_scraping_data(task: DataScrapingTask) -> None:
             I(f"Scraping link: {sample_link}")
             driver.get(sample_link)
             data = task.scraper_func(driver, sample_link)
-            if data["race_title"][0] == "NOT A CLASS 1 RACE OR SPECIAL COURSE":
-                db.store_data(data[["debug_link"]], "not_class_1_races", task.schema)
-                continue
+            # if data["race_title"][0] == "NOT A CLASS 1 RACE OR SPECIAL COURSE":
+            #     db.store_data(data[["debug_link"]], "not_class_1_races", task.schema)
+            #     continue
             db.store_data(data, task.dest_table, task.schema)
             # dataframes_list.append(data)
         except Exception as e:
