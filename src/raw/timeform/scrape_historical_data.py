@@ -1,17 +1,20 @@
 import hashlib
 import re
 from datetime import datetime
-
 import pandas as pd
+import time
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
-
 from src.data_models.raw.timeform_model import TimeformDataModel
 from src.data_models.raw.timeform_model import (
     table_string_field_lengths as tf_string_field_lengths,
 )
-from src.raw import DataScrapingTask, run_scraping_task
+from src.raw import DataScrapingTask, run_scraping_task, DatabaseInfo
 from src.raw.webdriver_base import get_headless_driver
-from src.utils.logging_config import I
+from src.utils.logging_config import I, E
 
 
 def get_element_text_by_selector(row, css_selector):
@@ -133,6 +136,12 @@ def get_entity_info_from_row(row, selector, index):
 
 
 def get_entity_names(row):
+    tf_horse_name = tf_horse_id = tf_horse_name_link = ""
+    tf_clean_sire_name = tf_sire_name_id = ""
+    tf_clean_dam_name = tf_dam_name_id = ""
+    tf_clean_trainer_name = tf_trainer_id = ""
+    tf_clean_jockey_name = tf_jockey_id = ""
+
     all_links = row.find_elements(By.TAG_NAME, "a")
     for link in all_links:
         horse_links = row.find_elements(By.CSS_SELECTOR, "a.rp-horse")
@@ -270,17 +279,19 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
 
 def scrape_data(driver, link):
     race_details_link = get_race_details_from_link(link)
+    time.sleep(5)
     race_details_page = get_race_details_from_page(driver)
     return get_performance_data(driver, race_details_link, race_details_page, link)
 
 
-def process_tf_scrape_data():
+def process_tf_scrape_data(db_info: DatabaseInfo):
     I("TF results data scraping started.")
     task = DataScrapingTask(
         driver=get_headless_driver,
-        schema="tf_raw",
-        table="performance_data",
-        job_name="scrape_tf_data",
+        schema=db_info.schema,
+        source_view=db_info.source_view,
+        dest_table=db_info.dest_table,
+        job_name=db_info.job_name,
         scraper_func=scrape_data,
         data_model=TimeformDataModel,
         string_fields=tf_string_field_lengths,

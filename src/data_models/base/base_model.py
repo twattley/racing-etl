@@ -62,13 +62,10 @@ def sort_data(
     data: pd.DataFrame, data_model: BaseDataModel, unique_id: str
 ) -> pd.DataFrame:
     I("Sorting data...")
-    I(f"Data Columns {data.columns}")
-    I(f"Data Sample {data.head(10)}")
 
     data = data.sort_values(by="created_at", ascending=False).drop_duplicates(
         subset=[unique_id]
     )[[field.name for field in fields(data_model)]]
-    I(f"Data Sample {data.head(10)}")
     return data
 
 

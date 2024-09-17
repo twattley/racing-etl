@@ -15,10 +15,19 @@ db = get_db()
 
 
 @dataclass
+class DatabaseInfo:
+    schema: str
+    job_name: str
+    source_view: str
+    dest_table: str
+
+
+@dataclass
 class DataScrapingTask:
     driver: webdriver.Chrome
     schema: str
-    table: str
+    source_view: str
+    dest_table: str
     job_name: str
     scraper_func: callable
     data_model: BaseDataModel
@@ -39,7 +48,7 @@ class LinkScrapingTask:
 def process_scraping_data(task: DataScrapingTask) -> None:
     driver = select_source_driver(task)
     dataframes_list = []
-    filtered_links_df = db.fetch_data(f"SELECT * FROM {task.schema}.missing_links")
+    filtered_links_df = db.fetch_data(f"SELECT * FROM {task.schema}.{task.source_view}")
     if filtered_links_df.empty:
         I("No missing links found. Ending the script.")
         return
@@ -61,8 +70,60 @@ def process_scraping_data(task: DataScrapingTask) -> None:
     data = data.pipe(
         convert_and_validate_data, task.data_model, task.string_fields, task.unique_id
     )
-    db.store_data(data, task.table, task.schema)
+    db.store_data(data, task.dest_table, task.schema)
     register_job_completion(task.job_name)
+    driver.quit()
+
+
+def process_scraping_data_incremental(task: DataScrapingTask) -> None:
+    driver = select_source_driver(task)
+    try:
+        while True:
+            filtered_links_df = db.fetch_data(
+                f"SELECT link_url FROM {task.schema}.{task.source_view} LIMIT 1"
+            )
+            if filtered_links_df.empty:
+                I("No more links to process. Ending the script.")
+                break
+
+            link = filtered_links_df.link_url.iloc[0]
+            try:
+                I(f"Scraping link: {link}")
+                driver.get(link)
+                data = task.scraper_func(driver, link)
+                data = data.pipe(
+                    convert_and_validate_data,
+                    task.data_model,
+                    task.string_fields,
+                    task.unique_id,
+                )
+                if data.empty:
+                    I(f"No data found for link: {link}. Moving to the next link.")
+                    db.store_data(
+                        pd.DataFrame({"link_url": [link]}),
+                        "days_results_links_errors",
+                        task.schema,
+                    )
+                    continue
+                db.store_data(data, task.dest_table, task.schema)
+
+                I(f"Successfully processed and stored data for link: {link}")
+            except Exception as e:
+                E(
+                    f"Encountered an error processing link {link}: {e}. Moving to the next link."
+                )
+                traceback.print_exc()
+                db.store_data(
+                    pd.DataFrame({"link_url": [link]}),
+                    "days_results_links_errors",
+                    task.schema,
+                )
+                continue
+
+    except Exception as e:
+        E(f"Unexpected error in process_scraping_data_incremental: {e}")
+        traceback.print_exc()
+
     driver.quit()
 
 
@@ -104,7 +165,8 @@ def process_scraping_result_links(task: LinkScrapingTask) -> None:
 
 def run_scraping_task(task):
     if isinstance(task, DataScrapingTask):
-        process_scraping_data(task)
+        # process_scraping_data(task)
+        process_scraping_data_incremental(task)
     elif isinstance(task, LinkScrapingTask):
         process_scraping_result_links(task)
 

@@ -15,7 +15,7 @@ from src.data_models.raw.racing_post_model import RacingPostDataModel
 from src.data_models.raw.racing_post_model import (
     table_string_field_lengths as rp_string_field_lengths,
 )
-from src.raw import DataScrapingTask, run_scraping_task
+from src.raw import DataScrapingTask, run_scraping_task, DatabaseInfo
 from src.raw.webdriver_base import get_headless_driver
 from src.utils.logging_config import E, I
 
@@ -82,6 +82,8 @@ def convert_to_24_hour(time_str: str) -> str:
 def create_race_timestamp(race_date: str, race_time: str, country: str) -> datetime:
     if country in {"IRE", "UK", "FR"}:
         race_time = convert_to_24_hour(race_time)
+        return datetime.strptime(f"{race_date} {race_time}", "%Y-%m-%d %H:%M")
+    else:
         return datetime.strptime(f"{race_date} {race_time}", "%Y-%m-%d %H:%M")
 
 
@@ -526,20 +528,17 @@ def scrape_data(driver, result):
     ]
 
 
-def process_rp_scrape_data():
+def process_rp_scrape_data(db_info: DatabaseInfo):
     I("RP results data scraping started.")
     task = DataScrapingTask(
         driver=get_headless_driver,
-        schema="rp_raw",
-        table="performance_data",
-        job_name="scrape_rp_data",
+        schema=db_info.schema,
+        source_view=db_info.source_view,
+        dest_table=db_info.dest_table,
+        job_name=db_info.job_name,
         scraper_func=scrape_data,
         data_model=RacingPostDataModel,
         string_fields=rp_string_field_lengths,
         unique_id="unique_id",
     )
     run_scraping_task(task)
-
-
-if __name__ == "__main__":
-    process_rp_scrape_data()
