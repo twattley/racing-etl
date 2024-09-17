@@ -279,8 +279,8 @@ def process_tf_scrape_data():
     task = DataScrapingTask(
         driver=get_headless_driver,
         schema="tf_raw",
-        source_view="missing_links",
-        dest_table="performance_data",
+        source_view="missing_non_uk_ire_links_vw",
+        dest_table="non_uk_performance_data",
         job_name="scrape_tf_data",
         scraper_func=scrape_data,
         data_model=TimeformDataModel,

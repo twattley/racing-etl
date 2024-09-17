@@ -18,7 +18,8 @@ db = get_db()
 class DataScrapingTask:
     driver: webdriver.Chrome
     schema: str
-    table: str
+    source_view: str
+    dest_table: str
     job_name: str
     scraper_func: callable
     data_model: BaseDataModel
@@ -38,32 +39,44 @@ class LinkScrapingTask:
 
 def process_scraping_data(task: DataScrapingTask) -> None:
     driver = select_source_driver(task)
-    dataframes_list = []
-    filtered_links_df = db.fetch_data(f"SELECT * FROM {task.schema}.missing_links")
-    if filtered_links_df.empty:
-        I("No missing links found. Ending the script.")
-        return
-    I(f"Number of missing links: {len(filtered_links_df)}")
-    for link in filtered_links_df.link_url.unique():
+    # dataframes_list = []
+
+    # filtered_links_df = db.fetch_data(f"SELECT * FROM {task.schema}.{task.source_view}")
+
+    # for sample_link in filtered_links_df.link_url.unique():
+    for _ in range(1000000):
+        filtered_links_df = db.fetch_data(
+            f"SELECT * FROM {task.schema}.{task.source_view}"
+        )
+        if filtered_links_df.empty:
+            I("No missing links found. Ending the script.")
+            return
+        I(f"Number of missing links: {len(filtered_links_df)}")
+        sample_link = filtered_links_df.sample(1).link_url.values[0]
         try:
-            I(f"Scraping link: {link}")
-            driver.get(link)
-            dataframes_list.append(task.scraper_func(driver, link))
+            I(f"Scraping link: {sample_link}")
+            driver.get(sample_link)
+            data = task.scraper_func(driver, sample_link)
+            # if data["race_title"][0] == "NOT A CLASS 1 RACE OR SPECIAL COURSE":
+            #     db.store_data(data[["debug_link"]], "not_class_1_races", task.schema)
+            #     continue
+            db.store_data(data, task.dest_table, task.schema)
+            # dataframes_list.append(data)
         except Exception as e:
             E(f"Encountered an error: {e}. Attempting to continue with the next link.")
             traceback.print_exc()
             continue
 
-    if not dataframes_list:
-        I("No data scraped. Ending the script.")
-        return
-    data = pd.concat(dataframes_list)
-    data = data.pipe(
-        convert_and_validate_data, task.data_model, task.string_fields, task.unique_id
-    )
-    db.store_data(data, task.table, task.schema)
-    register_job_completion(task.job_name)
-    driver.quit()
+    # if not dataframes_list:
+    #     I("No data scraped. Ending the script.")
+    #     return
+    # data = pd.concat(dataframes_list)
+    # data = data.pipe(
+    #     convert_and_validate_data, task.data_model, task.string_fields, task.unique_id
+    # )
+    # db.store_data(data, task.dest_table, task.schema)
+    # register_job_completion(task.job_name)
+    # driver.quit()
 
 
 def process_scraping_result_links(task: LinkScrapingTask) -> None:
