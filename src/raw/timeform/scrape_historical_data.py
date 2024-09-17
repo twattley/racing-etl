@@ -263,6 +263,7 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
         performance_data.update(race_details_page)
 
         performance_data["debug_link"] = link
+        I(f"setting created_at to {datetime.now()}")
         performance_data["created_at"] = datetime.now()
 
         unique_id = (
@@ -279,6 +280,7 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
 
 def scrape_data(driver, link):
     race_details_link = get_race_details_from_link(link)
+    I(f"Scraping data for {race_details_link} sleeping for 5 seconds")
     time.sleep(5)
     race_details_page = get_race_details_from_page(driver)
     return get_performance_data(driver, race_details_link, race_details_page, link)
