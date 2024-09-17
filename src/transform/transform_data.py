@@ -70,7 +70,7 @@ def time_to_seconds(time_str):
 
 def process_time_strings(s: str) -> tuple[float, str, float]:
     if s in {"0.00s (standard time)", "0.00s", ""}:
-        return np.NaN, np.NaN, np.NaN
+        return np.nan, np.nan, np.nan
     if "(standard time)" in s:
         return (
             round(time_to_seconds(s.replace("(standard time)", "")), 2),
@@ -166,7 +166,7 @@ def get_inplay_high_and_low(data: pd.DataFrame) -> pd.DataFrame:
 
 def convert_headgear(e: str) -> str:
     if not e:
-        return np.NaN
+        return np.nan
     headgear_mapping = {
         "b": "blinkers",
         "t": "tongue tie",

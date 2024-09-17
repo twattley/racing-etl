@@ -86,7 +86,7 @@ def get_market_data(market_updates: list[dict]) -> pd.DataFrame:
                 "race_type": market_def["name"],
                 "runner_id": runner["id"],
                 "runner_name": runner["name"],
-                "price": np.NaN,
+                "price": np.nan,
                 "market_change_time": start_time,
                 "status": runner["status"],
                 "removal_update": False,
@@ -129,9 +129,9 @@ def create_market_dataset(
                     price = change["ltp"]
                     market.append(
                         {
-                            "course": np.NaN,
-                            "race_time": np.NaN,
-                            "race_type": np.NaN,
+                            "course": np.nan,
+                            "race_time": np.nan,
+                            "race_type": np.nan,
                             "runner_id": runner_id,
                             "runner_name": runner_name,
                             "price": price,
@@ -152,7 +152,7 @@ def create_market_dataset(
                         "runner_id": runner["id"],
                         "runner_name": runner["name"],
                         "status": runner["status"],
-                        "price": np.NaN,
+                        "price": np.nan,
                         "market_change_time": market_change_time,
                         "removal_update": removal_update_indicator,
                     }
@@ -288,10 +288,10 @@ def create_price_change_dataset_nrs(df: pd.DataFrame) -> pd.DataFrame:
                 "runner_id": horse_df["runner_id"].iloc[0],
                 "race_key": horse_df["race_key"].iloc[0],
                 "bf_unique_id": horse_df["bf_unique_id"].iloc[0],
-                "min_price": np.NaN,
-                "max_price": np.NaN,
-                "latest_price": np.NaN,
-                "earliest_price": np.NaN,
+                "min_price": np.nan,
+                "max_price": np.nan,
+                "latest_price": np.nan,
+                "earliest_price": np.nan,
                 "price_change": horse_df["price_change"].iloc[0],
                 "non_runners": True,
             }

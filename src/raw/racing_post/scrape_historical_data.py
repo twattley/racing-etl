@@ -111,7 +111,7 @@ def get_raw_winning_time(driver):
     ).splitlines()[0]
     match = re.search(r"winning time: (.*?) total sp:", race_info, re.IGNORECASE)
 
-    return match[1] if match else np.NaN
+    return match[1] if match else np.nan
 
 
 def get_number_of_runners(driver: webdriver):
@@ -172,7 +172,7 @@ def get_performance_data(driver):
             draw = horse_position.split("(")[1].replace(")", "").strip()
             horse_position = horse_position.split("(")[0].strip()
         else:
-            draw = np.NaN
+            draw = np.nan
 
         jockey_element = row.find_element(By.CSS_SELECTOR, "a[href*='/profile/jockey']")
         jockey_link = jockey_element.get_attribute("href")
@@ -188,7 +188,7 @@ def get_performance_data(driver):
         if sup_elements:
             jockey_claim = sup_elements[0].get_attribute("textContent").strip()
         else:
-            jockey_claim = np.NaN
+            jockey_claim = np.nan
 
         trainer_element = row.find_element(
             By.CSS_SELECTOR, "a[href*='/profile/trainer']"
@@ -234,7 +234,7 @@ def get_performance_data(driver):
         elif len(distnce_beaten_elements) == 2:
             total_distance_beaten = distnce_beaten_elements[1].text.strip()
         else:
-            total_distance_beaten = np.NaN
+            total_distance_beaten = np.nan
 
         extra_weights_elements = row.find_elements(
             By.CSS_SELECTOR,
@@ -247,7 +247,7 @@ def get_performance_data(driver):
                 .text.strip()
             )
         else:
-            extra_weight = np.NaN
+            extra_weight = np.nan
 
         headgear_elements = row.find_elements(
             By.CSS_SELECTOR, "span.rp-horseTable__headGear"
@@ -255,7 +255,7 @@ def get_performance_data(driver):
         if headgear_elements:
             headgear = headgear_elements[0].text.strip().replace("\n", "")
         else:
-            headgear = np.NaN
+            headgear = np.nan
 
         horse_data.append(
             {
@@ -361,14 +361,14 @@ def get_pedigree_data(driver, order, horse_data):
             horse_data["dam_name"] = pedigrees["dam"]
             horse_data["dam_id"] = pedigrees["dam_id"]
         else:
-            horse_data["dam_name"] = np.NaN
-            horse_data["dam_id"] = np.NaN
+            horse_data["dam_name"] = np.nan
+            horse_data["dam_id"] = np.nan
         if "dams_sire" in pedigrees.keys() and "dams_sire_id" in pedigrees.keys():
             horse_data["dams_sire"] = pedigrees["dams_sire"]
             horse_data["dams_sire_id"] = pedigrees["dams_sire_id"]
         else:
-            horse_data["dams_sire"] = np.NaN
-            horse_data["dams_sire_id"] = np.NaN
+            horse_data["dams_sire"] = np.nan
+            horse_data["dams_sire_id"] = np.nan
 
     return sorted_horse_data
 
@@ -419,7 +419,7 @@ def scrape_data(driver, result):
     try:
         total_prize_money, first_place_prize_money, currency = get_prize_money(driver)
     except Exception:
-        total_prize_money, first_place_prize_money, currency = np.NaN, np.NaN, np.NaN
+        total_prize_money, first_place_prize_money, currency = np.nan, np.nan, np.nan
 
     performance_data, order = get_performance_data(driver)
     performance_data = get_comment_data(driver, order, performance_data)
