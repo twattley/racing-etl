@@ -290,6 +290,7 @@ def process_tf_scrape_data(db_info: DatabaseInfo):
     I("TF results data scraping started.")
     task = DataScrapingTask(
         driver=get_headless_driver,
+        source_name="timeform",
         schema=db_info.schema,
         source_view=db_info.source_view,
         dest_table=db_info.dest_table,

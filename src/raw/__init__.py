@@ -1,3 +1,4 @@
+import os
 import time
 import traceback
 from dataclasses import dataclass
@@ -13,6 +14,66 @@ from src.utils.processing_utils import register_job_completion
 
 db = get_db()
 
+data_structure_dict = {
+    "race_pd": pd.DatetimeTZDtype(tz="Europe/London"),
+    "race_date": pd.StringDtype(),
+    "course_name": pd.StringDtype(),
+    "race_class": pd.StringDtype(),
+    "horse_name": pd.StringDtype(),
+    "horse_type": pd.StringDtype(),
+    "horse_age": pd.StringDtype(),
+    "headgear": pd.StringDtype(),
+    "conditions": pd.StringDtype(),
+    "horse_price": pd.StringDtype(),
+    "race_title": pd.StringDtype(),
+    "distance": pd.StringDtype(),
+    "distance_full": pd.StringDtype(),
+    "going": pd.StringDtype(),
+    "number_of_runners": pd.StringDtype(),
+    "total_prize_money": pd.Int64Dtype(),
+    "first_place_prize_money": pd.Int64Dtype(),
+    "winning_time": pd.StringDtype(),
+    "official_rating": pd.StringDtype(),
+    "horse_weight": pd.StringDtype(),
+    "draw": pd.StringDtype(),
+    "country": pd.StringDtype(),
+    "surface": pd.StringDtype(),
+    "finishing_position": pd.StringDtype(),
+    "total_distance_beaten": pd.StringDtype(),
+    "ts_value": pd.StringDtype(),
+    "rpr_value": pd.StringDtype(),
+    "extra_weight": pd.Float64Dtype(),
+    "comment": pd.StringDtype(),
+    "race_time": pd.StringDtype(),
+    "currency": pd.StringDtype(),
+    "course": pd.StringDtype(),
+    "jockey_name": pd.StringDtype(),
+    "jockey_claim": pd.StringDtype(),
+    "trainer_name": pd.StringDtype(),
+    "sire_name": pd.StringDtype(),
+    "dam_name": pd.StringDtype(),
+    "dams_sire": pd.StringDtype(),
+    "owner_name": pd.StringDtype(),
+    "horse_id": pd.StringDtype(),
+    "trainer_id": pd.StringDtype(),
+    "jockey_id": pd.StringDtype(),
+    "sire_id": pd.StringDtype(),
+    "dam_id": pd.StringDtype(),
+    "dams_sire_id": pd.StringDtype(),
+    "owner_id": pd.StringDtype(),
+    "race_id": pd.StringDtype(),
+    "course_id": pd.StringDtype(),
+    "meeting_id": pd.StringDtype(),
+    "unique_id": pd.StringDtype(),
+    "debug_link": pd.StringDtype(),
+    "created_at": pd.DatetimeTZDtype(tz="Europe/London"),
+}
+
+# Create the empty DataFrame
+data_structure = pd.DataFrame(columns=data_structure_dict.keys()).astype(
+    data_structure_dict
+)
+
 
 @dataclass
 class DatabaseInfo:
@@ -25,6 +86,7 @@ class DatabaseInfo:
 @dataclass
 class DataScrapingTask:
     driver: webdriver.Chrome
+    source_name: str
     schema: str
     source_view: str
     dest_table: str
@@ -125,6 +187,86 @@ def process_scraping_data_incremental(task: DataScrapingTask) -> None:
         traceback.print_exc()
 
     driver.quit()
+
+
+def process_scraping_data_cloud(task: DataScrapingTask) -> None:
+    driver = select_source_driver(task)
+    input_file = (
+        f"/root/racing-etl/data/{task.source_name}/missing_non_uk_ire_links.csv"
+    )
+    output_file = (
+        f"/root/racing-etl/data/{task.source_name}/non_uk_ire_performance_data.parquet"
+    )
+    error_file = f"/root/racing-etl/data/{task.source_name}/error_links.csv"
+
+    while True:
+        if os.path.exists(output_file):
+            existing_data = pd.read_parquet(output_file)
+            processed_links = set(existing_data["debug_link"])
+        else:
+            existing_data = data_structure
+            processed_links = set()
+
+        if os.path.exists(error_file):
+            error_links = set(pd.read_csv(error_file)["link_url"])
+        else:
+            error_links = set()
+
+        filtered_links_df = pd.read_csv(input_file)
+        links_to_process = filtered_links_df[
+            ~filtered_links_df["link_url"].isin(processed_links)
+            & ~filtered_links_df["link_url"].isin(error_links)
+        ]
+
+        I(
+            f"Total links: {len(filtered_links_df)}, Links to process: {len(links_to_process)}"
+        )
+
+        if links_to_process.empty:
+            I("No new links to process, exiting.")
+            return
+
+        for link in links_to_process["link_url"]:
+            try:
+                I(f"Scraping link: {link}")
+                driver.get(link)
+                scraped_data = task.scraper_func(driver, link)
+
+                scraped_data = scraped_data.pipe(
+                    convert_and_validate_data,
+                    task.data_model,
+                    task.string_fields,
+                    task.unique_id,
+                )
+                existing_data = pd.concat(
+                    [existing_data, scraped_data], ignore_index=True
+                )
+                existing_data.to_parquet(output_file, index=False)
+
+                I(f"Successfully processed and stored data for link: {link}")
+
+                filtered_links_df = filtered_links_df[
+                    filtered_links_df["link_url"] != link
+                ]
+                filtered_links_df.to_csv(input_file, index=False)
+
+            except Exception as e:
+                E(f"Encountered an error processing link {link}: {e}")
+
+                error_df = pd.DataFrame({"link_url": [link], "error_message": [str(e)]})
+                if os.path.exists(error_file):
+                    error_df.to_csv(error_file, mode="a", header=False, index=False)
+                else:
+                    error_df.to_csv(error_file, index=False)
+                filtered_links_df = filtered_links_df[
+                    filtered_links_df["link_url"] != link
+                ]
+                filtered_links_df.to_csv(input_file, index=False)
+                continue
+
+        I(f"Completed processing batch. Total records in output: {len(existing_data)}")
+
+        time.sleep(1)
 
 
 def process_scraping_result_links(task: LinkScrapingTask) -> None:
