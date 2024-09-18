@@ -15,7 +15,7 @@ from src.utils.processing_utils import register_job_completion
 db = get_db()
 
 data_structure_dict = {
-    "race_pd": pd.DatetimeTZDtype(tz="Europe/London"),
+    "race_timestamp": pd.DatetimeTZDtype(tz="Europe/London"),
     "race_date": pd.StringDtype(),
     "course_name": pd.StringDtype(),
     "race_class": pd.StringDtype(),
