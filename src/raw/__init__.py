@@ -228,6 +228,7 @@ def process_scraping_data_cloud(task: DataScrapingTask) -> None:
 
         for link in links_to_process["link_url"]:
             try:
+                I(f"links left to process: {len(filtered_links_df)}")
                 I(f"Scraping link: {link}")
                 driver.get(link)
                 scraped_data = task.scraper_func(driver, link)
@@ -308,7 +309,8 @@ def process_scraping_result_links(task: LinkScrapingTask) -> None:
 def run_scraping_task(task):
     if isinstance(task, DataScrapingTask):
         # process_scraping_data(task)
-        process_scraping_data_incremental(task)
+        # process_scraping_data_incremental(task)
+        process_scraping_data_cloud(task)
     elif isinstance(task, LinkScrapingTask):
         process_scraping_result_links(task)
 
