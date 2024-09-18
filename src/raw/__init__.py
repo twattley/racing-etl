@@ -142,7 +142,11 @@ def process_scraping_data_incremental(task: DataScrapingTask) -> None:
     try:
         while True:
             filtered_links_df = db.fetch_data(
-                f"SELECT link_url FROM {task.schema}.{task.source_view} LIMIT 1"
+                f"""
+                SELECT link_url 
+                FROM {task.schema}.missing_non_uk_ire_links_tmp 
+                LIMIT 1
+                """
             )
             if filtered_links_df.empty:
                 I("No more links to process. Ending the script.")
@@ -309,8 +313,8 @@ def process_scraping_result_links(task: LinkScrapingTask) -> None:
 def run_scraping_task(task):
     if isinstance(task, DataScrapingTask):
         # process_scraping_data(task)
-        # process_scraping_data_incremental(task)
-        process_scraping_data_cloud(task)
+        process_scraping_data_incremental(task)
+        # process_scraping_data_cloud(task)
     elif isinstance(task, LinkScrapingTask):
         process_scraping_result_links(task)
 
