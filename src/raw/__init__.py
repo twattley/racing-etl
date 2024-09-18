@@ -313,8 +313,8 @@ def process_scraping_result_links(task: LinkScrapingTask) -> None:
 def run_scraping_task(task):
     if isinstance(task, DataScrapingTask):
         # process_scraping_data(task)
-        process_scraping_data_incremental(task)
-        # process_scraping_data_cloud(task)
+        # process_scraping_data_incremental(task)
+        process_scraping_data_cloud(task)
     elif isinstance(task, LinkScrapingTask):
         process_scraping_result_links(task)
 
