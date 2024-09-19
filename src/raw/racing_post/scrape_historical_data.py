@@ -174,13 +174,23 @@ def get_performance_data(driver):
         else:
             draw = np.nan
 
-        jockey_element = row.find_element(By.CSS_SELECTOR, "a[href*='/profile/jockey']")
-        jockey_link = jockey_element.get_attribute("href")
-        jockey_id, jockey_name = get_entity_data_from_link(jockey_link)
+        try:
+            jockey_element = row.find_element(
+                By.CSS_SELECTOR, "a[href*='/profile/jockey']"
+            )
+            jockey_link = jockey_element.get_attribute("href")
+            jockey_id, jockey_name = get_entity_data_from_link(jockey_link)
+        except Exception:
+            jockey_id, jockey_name = np.nan, np.nan
 
-        owner_element = row.find_element(By.CSS_SELECTOR, "a[href*='/profile/owner']")
-        owner_link = owner_element.get_attribute("href")
-        owner_id, owner_name = get_entity_data_from_link(owner_link)
+        try:
+            owner_element = row.find_element(
+                By.CSS_SELECTOR, "a[href*='/profile/owner']"
+            )
+            owner_link = owner_element.get_attribute("href")
+            owner_id, owner_name = get_entity_data_from_link(owner_link)
+        except Exception:
+            owner_id, owner_name = np.nan, np.nan
 
         sup_elements = jockey_element.find_elements(
             By.XPATH, "./following-sibling::sup"
@@ -190,11 +200,14 @@ def get_performance_data(driver):
         else:
             jockey_claim = np.nan
 
-        trainer_element = row.find_element(
-            By.CSS_SELECTOR, "a[href*='/profile/trainer']"
-        )
-        trainer_link = trainer_element.get_attribute("href")
-        trainer_id, trainer_name = get_entity_data_from_link(trainer_link)
+        try:
+            trainer_element = row.find_element(
+                By.CSS_SELECTOR, "a[href*='/profile/trainer']"
+            )
+            trainer_link = trainer_element.get_attribute("href")
+            trainer_id, trainer_name = get_entity_data_from_link(trainer_link)
+        except Exception:
+            trainer_id, trainer_name = np.nan, np.nan
 
         horse_element = row.find_element(By.CSS_SELECTOR, "a[href*='/profile/horse']")
         horse_link = horse_element.get_attribute("href")
