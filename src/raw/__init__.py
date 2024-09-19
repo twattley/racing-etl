@@ -144,15 +144,15 @@ def process_scraping_data_incremental(task: DataScrapingTask) -> None:
             filtered_links_df = db.fetch_data(
                 f"""
                 SELECT link_url 
-                FROM {task.schema}.missing_non_uk_ire_links_tmp 
-                LIMIT 1
+                FROM {task.schema}.missing_non_uk_ire_links
                 """
             )
+            I(f"Number of missing links: {len(filtered_links_df)}")
             if filtered_links_df.empty:
                 I("No more links to process. Ending the script.")
                 break
 
-            link = filtered_links_df.link_url.iloc[0]
+            link = filtered_links_df.sample(1).link_url.iloc[0]
             try:
                 I(f"Scraping link: {link}")
                 driver.get(link)
@@ -338,8 +338,8 @@ def process_scraping_result_links(task: LinkScrapingTask) -> None:
 def run_scraping_task(task):
     if isinstance(task, DataScrapingTask):
         # process_scraping_data(task)
-        # process_scraping_data_incremental(task)
-        process_scraping_data_cloud(task)
+        process_scraping_data_incremental(task)
+        # process_scraping_data_cloud(task)
     elif isinstance(task, LinkScrapingTask):
         process_scraping_result_links(task)
 
