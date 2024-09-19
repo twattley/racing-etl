@@ -194,7 +194,6 @@ def process_scraping_data_incremental(task: DataScrapingTask) -> None:
 
 
 def process_scraping_data_cloud(task: DataScrapingTask) -> None:
-    driver = select_source_driver(task)
     input_file = (
         f"/root/racing-etl/data/{task.source_name}/missing_non_uk_ire_links.csv"
     )
@@ -202,6 +201,32 @@ def process_scraping_data_cloud(task: DataScrapingTask) -> None:
         f"/root/racing-etl/data/{task.source_name}/non_uk_ire_performance_data.parquet"
     )
     error_file = f"/root/racing-etl/data/{task.source_name}/error_links.csv"
+    if os.path.exists(output_file):
+        existing_data = pd.read_parquet(output_file)
+        processed_links = set(existing_data["debug_link"])
+    else:
+        existing_data = data_structure
+        processed_links = set()
+
+    if os.path.exists(error_file):
+        error_links = set(pd.read_csv(error_file)["link_url"])
+    else:
+        error_links = set()
+    filtered_links_df = pd.read_csv(input_file)
+    links_to_process = filtered_links_df[
+        ~filtered_links_df["link_url"].isin(processed_links)
+        & ~filtered_links_df["link_url"].isin(error_links)
+    ]
+
+    I(
+        f"Total links: {len(filtered_links_df)}, Links to process: {len(links_to_process)}"
+    )
+
+    if links_to_process.empty:
+        I("No new links to process, exiting.")
+        return
+
+    driver = select_source_driver(task)
 
     while True:
         if os.path.exists(output_file):
