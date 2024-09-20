@@ -39,11 +39,11 @@ def scrape_historical_data_incremental(task: DataScrapingTask) -> None:
                 )
                 if data.empty:
                     I(f"No data found for link: {link}. Moving to the next link.")
-                    db.store_data(
-                        pd.DataFrame({"link_url": [link]}),
-                        "days_results_links_errors",
-                        task.schema,
-                    )
+                    # db.store_data(
+                    #     pd.DataFrame({"link_url": [link]}),
+                    #     "days_results_links_errors",
+                    #     task.schema,
+                    # )
                     continue
                 db.store_data(data, task.dest_table, task.schema)
 

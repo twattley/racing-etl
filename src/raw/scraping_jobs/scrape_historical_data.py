@@ -11,7 +11,9 @@ db = get_db()
 
 def scrape_historical_data(task: DataScrapingTask) -> None:
     dataframes_list = []
-    filtered_links_df = db.fetch_data(f"SELECT * FROM {task.schema}.{task.source_view}")
+    filtered_links_df = db.fetch_data(
+        f"SELECT link_url FROM {task.schema}.{task.source_view}"
+    )
     if filtered_links_df.empty:
         I("No missing links found. Ending the script.")
         return
