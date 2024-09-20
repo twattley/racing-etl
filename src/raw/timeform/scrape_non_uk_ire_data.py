@@ -1,4 +1,4 @@
-from src.raw import DatabaseInfo
+from src.raw.data_types import DatabaseInfo
 from src.raw.timeform.scrape_historical_data import process_tf_scrape_data
 
 

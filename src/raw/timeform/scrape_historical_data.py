@@ -1,20 +1,19 @@
 import hashlib
 import re
-from datetime import datetime
-import pandas as pd
 import time
-from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+from datetime import datetime
+
+import pandas as pd
 from selenium.webdriver.common.by import By
+
 from src.data_models.raw.timeform_model import TimeformDataModel
 from src.data_models.raw.timeform_model import (
     table_string_field_lengths as tf_string_field_lengths,
 )
-from src.raw import DataScrapingTask, run_scraping_task, DatabaseInfo
+from src.raw.data_types import DatabaseInfo, DataScrapingTask
+from src.raw.ingest_data import run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
-from src.utils.logging_config import I, E
+from src.utils.logging_config import I
 
 
 def get_element_text_by_selector(row, css_selector):

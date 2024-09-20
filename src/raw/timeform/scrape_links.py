@@ -4,7 +4,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from src.raw import LinkScrapingTask, run_scraping_task
+from src.raw.data_types import LinkScrapingTask
+from src.raw.ingest_data import run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
 
 BASE_TF_URL = "https://www.timeform.com"

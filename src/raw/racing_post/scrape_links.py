@@ -1,6 +1,7 @@
 from selenium.webdriver.common.by import By
 
-from src.raw import LinkScrapingTask, run_scraping_task
+from src.raw.data_types import LinkScrapingTask
+from src.raw.ingest_data import run_scraping_task
 from src.raw.webdriver_base import get_headless_driver
 
 BASE_RP_URL = "https://www.racingpost.com"

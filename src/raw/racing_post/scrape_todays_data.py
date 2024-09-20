@@ -17,7 +17,6 @@ from src.data_models.raw.racing_post_model import (
 from src.raw.webdriver_base import get_headless_driver
 from src.storage.psql_db import get_db
 from src.utils.logging_config import E, I, W
-from src.utils.processing_utils import register_job_completion
 
 db = get_db()
 
@@ -449,7 +448,6 @@ def process_rp_scrape_days_data(dates: list[str]):
         data = data[data["race_date"] >= datetime.now().strftime("%Y-%m-%d")]
         db.store_data(data, "todays_performance_data", "rp_raw", truncate=True)
     driver.quit()
-    register_job_completion("scrape_todays_rp_data")
 
 
 if __name__ == "__main__":

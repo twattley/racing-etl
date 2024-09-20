@@ -1,18 +1,16 @@
 from datetime import datetime
 
 from src.raw.betfair.fetch_historical_market_data import fetch_historical_market_data
+from src.raw.betfair.fetch_todays_market_data import fetch_todays_market_data
 from src.raw.betfair.process_historical_market_data import (
     process_historical_market_data,
 )
-from src.raw.racing_post.scrape_non_uk_ire_data import process_rp_scrape_non_uk_ire_data
-from src.raw.racing_post.scrape_uk_ire_data import process_rp_scrape_uk_ire_data
-from src.raw.timeform.scrape_non_uk_ire_data import process_tf_scrape_non_uk_ire_data
-from src.raw.timeform.scrape_uk_ire_data import process_tf_scrape_uk_ire_data
-from src.raw.betfair.fetch_todays_market_data import fetch_todays_market_data
 from src.raw.racing_post.scrape_links import process_rp_scrape_links
 from src.raw.racing_post.scrape_todays_data import process_rp_scrape_days_data
+from src.raw.racing_post.scrape_uk_ire_data import process_rp_scrape_uk_ire_data
 from src.raw.timeform.scrape_links import process_tf_scrape_links
 from src.raw.timeform.scrape_todays_data import process_tf_scrape_days_data
+from src.raw.timeform.scrape_uk_ire_data import process_tf_scrape_uk_ire_data
 from src.storage.psql_db import get_db
 from src.utils.logging_config import I, W
 from src.utils.processing_utils import pp, ptr
@@ -34,10 +32,10 @@ def historical_pipeline():
         (process_tf_scrape_uk_ire_data, None),
         (fetch_historical_market_data, None),
     )
-    pp(
-        (process_rp_scrape_non_uk_ire_data, None),
-        (process_tf_scrape_non_uk_ire_data, None),
-    )
+    # pp(
+    #     (process_rp_scrape_non_uk_ire_data, None),
+    #     (process_tf_scrape_non_uk_ire_data, None),
+    # )
     process_historical_market_data()
 
 
