@@ -1,5 +1,3 @@
-import json
-
 from src.data_models.transform.race_model import RaceDataModel
 from src.data_models.transform.transformed_model import TransformedDataModel
 from src.storage.psql_db import get_db
@@ -8,14 +6,6 @@ from src.utils.logging_config import I, W
 from src.utils.processing_utils import pt, ptr
 
 db = get_db()
-
-
-def write_json(data: dict | list, file_path: str, indent: int = 4) -> None:
-    try:
-        with open(file_path, "w") as file:
-            json.dump(data, file, indent=indent)
-    except Exception as e:
-        print(f"Error writing to JSON file: {e}")
 
 
 def post_transform_today_checks():
@@ -72,6 +62,38 @@ def run_transformation_pipeline():
             ),
         )
 
+    def process_non_uk_ire_results_data():
+        results_data = db.fetch_data(
+            "SELECT * FROM public.missing_non_uk_ire_performance_data_vw;"
+        )
+        if results_data.empty:
+            I("No missing historical non-UK/IRE data to transform.")
+            return
+
+        accepted_data, rejected_data, race_data = transform_data(
+            data=results_data,
+            transform_data_model=TransformedDataModel,
+            race_data_model=RaceDataModel,
+            data_type="results",
+        )
+        pt(
+            lambda: db.store_data(
+                accepted_data,
+                "transformed_non_uk_ire_performance_data",
+                "staging",
+                truncate=True,
+            ),
+            lambda: db.store_data(
+                rejected_data,
+                "staging_transformed_non_uk_ire_performance_data_rejected",
+                "errors",
+                truncate=True,
+            ),
+            lambda: db.store_data(
+                race_data, "transformed_non_uk_ire_race_data", "staging", truncate=True
+            ),
+        )
+
     def process_todays_data():
         todays_data = db.fetch_data(
             "SELECT * FROM public.missing_todays_performance_data_vw;"
@@ -107,7 +129,7 @@ def run_transformation_pipeline():
             ),
         )
 
-    pt(process_results_data, process_todays_data)
+    pt(process_results_data, process_non_uk_ire_results_data, process_todays_data)
 
     pt(
         lambda: db.call_procedure("insert_transformed_performance_data", "public"),

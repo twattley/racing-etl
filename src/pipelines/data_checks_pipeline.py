@@ -1,17 +1,6 @@
-import json
-
 from src.storage.psql_db import get_db
 from src.utils.logging_config import E, I
 from src.utils.processing_utils import ptr
-
-
-def write_json(data: dict | list, file_path: str, indent: int = 4) -> None:
-    try:
-        with open(file_path, "w") as file:
-            json.dump(data, file, indent=indent)
-    except Exception as e:
-        print(f"Error writing to JSON file: {e}")
-
 
 db = get_db()
 

@@ -24,7 +24,7 @@ def get_results_links(driver):
 
 def process_rp_scrape_links():
     task = LinkScrapingTask(
-        driver=get_headless_driver(),
+        driver=get_headless_driver,
         base_url=RP_RESULTS_URL,
         schema="rp_raw",
         source_table="missing_dates",

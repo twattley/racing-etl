@@ -23,6 +23,6 @@ def process_scraping_data(task: DataScrapingTask, job_type: str) -> None:
 
 def run_scraping_task(task):
     if isinstance(task, DataScrapingTask):
-        process_scraping_data(task, "historical")
+        process_scraping_data(task, "incremental")
     elif isinstance(task, LinkScrapingTask):
         process_scraping_result_links(task)

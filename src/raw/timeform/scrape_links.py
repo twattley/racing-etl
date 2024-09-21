@@ -35,7 +35,7 @@ def get_results_links(driver):
 
 def process_tf_scrape_links():
     task = LinkScrapingTask(
-        driver=get_headless_driver(),
+        driver=get_headless_driver,
         base_url=TF_RESULTS_URL,
         schema="tf_raw",
         source_table="missing_dates",

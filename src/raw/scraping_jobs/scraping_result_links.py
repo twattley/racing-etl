@@ -11,11 +11,11 @@ db = get_db()
 
 def process_scraping_result_links(task: LinkScrapingTask) -> None:
     I("Scrape_links.py execution started.")
-    driver = task.driver
     dates = db.fetch_data(f"SELECT * FROM {task.schema}.{task.source_table}")
     if dates.empty:
         I("No missing dates found. Ending the script.")
         return
+    driver = task.driver()
     dates = [i.strftime("%Y-%m-%d") for i in dates["date"]]
     for date in dates:
         try:

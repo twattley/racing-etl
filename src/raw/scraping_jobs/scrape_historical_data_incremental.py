@@ -1,7 +1,5 @@
 import traceback
-
 import pandas as pd
-
 from src.data_models.base.base_model import convert_and_validate_data
 from src.raw.data_types import DataScrapingTask
 from src.raw.webdriver_base import select_source_driver
@@ -12,8 +10,9 @@ db = get_db()
 
 
 def scrape_historical_data_incremental(task: DataScrapingTask) -> None:
-    driver = select_source_driver(task)
+    driver = None
     try:
+        I(f"Starting to process {task.source_name} data")
         while True:
             filtered_links_df = db.fetch_data(
                 f"""
@@ -25,6 +24,10 @@ def scrape_historical_data_incremental(task: DataScrapingTask) -> None:
             if filtered_links_df.empty:
                 I("No more links to process. Ending the script.")
                 break
+
+            # Initialize the driver only if there are links to process
+            if driver is None:
+                driver = select_source_driver(task)
 
             link = filtered_links_df.sample(1).link_url.iloc[0]
             try:
@@ -39,11 +42,6 @@ def scrape_historical_data_incremental(task: DataScrapingTask) -> None:
                 )
                 if data.empty:
                     I(f"No data found for link: {link}. Moving to the next link.")
-                    # db.store_data(
-                    #     pd.DataFrame({"link_url": [link]}),
-                    #     "days_results_links_errors",
-                    #     task.schema,
-                    # )
                     continue
                 db.store_data(data, task.dest_table, task.schema)
 
@@ -64,4 +62,6 @@ def scrape_historical_data_incremental(task: DataScrapingTask) -> None:
         E(f"Unexpected error in process_scraping_data_incremental: {e}")
         traceback.print_exc()
 
-    driver.quit()
+    finally:
+        if driver:
+            driver.quit()

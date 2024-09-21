@@ -340,6 +340,28 @@ def create_headgear_data(data: pd.DataFrame) -> pd.DataFrame:
     return data.assign(headgear=lambda x: x["headgear"].apply(convert_headgear))
 
 
+def create_artificial_sp(df):
+    I("Creating artificial sp")
+    df["betfair_win_sp"] = pd.to_numeric(df["betfair_win_sp"], errors="coerce")
+    df["industry_sp_tmp"] = df["industry_sp"].str.replace(r"[a-zA-Z]", "", regex=True)
+    df["numerator"] = pd.to_numeric(
+        df["industry_sp_tmp"].str.split("/").str[0], errors="coerce"
+    )
+    df["denominator"] = pd.to_numeric(
+        df["industry_sp_tmp"].str.split("/").str[1], errors="coerce"
+    )
+    df["industry_sp_clean"] = (df["numerator"] / df["denominator"]) + 1
+    df["industry_sp_clean"] = df["industry_sp_clean"].round(2)
+    df["industry_sp_clean"] = np.where(
+        df["industry_sp"].str.contains("Ev"), 2, df["industry_sp_clean"]
+    )
+    df["betfair_win_sp"] = df["betfair_win_sp"].fillna(df["industry_sp_clean"])
+
+    df.to_csv("~/Desktop/test.csv", index=False)
+
+    return df
+
+
 def process_data(
     data: pd.DataFrame,
     transform_data_model: TransformedDataModel,
@@ -358,6 +380,7 @@ def process_data(
         .pipe(clean_race_class_field)
         .pipe(convert_horse_type_to_colour_sex)
         .pipe(create_distance_beaten_data)
+        .pipe(create_artificial_sp)
     )
     transformed_data = data.pipe(
         convert_and_validate_data,
@@ -461,8 +484,10 @@ def transform_data(
         transform_data_model=transform_data_model,
         race_data_model=race_data_model,
     )
-
-    accepted_data, rejected_data = transformed_data.pipe(validate_data)
+    if data_type in ["todays", "results"]:
+        accepted_data, rejected_data = transformed_data.pipe(validate_data)
+    else:
+        accepted_data, rejected_data = transformed_data, pd.DataFrame()
 
     accepted_data = accepted_data.pipe(convert_types)
 

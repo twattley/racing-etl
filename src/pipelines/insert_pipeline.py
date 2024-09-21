@@ -5,6 +5,7 @@ db = get_db()
 
 def run_insert_pipeline():
     db.call_procedure("insert_unioned_performance_data_historical", "public")
+    db.call_procedure("insert_unioned_non_uk_ire_performance_data_historical", "public")
     db.call_procedure("create_todays_performance_data_vw", "public")
 
 

@@ -14,6 +14,9 @@ from src.raw.timeform.scrape_uk_ire_data import process_tf_scrape_uk_ire_data
 from src.storage.psql_db import get_db
 from src.utils.logging_config import I, W
 from src.utils.processing_utils import pp, ptr
+from src.raw.timeform.scrape_non_uk_ire_data import process_tf_scrape_non_uk_ire_data
+from src.raw.racing_post.scrape_non_uk_ire_data import process_rp_scrape_non_uk_ire_data
+
 
 db = get_db()
 
@@ -25,18 +28,16 @@ def historical_pipeline():
     pp(
         (process_rp_scrape_links, None),
         (process_tf_scrape_links, None),
+        (fetch_historical_market_data, None),
     )
 
     pp(
         (process_rp_scrape_uk_ire_data, None),
         (process_tf_scrape_uk_ire_data, None),
-        (fetch_historical_market_data, None),
+        (process_historical_market_data, None),
     )
-    # pp(
-    #     (process_rp_scrape_non_uk_ire_data, None),
-    #     (process_tf_scrape_non_uk_ire_data, None),
-    # )
-    process_historical_market_data()
+    process_rp_scrape_non_uk_ire_data()
+    process_tf_scrape_non_uk_ire_data()
 
 
 def todays_pipeline():
@@ -56,26 +57,27 @@ def todays_pipeline():
 
 def post_results_scraping_checks():
     I("Checking for missing data...")
-    rp_links, tf_links = ptr(
-        lambda: db.fetch_data("SELECT * FROM rp_raw.missing_links;"),
-        lambda: db.fetch_data("SELECT * FROM tf_raw.missing_links;"),
+    uk_ire_vw = "missing_uk_ire_links"
+    non_uk_ire_vw = "missing_non_uk_ire_links"
+    uk_ire_rp_links, uk_ire_tf_links, non_uk_ire_rp_links, non_uk_ire_tf_links = ptr(
+        lambda: db.fetch_data(f"SELECT * FROM rp_raw.{uk_ire_vw};"),
+        lambda: db.fetch_data(f"SELECT * FROM tf_raw.{uk_ire_vw};"),
+        lambda: db.fetch_data(f"SELECT * FROM rp_raw.{non_uk_ire_vw};"),
+        lambda: db.fetch_data(f"SELECT * FROM tf_raw.{non_uk_ire_vw};"),
     )
-    if not rp_links.empty:
-        W("Not all RP data has been scraped.")
-    I("All RP data scraped successfully")
-    if not tf_links.empty:
-        W("Not all TF data has been scraped.")
+    if not uk_ire_rp_links.empty:
+        W("Not all UK/IRE RP data has been scraped.")
+    if not uk_ire_tf_links.empty:
+        W("Not all UK/IRE TF data has been scraped.")
+    if not non_uk_ire_rp_links.empty:
+        W("Not all non-UK/IRE RP data has been scraped.")
+    if not non_uk_ire_tf_links.empty:
+        W("Not all non-UK/IRE TF data has been scraped.")
 
 
 def post_racecards_scraping_checks():
     I("Checking for missing data...")
-    missing_racecards = db.fetch_data(
-        """
-        SELECT * 
-        FROM errors.missing_todays_races 
-        WHERE both_sets = false;
-        """
-    )
+    missing_racecards = db.fetch_data("SELECT * FROM errors.missing_todays_races;")
     if not missing_racecards.empty:
         W(f"Missing racecards found: {missing_racecards['race_timestamp'].tolist()}")
 
