@@ -18,6 +18,15 @@ from src.raw.timeform.scrape_non_uk_ire_data import process_tf_scrape_non_uk_ire
 from src.raw.racing_post.scrape_non_uk_ire_data import process_rp_scrape_non_uk_ire_data
 
 
+def get_todays_processed_data(job_name: str):
+    return f"""
+        SELECT * 
+        FROM metrics.processing_times 
+        WHERE job_name = '{job_name}' 
+        AND processed_at::date = CURRENT_DATE
+        """
+
+
 db = get_db()
 
 TODAY = datetime.now().strftime("%Y-%m-%d")
@@ -42,6 +51,27 @@ def historical_pipeline():
 
 def todays_pipeline():
     I("Running todays pipeline")
+    processed_rp = db.fetch_data(get_todays_processed_data("scrape_todays_rp_data"))
+    if not processed_rp.empty:
+        I("Todays RP data has already been processed")
+    processed_tf = db.fetch_data(get_todays_processed_data("scrape_todays_tf_data"))
+    if not processed_tf.empty:
+        I("Todays TF data has already been processed")
+
+    if not processed_rp.empty and not processed_tf.empty:
+        I("Todays data has already been processed")
+        return
+
+    if not processed_rp.empty and processed_tf.empty:
+        I("Todays RP data has already been processed")
+        process_tf_scrape_days_data([TODAY])
+        return
+
+    if processed_rp.empty and not processed_tf.empty:
+        I("Todays TF data has already been processed")
+        process_rp_scrape_days_data([TODAY])
+        return
+
     pp(
         (
             process_rp_scrape_days_data,
@@ -77,7 +107,7 @@ def post_results_scraping_checks():
 
 def post_racecards_scraping_checks():
     I("Checking for missing data...")
-    missing_racecards = db.fetch_data("SELECT * FROM errors.missing_todays_races;")
+    missing_racecards = db.fetch_data("SELECT * FROM metrics.missing_todays_races;")
     if not missing_racecards.empty:
         W(f"Missing racecards found: {missing_racecards['race_timestamp'].tolist()}")
 
@@ -91,9 +121,9 @@ def post_scraping_checks():
 
 
 def run_ingestion_pipeline():
-    historical_pipeline()
+    # historical_pipeline()
     todays_pipeline()
-    post_scraping_checks()
+    # post_scraping_checks()
 
 
 if __name__ == "__main__":

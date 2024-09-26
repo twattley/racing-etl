@@ -1,7 +1,7 @@
 import hashlib
 import re
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pandas as pd
 from selenium import webdriver
@@ -16,13 +16,13 @@ from src.data_models.raw.timeform_model import (
 )
 from src.raw.webdriver_base import get_headless_driver
 from src.storage.psql_db import get_db
-from src.utils.logging_config import E, I
+from src.utils.logging_config import E, I, W
+from src.data_types.raw_errors import RawError
 
 db = get_db()
 
 
 TODAYS_DATE_FILTER = datetime.now().strftime("%Y-%m-%d")
-TOMORROWS_DATE_FILTER = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
 
 
 def fetch_course_data() -> pd.DataFrame:
@@ -168,7 +168,7 @@ def process_tf_scrape_days_data(dates: list[str]):
     I("Todays TF results data scraping started.")
 
     base_link = "https://www.timeform.com/horse-racing/racecards"
-    errors = []
+    pipeline_errors = []
     data = []
     course_country = fetch_course_data()
     driver = get_headless_driver()
@@ -227,13 +227,22 @@ def process_tf_scrape_days_data(dates: list[str]):
                     )
                 )
             except Exception as e:
-                E(f"Error processing data for url: {url}")
-                errors.append(
-                    {
-                        "error_url": url,
-                        "error_message": str(e),
-                        "error_processing_time": datetime.now(),
-                    }
+                E(f"Error processing data for url: {url} - {str(e)}")
+                raw_error = RawError(
+                    source="timeform",
+                    error_url=url,
+                    error_message=str(e),
+                )
+                pipeline_errors.append(raw_error)
+                db.store_data(
+                    pd.DataFrame(
+                        {
+                            "error_url": [raw_error.error_url],
+                            "error_message": [raw_error.error_message],
+                        }
+                    ),
+                    "todays_tf_raw_performance_data",
+                    "errors",
                 )
         data = pd.concat(data)
         data.pipe(
@@ -242,30 +251,20 @@ def process_tf_scrape_days_data(dates: list[str]):
             table_string_field_lengths,
             "unique_id",
         )
-        processed_data = db.fetch_data("SELECT * FROM tf_raw.todays_performance_data")
-        data = (
-            pd.concat([data, processed_data])
-            .sort_values(by="created_at", ascending=False)
-            .drop_duplicates(subset=["unique_id"])
-        )
-        if errors:
-            errors = pd.DataFrame(errors)
-            E(
-                f'there were errors processing the following urls: {errors["error_url"].tolist()}'
-            )
-            processed_error_data = db.fetch_data(
-                "SELECT * FROM errors.todays_performance_data"
-            )
-            non_duplicated_errors = errors[
-                ~errors["error_url"].isin(processed_error_data["error_url"])
-            ].drop_duplicates(subset=["error_url"])
-            db.store_data(non_duplicated_errors, "todays_performance_data", "errors")
-
-        data = data[data["race_date"] >= datetime.now().strftime("%Y-%m-%d")]
         db.store_data(data, "todays_performance_data", "tf_raw", truncate=True)
-
     driver.quit()
+    if pipeline_errors:
+        W(f"There were {len(pipeline_errors)} errors in tf_ raw todays data pipeline")
+        W(pipeline_errors)
+    if not pipeline_errors:
+        db.execute_query(
+            f"""
+            UPDATE metrics.processing_times 
+            SET processed_at={datetime.now()} 
+            WHERE job_name='tf_raw_todays_data';
+            """,
+        )
 
 
 if __name__ == "__main__":
-    process_tf_scrape_days_data([TODAYS_DATE_FILTER, TOMORROWS_DATE_FILTER])
+    process_tf_scrape_days_data([TODAYS_DATE_FILTER])

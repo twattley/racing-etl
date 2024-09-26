@@ -262,7 +262,6 @@ def get_performance_data(driver, race_details_link, race_details_page, link):
         performance_data.update(race_details_page)
 
         performance_data["debug_link"] = link
-        I(f"setting created_at to {datetime.now()}")
         performance_data["created_at"] = datetime.now()
 
         unique_id = (

@@ -17,6 +17,7 @@ from src.data_models.raw.racing_post_model import (
 from src.raw.webdriver_base import get_headless_driver
 from src.storage.psql_db import get_db
 from src.utils.logging_config import E, I, W
+from src.data_types.raw_errors import RawError
 
 db = get_db()
 
@@ -410,12 +411,21 @@ def process_rp_scrape_days_data(dates: list[str]):
                 data.append(horse_data)
             except Exception as e:
                 E(f"Error processing data for url: {url} - {str(e)}")
-                pipeline_errors.append(
-                    {
-                        "error_url": url,
-                        "error_message": str(e),
-                        "error_processing_time": datetime.now(),
-                    }
+                raw_error = RawError(
+                    source="racing_post",
+                    error_url=url,
+                    error_message=str(e),
+                )
+                pipeline_errors.append(raw_error)
+                db.store_data(
+                    pd.DataFrame(
+                        {
+                            "error_url": [raw_error.error_url],
+                            "error_message": [raw_error.error_message],
+                        }
+                    ),
+                    "todays_rp_raw_performance_data",
+                    "errors",
                 )
         if not data:
             raise ValueError(f"No data found on date: {date} for Racing Post")
@@ -426,28 +436,19 @@ def process_rp_scrape_days_data(dates: list[str]):
             table_string_field_lengths,
             "unique_id",
         )
-        processed_data = db.fetch_data("SELECT * FROM rp_raw.todays_performance_data")
-        data = (
-            pd.concat([data, processed_data])
-            .sort_values(by="created_at", ascending=False)
-            .drop_duplicates(subset=["unique_id"])
-        )
-        if pipeline_errors:
-            errors = pd.DataFrame(pipeline_errors)
-            E(
-                f'there were errors processing the following urls: {errors["error_url"].tolist()}'
-            )
-            processed_error_data = db.fetch_data(
-                "SELECT * FROM errors.todays_performance_data"
-            )
-            non_duplicated_errors = errors[
-                ~errors["error_url"].isin(processed_error_data["error_url"])
-            ].drop_duplicates(subset=["error_url"])
-            db.store_data(non_duplicated_errors, "todays_performance_data", "errors")
-
-        data = data[data["race_date"] >= datetime.now().strftime("%Y-%m-%d")]
         db.store_data(data, "todays_performance_data", "rp_raw", truncate=True)
     driver.quit()
+    if pipeline_errors:
+        W(f"There were {len(pipeline_errors)} errors in rp_ raw todays data pipeline")
+        W(pipeline_errors)
+    if not pipeline_errors:
+        db.execute_query(
+            f"""
+            UPDATE metrics.processing_times 
+            SET processed_at={datetime.now()} 
+            WHERE job_name='tf_raw_todays_data';
+            """,
+        )
 
 
 if __name__ == "__main__":
