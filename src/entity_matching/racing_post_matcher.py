@@ -28,7 +28,9 @@ def process_racing_post_entity_matching() -> (
         lambda: db.fetch_data("SELECT * FROM rp_raw.unmatched_trainers;"),
         lambda: db.fetch_data("SELECT * FROM rp_raw.unmatched_owners;"),
     )
-    if not rp_owner_data.empty:
+    if len(rp_owner_data) == 1 and not rp_owner_data.name.iloc[0]:
+        I("None Owner not inserting")
+    else:
         db.insert_records("owner", "public", rp_owner_data, ["rp_id"])
 
     rp_matching_data = pd.concat(

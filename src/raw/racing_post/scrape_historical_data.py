@@ -58,6 +58,25 @@ def wait_for_page_load(driver: webdriver) -> None:
         raise ValueError(f"Missing elements: {', '.join(missing_elements)}")
 
 
+def check_void_race(driver):
+    try:
+        element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located(
+                (
+                    By.CSS_SELECTOR,
+                    "span.rp-horseTable__pos__number[data-test-selector='text-horsePosition']",
+                )
+            )
+        )
+        text_content = element.text.strip()
+        is_voi = text_content.startswith("VOI")
+
+        return is_voi
+    except Exception as e:
+        print(f"Error checking horse position: {e}")
+        return False
+
+
 def click_pedigree_button_if_needed(driver):
     pedigree_button = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located(

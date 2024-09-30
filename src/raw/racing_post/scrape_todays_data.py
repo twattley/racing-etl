@@ -18,6 +18,7 @@ from src.raw.webdriver_base import get_headless_driver
 from src.storage.psql_db import get_db
 from src.utils.logging_config import E, I, W
 from src.data_types.raw_errors import RawError
+from src.utils.processing_utils import register_job_completion
 
 db = get_db()
 
@@ -442,13 +443,7 @@ def process_rp_scrape_days_data(dates: list[str]):
         W(f"There were {len(pipeline_errors)} errors in rp_ raw todays data pipeline")
         W(pipeline_errors)
     if not pipeline_errors:
-        db.execute_query(
-            f"""
-            UPDATE metrics.processing_times 
-            SET processed_at={datetime.now()} 
-            WHERE job_name='tf_raw_todays_data';
-            """,
-        )
+        register_job_completion("scrape_todays_rp_data")
 
 
 if __name__ == "__main__":
