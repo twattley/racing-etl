@@ -121,9 +121,9 @@ def post_scraping_checks():
 
 
 def run_ingestion_pipeline():
-    # historical_pipeline()
+    historical_pipeline()
     todays_pipeline()
-    # post_scraping_checks()
+    post_scraping_checks()
 
 
 if __name__ == "__main__":
