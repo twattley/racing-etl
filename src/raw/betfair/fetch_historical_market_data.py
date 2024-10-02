@@ -39,6 +39,12 @@ def get_max_processed_date_from_db():
 
 
 def fetch_historical_market_data():
+    todays_number = date.today().day
+    if todays_number < 5:
+        I(
+            f"Skipping historical market data fetch for {date.today()} as it's before the 5th"
+        )
+        return
     last_day, last_month, last_year = get_last_day_in_month()
     first_day, first_month, first_year = get_max_processed_date_from_db()
     I(

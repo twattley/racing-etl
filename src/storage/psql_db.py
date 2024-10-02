@@ -1,10 +1,10 @@
-from api_helpers.db_client import PsqlConnection, SQLDatabase
+from api_helpers.postgres_client import PsqlConnection, PostgresClient
 
 from src.config import config
 
 
 def get_db():
-    return SQLDatabase(
+    return PostgresClient(
         PsqlConnection(
             user=config.pg_db_user,
             password=config.pg_db_password,

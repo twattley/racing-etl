@@ -9,4 +9,5 @@ betfairlightweight
 pydantic-settings
 python-dotenv
 python-Levenshtein
-git+https://github.com/twattley/api-helpers@v0.2.0
+git+https://github.com/twattley/api-helpers@v0.3.4
+boto3
