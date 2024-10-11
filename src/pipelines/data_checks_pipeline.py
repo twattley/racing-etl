@@ -1,8 +1,9 @@
-from src.storage.psql_db import get_db
-from src.utils.logging_config import E, I
-from src.utils.processing_utils import ptr
+from api_helpers.helpers.logging_config import E, I
+from api_helpers.helpers.processing_utils import ptr
 
-db = get_db()
+from src.storage.storage_client import get_storage_client
+
+db = get_storage_client("postgres")
 
 
 def run_data_checks_pipeline():

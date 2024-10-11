@@ -2,13 +2,13 @@ from datetime import timedelta
 
 import pandas as pd
 import pytz
+from api_helpers.helpers.logging_config import I
+from api_helpers.helpers.processing_utils import ptr
 from fuzzywuzzy import process
 
-from src.storage.psql_db import get_db
-from src.utils.logging_config import I
-from src.utils.processing_utils import ptr
+from src.storage.storage_client import get_storage_client
 
-db = get_db()
+db = get_storage_client("postgres")
 
 
 def fetch_unmatched_data() -> tuple[pd.DataFrame, pd.DataFrame]:

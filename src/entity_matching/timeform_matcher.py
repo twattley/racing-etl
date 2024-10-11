@@ -1,11 +1,11 @@
 import pandas as pd
+from api_helpers.helpers.logging_config import I, W
+from api_helpers.helpers.processing_utils import pt, ptr
 from fuzzywuzzy import fuzz
 
-from src.storage.psql_db import get_db
-from src.utils.logging_config import I, W
-from src.utils.processing_utils import pt, ptr
+from src.storage.storage_client import get_storage_client
 
-db = get_db()
+db = get_storage_client("postgres")
 
 
 def missing_timeform_query(table, missing_dates):

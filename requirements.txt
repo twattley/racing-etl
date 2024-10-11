@@ -1,13 +1,1 @@
-numpy 
-selenium 
-pytz 
-pandas 
-sqlalchemy
-psycopg2-binary
-fuzzywuzzy
-betfairlightweight
-pydantic-settings
-python-dotenv
-python-Levenshtein
-git+https://github.com/twattley/api-helpers@v0.3.4
-boto3
+git+https://github.com/twattley/api-helpers@v0.5.7

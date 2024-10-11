@@ -1,3 +1,0 @@
-#!/bin/bash
-./src/schema/backup_scripts/database_schema_backup
-aws s3 cp ./src/schema/backup_files/racehorse-database-schema.sql s3://snapshots/schemas/ --endpoint-url https://racehorse-database-backup.fra1.digitaloceanspaces.com --profile digitalocean

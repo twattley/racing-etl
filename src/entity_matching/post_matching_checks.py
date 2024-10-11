@@ -1,8 +1,9 @@
-from src.storage.psql_db import get_db
-from src.utils.logging_config import I, W
-from src.utils.processing_utils import ptr
+from api_helpers.helpers.logging_config import I, W
+from api_helpers.helpers.processing_utils import ptr
 
-db = get_db()
+from src.storage.storage_client import get_storage_client
+
+db = get_storage_client("postgres")
 
 
 def post_matching_data_checks():

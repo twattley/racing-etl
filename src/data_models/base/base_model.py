@@ -2,8 +2,7 @@ from dataclasses import dataclass, fields
 from datetime import date, datetime
 
 import pandas as pd
-
-from src.utils.logging_config import I
+from api_helpers.helpers.logging_config import I
 
 
 @dataclass

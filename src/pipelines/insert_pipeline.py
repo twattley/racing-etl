@@ -1,6 +1,6 @@
-from src.storage.psql_db import get_db
+from src.storage.storage_client import get_storage_client
 
-db = get_db()
+db = get_storage_client("postgres")
 
 
 def run_insert_pipeline():

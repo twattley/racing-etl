@@ -1,11 +1,12 @@
+from api_helpers.helpers.logging_config import I, W
+from api_helpers.helpers.processing_utils import pt, ptr
+
 from src.data_models.transform.race_model import RaceDataModel
 from src.data_models.transform.transformed_model import TransformedDataModel
-from src.storage.psql_db import get_db
+from src.storage.storage_client import get_storage_client
 from src.transform.transform_data import transform_data
-from src.utils.logging_config import I, W
-from src.utils.processing_utils import pt, ptr
 
-db = get_db()
+db = get_storage_client("postgres")
 
 
 class TransformationPipeline:

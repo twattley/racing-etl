@@ -1,83 +1,83 @@
-from dataclasses import dataclass
-from datetime import datetime
+from typing import Any, Dict
+
+from src.data_models.interfaces.data_model_interface import IDataModel
+from src.data_models.interfaces.data_validator_interface import IDataValidator
 
 
-@dataclass
-class TimeformDataModel:
-    tf_rating: str
-    tf_speed_figure: str
-    draw: str
-    trainer_name: str
-    trainer_id: str
-    jockey_name: str
-    jockey_id: str
-    sire_name: str
-    sire_id: str
-    dam_name: str
-    dam_id: str
-    finishing_position: str
-    horse_name: str
-    horse_id: str
-    horse_name_link: str
-    horse_age: str
-    equipment: str
-    official_rating: str
-    fractional_price: str
-    betfair_win_sp: str
-    betfair_place_sp: str
-    in_play_prices: str
-    tf_comment: str
-    course: str
-    race_date: str
-    race_time: str
-    race_timestamp: datetime
-    course_id: str
-    race: str
-    race_id: str
-    distance: str
-    going: str
-    prize: str
-    hcap_range: str
-    age_range: str
-    race_type: str
-    main_race_comment: str
-    debug_link: str
-    created_at: datetime
-    unique_id: str
+class TimeformDataModel(IDataModel):
+    def __init__(self, validator: IDataValidator):
+        self.validator = validator
+        self.fields = [
+            "horse_name",
+            "horse_id",
+            "horse_name_link",
+            "horse_age",
+            "equipment",
+            "official_rating",
+            "fractional_price",
+            "betfair_win_sp",
+            "betfair_place_sp",
+            "in_play_prices",
+            "tf_comment",
+            "course",
+            "race_date",
+            "race_time",
+            "race_timestamp",
+            "course_id",
+            "race",
+            "race_id",
+            "distance",
+            "going",
+            "prize",
+            "hcap_range",
+            "age_range",
+            "race_type",
+            "main_race_comment",
+            "debug_link",
+            "created_at",
+            "unique_id",
+        ]
 
+        self.field_lengths = {
+            "tf_rating": 16,
+            "tf_speed_figure": 16,
+            "draw": 16,
+            "trainer_name": 132,
+            "trainer_id": 32,
+            "jockey_name": 132,
+            "jockey_id": 32,
+            "sire_name": 132,
+            "sire_id": 32,
+            "dam_name": 132,
+            "dam_id": 32,
+            "finishing_position": 16,
+            "horse_name": 132,
+            "horse_id": 32,
+            "horse_name_link": 132,
+            "horse_age": 16,
+            "equipment": 16,
+            "official_rating": 16,
+            "fractional_price": 64,
+            "betfair_win_sp": 16,
+            "betfair_place_sp": 16,
+            "in_play_prices": 16,
+            "race_date": 32,
+            "race_time": 32,
+            "course_id": 32,
+            "race_id": 132,
+            "distance": 32,
+            "going": 16,
+            "prize": 16,
+            "hcap_range": 16,
+            "age_range": 16,
+            "race_type": 16,
+            "unique_id": 132,
+        }
 
-table_string_field_lengths = {
-    "tf_rating": 16,
-    "tf_speed_figure": 16,
-    "draw": 16,
-    "trainer_name": 132,
-    "trainer_id": 32,
-    "jockey_name": 132,
-    "jockey_id": 32,
-    "sire_name": 132,
-    "sire_id": 32,
-    "dam_name": 132,
-    "dam_id": 32,
-    "finishing_position": 16,
-    "horse_name": 132,
-    "horse_id": 32,
-    "horse_name_link": 132,
-    "horse_age": 16,
-    "equipment": 16,
-    "official_rating": 16,
-    "fractional_price": 64,
-    "betfair_win_sp": 16,
-    "betfair_place_sp": 16,
-    "in_play_prices": 16,
-    "race_date": 32,
-    "race_time": 32,
-    "course_id": 32,
-    "race_id": 132,
-    "distance": 32,
-    "going": 16,
-    "prize": 16,
-    "hcap_range": 16,
-    "age_range": 16,
-    "race_type": 16,
-    "unique_id": 132,
-}
+    def validate_columns(self, data: Dict[str, Any]) -> bool:
+        return self.validator.validate_columns(data, self.fields)
+
+    def validate_field_lengths(
+        self, data: Dict[str, Any], field_lengths: Dict[str, int]
+    ) -> bool:
+        return self.validator.validate_field_lengths(data, field_lengths)

@@ -1,3 +1,6 @@
+from api_helpers.helpers.logging_config import W
+from api_helpers.helpers.processing_utils import ptr
+
 from src.entity_matching.betfair_historical_matcher import (
     process_historical_betfair_entity_matching,
 )
@@ -7,11 +10,9 @@ from src.entity_matching.betfair_todays_matcher import (
 from src.entity_matching.post_matching_checks import post_matching_data_checks
 from src.entity_matching.racing_post_matcher import process_racing_post_entity_matching
 from src.entity_matching.timeform_matcher import process_timeform_entity_matching
-from src.storage.psql_db import get_db
-from src.utils.logging_config import W
-from src.utils.processing_utils import ptr
+from src.storage.storage_client import get_storage_client
 
-db = get_db()
+db = get_storage_client("postgres")
 
 
 def run_matching_pipeline():

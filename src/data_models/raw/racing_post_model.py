@@ -1,106 +1,117 @@
-from dataclasses import dataclass
-from datetime import datetime
+from typing import Any, Dict
+
+from src.data_models.interfaces.data_model_interface import IDataModel
+from src.data_models.interfaces.data_validator_interface import IDataValidator
 
 
-@dataclass
-class RacingPostDataModel:
-    race_timestamp: datetime
-    race_date: str
-    course_name: str
-    race_class: str
-    horse_name: str
-    horse_type: str
-    horse_age: str
-    headgear: str
-    conditions: str
-    horse_price: str
-    race_title: str
-    distance: str
-    distance_full: str
-    going: str
-    number_of_runners: str
-    total_prize_money: int
-    first_place_prize_money: int
-    winning_time: str
-    official_rating: str
-    horse_weight: str
-    draw: str
-    country: str
-    surface: str
-    finishing_position: str
-    total_distance_beaten: str
-    ts_value: str
-    rpr_value: str
-    extra_weight: float
-    comment: str
-    race_time: str
-    currency: str
-    course: str
-    jockey_name: str
-    jockey_claim: str
-    trainer_name: str
-    sire_name: str
-    dam_name: str
-    dams_sire: str
-    owner_name: str
-    horse_id: str
-    trainer_id: str
-    jockey_id: str
-    sire_id: str
-    dam_id: str
-    dams_sire_id: str
-    owner_id: str
-    race_id: str
-    course_id: str
-    meeting_id: str
-    unique_id: str
-    debug_link: str
-    created_at: datetime
+class RacingPostDataModel(IDataModel):
+    def __init__(self, validator: IDataValidator):
+        self.validator = validator
+        self.fields = [
+            "race_timestamp",
+            "race_date",
+            "course_name",
+            "race_class",
+            "horse_name",
+            "horse_type",
+            "horse_age",
+            "headgear",
+            "conditions",
+            "horse_price",
+            "race_title",
+            "distance",
+            "distance_full",
+            "going",
+            "number_of_runners",
+            "total_prize_money",
+            "first_place_prize_money",
+            "winning_time",
+            "official_rating",
+            "horse_weight",
+            "draw",
+            "country",
+            "surface",
+            "finishing_position",
+            "total_distance_beaten",
+            "ts_value",
+            "rpr_value",
+            "extra_weight",
+            "comment",
+            "race_time",
+            "currency",
+            "course",
+            "jockey_name",
+            "jockey_claim",
+            "trainer_name",
+            "sire_name",
+            "dam_name",
+            "dams_sire",
+            "owner_name",
+            "horse_id",
+            "trainer_id",
+            "jockey_id",
+            "sire_id",
+            "dam_id",
+            "dams_sire_id",
+            "owner_id",
+            "race_id",
+            "course_id",
+            "meeting_id",
+            "unique_id",
+            "debug_link",
+            "created_at",
+        ]
 
+        self.field_lengths = {
+            "course_name": 132,
+            "race_class": 132,
+            "horse_name": 132,
+            "horse_type": 16,
+            "horse_age": 16,
+            "headgear": 16,
+            "conditions": 32,
+            "horse_price": 16,
+            "distance": 32,
+            "distance_full": 32,
+            "going": 32,
+            "number_of_runners": 32,
+            "winning_time": 32,
+            "official_rating": 16,
+            "horse_weight": 16,
+            "draw": 16,
+            "country": 16,
+            "surface": 16,
+            "finishing_position": 16,
+            "total_distance_beaten": 32,
+            "ts_value": 16,
+            "rpr_value": 16,
+            "race_time": 32,
+            "currency": 16,
+            "course": 132,
+            "jockey_name": 132,
+            "jockey_claim": 16,
+            "trainer_name": 132,
+            "sire_name": 132,
+            "dam_name": 132,
+            "dams_sire": 132,
+            "owner_name": 132,
+            "horse_id": 32,
+            "trainer_id": 32,
+            "jockey_id": 32,
+            "sire_id": 32,
+            "dam_id": 32,
+            "dams_sire_id": 32,
+            "owner_id": 32,
+            "race_id": 32,
+            "course_id": 32,
+            "meeting_id": 132,
+            "unique_id": 132,
+        }
 
-table_string_field_lengths = {
-    "race_date": 32,
-    "course_name": 132,
-    "race_class": 132,
-    "horse_name": 132,
-    "horse_type": 16,
-    "horse_age": 16,
-    "headgear": 16,
-    "conditions": 32,
-    "horse_price": 16,
-    "distance": 32,
-    "distance_full": 32,
-    "going": 32,
-    "number_of_runners": 32,
-    "winning_time": 32,
-    "official_rating": 16,
-    "horse_weight": 16,
-    "draw": 16,
-    "country": 16,
-    "surface": 16,
-    "finishing_position": 16,
-    "total_distance_beaten": 32,
-    "ts_value": 16,
-    "rpr_value": 16,
-    "race_time": 32,
-    "currency": 16,
-    "course": 132,
-    "jockey_name": 132,
-    "jockey_claim": 16,
-    "trainer_name": 132,
-    "sire_name": 132,
-    "dam_name": 132,
-    "dams_sire": 132,
-    "owner_name": 132,
-    "horse_id": 32,
-    "trainer_id": 32,
-    "jockey_id": 32,
-    "sire_id": 32,
-    "dam_id": 32,
-    "dams_sire_id": 32,
-    "owner_id": 32,
-    "race_id": 32,
-    "course_id": 32,
-    "meeting_id": 132,
-    "unique_id": 132,
-}
+    def validate_columns(self, data: Dict[str, Any]) -> bool:
+        return self.validator.validate_columns(data, self.fields)
+
+    def validate_field_lengths(
+        self, data: Dict[str, Any], field_lengths: Dict[str, int]
+    ) -> bool:
+        return self.validator.validate_field_lengths(data, field_lengths)
