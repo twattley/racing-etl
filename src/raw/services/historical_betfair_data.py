@@ -71,7 +71,7 @@ class HistoricalBetfairDataService:
                     error_data.append(
                         pd.DataFrame({"filename": [file], "year": [year]})
                     )
-                    os.remove(file)
+                    os.remove(file.split("/")[-1])
                     continue
                 processed_data = self.betfair_data_processor.process_data(data)
                 processed_data = processed_data.assign(
@@ -84,7 +84,7 @@ class HistoricalBetfairDataService:
             except Exception as e:
                 E(f"Error processing file {file}: {e}")
                 error_data.append(pd.DataFrame({"filename": [file], "year": [year]}))
-                os.remove(file)
+                os.remove(file.split("/")[-1])
                 continue
 
         if error_data:
