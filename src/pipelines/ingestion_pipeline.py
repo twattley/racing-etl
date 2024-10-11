@@ -247,10 +247,10 @@ def run_ingestion_pipeline():
     missing_data_views = view_map[config.runtime_environment]
     betfair_client = BetFairClient(
         BetfairCredentials(
-            username=config.bf.username,
-            password=config.bf.password,
-            app_key=config.bf.app_key,
-            certs_path=config.bf.certs_path,
+            username=config.bf_username,
+            password=config.bf_password,
+            app_key=config.bf_app_key,
+            certs_path=config.bf_certs_path,
         )
     )
     ingestor = IngestionPipeline(
