@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 
 import pandas as pd
-from api_helpers.helpers.logging_config import I
+from api_helpers.helpers.logging_config import E, I
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 

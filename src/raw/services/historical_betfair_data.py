@@ -41,13 +41,37 @@ class HistoricalBetfairDataService:
 
     def run_data_ingestion(self) -> pd.DataFrame:
         params = self._get_params()
-        file_list, error_files_data, processed_files_data = ptr(
-            lambda: self.betfair_client.get_files(params),
-            lambda: self.s3_client.fetch_data(self.ERROR_FILES_PATH),
-            lambda: self.s3_client.fetch_data(
-                self.PROCESSED_FILES_PATH.format(year=params.from_year)
-            ),
-        )
+        if params.from_year == params.to_year:
+            file_list, error_files_data, processed_files_data = ptr(
+                lambda: self.betfair_client.get_files(params),
+                lambda: self.s3_client.fetch_data(self.ERROR_FILES_PATH),
+                lambda: self.s3_client.fetch_data(
+                    self.PROCESSED_FILES_PATH.format(year=params.from_year)
+                ),
+            )
+        else:
+            (
+                file_list,
+                error_files_data,
+                processed_files_data_1,
+                processed_files_data_2,
+            ) = ptr(
+                lambda: self.betfair_client.get_files(params),
+                lambda: self.s3_client.fetch_data(self.ERROR_FILES_PATH),
+                lambda: self.s3_client.fetch_data(
+                    self.PROCESSED_FILES_PATH.format(year=params.from_year)
+                ),
+                lambda: self.s3_client.fetch_data(
+                    self.PROCESSED_FILES_PATH.format(year=params.to_year)
+                ),
+            )
+            if processed_files_data_2.empty:
+                processed_files_data = processed_files_data_1
+            else:
+                processed_files_data = pd.concat(
+                    [processed_files_data_1, processed_files_data_2]
+                )
+
         if error_files_data.empty and processed_files_data.empty:
             I("No error files found")
             unprocessed_files = file_list - processed_files_data
@@ -61,7 +85,10 @@ class HistoricalBetfairDataService:
 
         error_data = []
         market_data = []
-        for file in unprocessed_files:
+        for index, file in enumerate(unprocessed_files):
+            I(
+                f"Processing file {index + 1} of {len(unprocessed_files)} for {params.from_year}"
+            )
             try:
                 year = file.split("/")[4]
                 raw_data = self.betfair_client.fetch_historical_data(file)
@@ -73,10 +100,8 @@ class HistoricalBetfairDataService:
                     )
                     os.remove(file.split("/")[-1])
                     continue
-                processed_data = self.betfair_data_processor.process_data(data)
-                processed_data = processed_data.assign(
-                    filename=file,
-                    year=year,
+                processed_data = self.betfair_data_processor.process_data(
+                    data, file, year
                 )
                 I(f"Processed: {len(processed_data)} rows")
                 market_data.append(processed_data)
@@ -99,7 +124,7 @@ class HistoricalBetfairDataService:
         pt(
             lambda: self.data_dao.store_data(
                 "bf_raw",
-                "historical_market_data",
+                f"historical_market_data_{year}",
                 new_market_data.drop(columns=["year"]),
             ),
             lambda: self.s3_client.store_data(

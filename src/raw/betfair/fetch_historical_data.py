@@ -8,7 +8,7 @@ from io import StringIO
 import numpy as np
 import pandas as pd
 import pytz
-from api_helpers.helpers.logging_config import I
+from api_helpers.helpers.logging_config import D, I
 
 from src.config import Config
 
@@ -20,7 +20,9 @@ class BetfairDataProcessor:
     ):
         self.config = config
 
-    def process_data(self, market_data: list[dict]) -> pd.DataFrame:
+    def process_data(
+        self, market_data: list[dict], filename: str, year: int
+    ) -> pd.DataFrame:
         opening_data = BetfairDataProcessor.get_market_data(market_data)
         sp_dict = BetfairDataProcessor.get_sp_data(market_data, opening_data)
         market_def = market_data[0]["mc"][0]["marketDefinition"]
@@ -43,7 +45,17 @@ class BetfairDataProcessor:
             df = BetfairDataProcessor.create_price_change_dataset(df)
         else:
             df = BetfairDataProcessor.create_price_change_dataset_nrs(df)
-        df = df.assign(race_date=df["race_time"].dt.date)
+        df = df.assign(
+            filename=filename,
+            year=year,
+            unique_id=lambda x: x.apply(
+                lambda y: hashlib.sha512(
+                    f"{y['runner_id']}{y['filename']}".encode()
+                ).hexdigest(),
+                axis=1,
+            ),
+            race_date=df["race_time"].dt.date,
+        )
 
         return df
 
@@ -228,7 +240,7 @@ class BetfairDataProcessor:
 
     @staticmethod
     def create_price_change_dataset(df: pd.DataFrame) -> pd.DataFrame:
-        I("Creating dataset of price changes without non runners")
+        D("Creating dataset of price changes without non runners")
         price_changes = []
         for horse in df.runner_name.unique():
             horse_df = (
