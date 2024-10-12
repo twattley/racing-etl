@@ -39,13 +39,13 @@ class ResultsDataScraperService:
         for link in links:
             try:
                 if self._filter_link(link["link_url"]):
-                    I(f"Scraping link: {link}")
+                    I(f"Scraping link: {link['link_url']}")
                     driver.get(link["link_url"])
                     data = self.scraper.scrape_data(driver, link["link_url"])
-                    I(f"Scraped data: {data}")
+                    I(f"Scraped {len(data)} rows")
                     dataframes_list.append(data)
                 else:
-                    I(f"Link {link} Not of interest to this scraper")
+                    I(f"Link {link['link_url']} Not of interest to this scraper")
             except Exception as e:
                 E(
                     f"Encountered an error: {e}. Attempting to continue with the next link."
