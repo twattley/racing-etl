@@ -98,18 +98,18 @@ class HistoricalBetfairDataService:
                     error_data.append(
                         pd.DataFrame({"filename": [file], "year": [year]})
                     )
-                    os.remove(file.split("/")[-1])
+                    self._remove_file(file)
                     continue
                 processed_data = self.betfair_data_processor.process_data(
                     data, file, year
                 )
                 I(f"Processed: {len(processed_data)} rows")
                 market_data.append(processed_data)
-                os.remove(file.split("/")[-1])
+                self._remove_file(file)
             except Exception as e:
                 E(f"Error processing file {file}: {e}")
                 error_data.append(pd.DataFrame({"filename": [file], "year": [year]}))
-                os.remove(file.split("/")[-1])
+                self._remove_file(file)
                 continue
 
         if error_data:
@@ -186,3 +186,9 @@ class HistoricalBetfairDataService:
             "last_month": last_month,
             "last_year": last_year,
         }
+
+    def _remove_file(self, file: str):
+        try:
+            os.remove(file.split("/")[-1])
+        except FileNotFoundError as e:
+            E(f"File not found: {e}")
