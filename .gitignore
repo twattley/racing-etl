@@ -6,3 +6,4 @@ src/betfair/certs/*
 *.pyc
 *.log
 .python-venv
+*.bz2
