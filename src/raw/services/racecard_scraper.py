@@ -32,13 +32,12 @@ class RacecardsDataScraperService:
     def process_links(self, links: list[str]) -> pd.DataFrame:
         driver = self.driver.create_session(self.login)
         dataframes_list = []
-
         for link in links:
             try:
-                I(f"Scraping link: {link}")
+                I(f"Scraping link: {link['link_url']}")
                 driver.get(link["link_url"])
                 data = self.scraper.scrape_data(driver, link["link_url"])
-                I(f"Scraped data: {data}")
+                I(f"Scraped {len(data)} rows")
                 dataframes_list.append(data)
             except Exception as e:
                 E(

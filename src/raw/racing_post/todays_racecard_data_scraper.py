@@ -59,6 +59,8 @@ class RPRacecardsDataScraper(IDataScraper):
             ),
         ).drop(columns=["distance_yards"])
 
+        return horse_data
+
     def _toggle_buttons(self, driver):
         if self.pedigree_owner_settings_button_toggled:
             I("Settings already toggled")
