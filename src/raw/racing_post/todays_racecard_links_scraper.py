@@ -63,12 +63,10 @@ class RPRacecardsLinkScraper(ILinkScraper):
                 trimmed_hrefs = [
                     href[:-1] if href.endswith("/") else href for href in filtered_hrefs
                 ]
-
                 patterns = [
                     rf"https://www.racingpost.com/racecards/{course_id}/{course_name}/{date}/\d{{1,10}}$"
-                    for course_name, course_id in RP_UKE_IRE_COURSE_IDS.items()
+                    for course_id, course_name in RP_UKE_IRE_COURSE_IDS.items()
                 ]
-
                 if not patterns:
                     raise ValueError(f"No patterns found on date: {date}")
 

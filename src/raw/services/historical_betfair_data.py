@@ -83,6 +83,10 @@ class HistoricalBetfairDataService:
             processed_data_set = set(processed_data)
             unprocessed_files = list(file_list_set - processed_data_set)
 
+        if not unprocessed_files:
+            I("No unprocessed files found, exiting!")
+            return
+
         error_data = []
         market_data = []
         for index, file in enumerate(unprocessed_files):
@@ -124,7 +128,7 @@ class HistoricalBetfairDataService:
         pt(
             lambda: self.data_dao.store_data(
                 "bf_raw",
-                f"historical_market_data_{year}",
+                "historical_price_data_cloud",
                 new_market_data.drop(columns=["year"]),
             ),
             lambda: self.s3_client.store_data(

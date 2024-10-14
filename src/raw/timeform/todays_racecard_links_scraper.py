@@ -77,7 +77,7 @@ class TFRacecardsLinkScraper(ILinkScraper):
 
                 patterns = [
                     rf"{self.BASE_URL}/{course_name}/{date}/([01]\d|2[0-3])[0-5]\d\/{course_id}/(10|[1-9])/(.*)"
-                    for course_name, course_id in TF_UKE_IRE_COURSE_IDS.items()
+                    for course_id, course_name in TF_UKE_IRE_COURSE_IDS.items()
                 ]
 
                 if not patterns:

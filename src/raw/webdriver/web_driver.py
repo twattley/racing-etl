@@ -44,7 +44,6 @@ class WebDriver:
     def create_session(self, login: bool = False) -> webdriver.Chrome:
         options = Options()
         if self.headless_mode:
-            I("Setting browser to headless mode")
             options.add_argument("--headless")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")

@@ -44,28 +44,81 @@ class Views:
     non_uk_ire_performance_data: str
 
 
-def ingest_data_from_s3(schema: str, table: str):
+def execute_raw_insert_procedures():
+    postgres_client: PostgresClient = get_storage_client("postgres")
+    pt(
+        lambda: postgres_client.execute_query(
+            "CALL tf_raw.insert_into_raw_performance_data()"
+        ),
+        lambda: postgres_client.execute_query(
+            "CALL tf_raw.insert_into_raw_non_uk_ire_performance_data()"
+        ),
+    )
+    pt(
+        lambda: postgres_client.execute_query(
+            "CALL rp_raw.insert_into_raw_performance_data_historical()"
+        ),
+        lambda: postgres_client.execute_query(
+            "CALL rp_raw.insert_into_raw_non_uk_ire_performance_data_historical()"
+        ),
+        lambda: postgres_client.execute_query(
+            "CALL bf_raw.insert_into_historical_price_data()"
+        ),
+    )
+
+
+def ingest_data_from_s3(
+    schema: str, table: str, stored_procedure: str = None, truncate: bool = False
+):
     s3_client: S3Client = get_storage_client("s3")
     postgres_client: PostgresClient = get_storage_client("postgres")
     data = s3_client.fetch_data(
         f"{schema}.{table}.parquet",
     )
-    postgres_client.store_data(data, table, schema)
-    postgres_client.call_procedure("insert_cloud_data", schema)
+    if truncate:
+        postgres_client.store_data(data, table, schema, truncate=True)
+    else:
+        postgres_client.store_data(data, table, schema)
+    if stored_procedure:
+        postgres_client.call_procedure(stored_procedure, schema)
 
 
 def ingest_raw_performance_data_from_s3(environment: Literal["LOCAL", "CLOUD"]):
-    if environment == "CLOUD":
+    if environment == "LOCAL":
         return
     pt(
-        lambda: ingest_data_from_s3("rp_raw", "performance_data"),
-        lambda: ingest_data_from_s3("rp_raw", "non_uk_ire_performance_data"),
-        lambda: ingest_data_from_s3("tf_raw", "performance_data"),
+        lambda: ingest_data_from_s3(
+            schema="rp_raw",
+            table="performance_data",
+            stored_procedure="insert_into_raw_performance_data",
+        ),
+        lambda: ingest_data_from_s3(
+            schema="rp_raw",
+            table="non_uk_ire_performance_data",
+            stored_procedure="insert_into_raw_non_uk_ire_performance_data",
+        ),
+        lambda: ingest_data_from_s3(
+            schema="tf_raw",
+            table="performance_data",
+            stored_procedure="insert_into_raw_performance_data",
+        ),
     )
     pt(
-        lambda: ingest_data_from_s3("tf_raw", "non_uk_ire_performance_data"),
-        lambda: ingest_data_from_s3("bf_raw", "todays_price_data"),
-        lambda: ingest_data_from_s3("bf_raw", "historical_price_data"),
+        lambda: ingest_data_from_s3(
+            schema="tf_raw",
+            table="non_uk_ire_performance_data",
+            stored_procedure="insert_into_raw_non_uk_ire_performance_data",
+        ),
+        lambda: ingest_data_from_s3(
+            schema="bf_raw",
+            table="historical_price_data",
+            stored_procedure="insert_into_historical_market_data",
+        ),
+        lambda: ingest_data_from_s3(
+            schema="bf_raw",
+            table="todays_price_data",
+            truncate=True,
+        ),
     )
 
 
@@ -136,7 +189,7 @@ class IngestionPipeline:
             driver=WebDriver(self.config),
             link_identifier=LinkIdentifier(source="rp", mapping=RP_UKE_IRE_COURSE_IDS),
             schema="rp_raw",
-            table_name="performance_data",
+            table_name="performance_data_cloud",
             view_name=self.missing_data_views.uk_ire_performance_data,
         )
         service.run_results_scraper()
@@ -148,7 +201,7 @@ class IngestionPipeline:
             driver=WebDriver(self.config),
             link_identifier=LinkIdentifier(source="tf", mapping=TF_UKE_IRE_COURSE_IDS),
             schema="tf_raw",
-            table_name="performance_data",
+            table_name="performance_data_cloud",
             view_name=self.missing_data_views.uk_ire_performance_data,
             login=True,
         )
@@ -164,7 +217,7 @@ class IngestionPipeline:
                 source="rp", mapping=RP_NON_UKE_IRE_COURSE_IDS
             ),
             schema="rp_raw",
-            table_name="non_uk_ire_performance_data",
+            table_name="non_uk_ire_performance_data_cloud",
             view_name=self.missing_data_views.non_uk_ire_performance_data,
         )
         service.run_results_scraper()
@@ -178,7 +231,7 @@ class IngestionPipeline:
                 source="tf", mapping=TF_NON_UKE_IRE_COURSE_IDS
             ),
             schema="tf_raw",
-            table_name="non_uk_ire_performance_data",
+            table_name="non_uk_ire_performance_data_cloud",
             view_name=self.missing_data_views.non_uk_ire_performance_data,
             login=True,
         )
@@ -261,6 +314,7 @@ def run_ingestion_pipeline():
     )
 
     ingest_raw_performance_data_from_s3(environment=config.runtime_environment)
+    execute_raw_insert_procedures()
 
     # Results Links
     pt(
@@ -268,7 +322,7 @@ def run_ingestion_pipeline():
         ingestor.ingest_tf_results_links_data,
     )
 
-    # Racecards Links
+    # # Racecards Links
     pt(
         ingestor.ingest_rp_racecards_links_data,
         ingestor.ingest_tf_racecards_links_data,
@@ -293,10 +347,10 @@ def run_ingestion_pipeline():
     )
 
     # Betfair Data
-    pt(
-        ingestor.ingest_historical_betfair_data,
-        ingestor.ingest_todays_betfair_data,
-    )
+    ingestor.ingest_todays_betfair_data()
+    ingestor.ingest_historical_betfair_data()
+
+    execute_raw_insert_procedures()
 
 
 if __name__ == "__main__":

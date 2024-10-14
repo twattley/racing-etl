@@ -27,9 +27,9 @@ class LinkIdentifier:
         course = link_parts[course_part_index]
         course_id = link_parts[course_id_index]
         try:
-            mapped_id = self.mapping[course]
+            mapped_course = self.mapping[course_id]
         except KeyError:
             I(f"Course {course} not in mapping")
             return False
-        I(f"Course ID: {course_id} Mapped ID: {mapped_id}")
-        return course_id == mapped_id
+        I(f"Course ID: {course_id} Mapped ID: {mapped_course}")
+        return course == mapped_course
