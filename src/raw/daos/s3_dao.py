@@ -15,7 +15,7 @@ class S3Dao(IRawDataDao):
     def fetch_dates(self, schema: str, view_name: str) -> pd.DataFrame:
         now = datetime.now()
         dates = []
-        for i in range(3, 28):
+        for i in range(2, 6):
             date = now - timedelta(days=i)
             dates.append(date.replace(hour=0, minute=0, second=0, microsecond=0))
 
