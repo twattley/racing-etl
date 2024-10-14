@@ -47,7 +47,7 @@ class RPRacecardsDataScraper(IDataScraper):
         horse_data = horse_data.assign(
             unique_id=lambda x: x.apply(
                 lambda y: hashlib.sha512(
-                    f"racing_post{y['horse_id']}{y['horse_weight']}{y['race_title']}".encode()
+                    f"{y['horse_id']}{y['debug_link']}".encode()
                 ).hexdigest(),
                 axis=1,
             ),

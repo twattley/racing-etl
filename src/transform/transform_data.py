@@ -248,33 +248,36 @@ def convert_distance_to_float(distance_str):
 
 def convert_horse_type_to_colour_sex(data: pd.DataFrame) -> pd.DataFrame:
     I("Converting horse type to colour and sex")
-    if check_todays_data(data):
-        return data.assign(
-            horse_colour=data["horse_type"]
-            .str.split(" ")
-            .str.get(0)
-            .str.strip()
-            .map(COLOUR_MAP),
-            horse_sex=data["horse_type"]
-            .str.replace("1", "")
-            .str.split(" ")
-            .str.get(1)
-            .str.strip()
-            .map(SEX_MAP),
-        ).drop(columns=["horse_type"])
-    else:
-        return data.assign(
-            horse_colour=data["horse_type"]
-            .str.split(",")
-            .str.get(0)
-            .str.strip()
-            .map(COLOUR_MAP),
-            horse_sex=data["horse_type"]
-            .str.split(",")
-            .str.get(1)
-            .str.strip()
-            .map(SEX_MAP),
-        ).drop(columns=["horse_type"])
+    data["horse_colour"] = "UNAVAILABLE"
+    data["horse_sex"] = "UNAVAILABLE"
+    return data
+    # if check_todays_data(data):
+    #     return data.assign(
+    #         horse_colour=data["horse_type"]
+    #         .str.split(" ")
+    #         .str.get(0)
+    #         .str.strip()
+    #         .map(COLOUR_MAP),
+    #         horse_sex=data["horse_type"]
+    #         .str.replace("1", "")
+    #         .str.split(" ")
+    #         .str.get(1)
+    #         .str.strip()
+    #         .map(SEX_MAP),
+    #     ).drop(columns=["horse_type"])
+    # else:
+    #     return data.assign(
+    #         horse_colour=data["horse_type"]
+    #         .str.split(",")
+    #         .str.get(0)
+    #         .str.strip()
+    #         .map(COLOUR_MAP),
+    #         horse_sex=data["horse_type"]
+    #         .str.split(",")
+    #         .str.get(1)
+    #         .str.strip()
+    #         .map(SEX_MAP),
+    #     ).drop(columns=["horse_type"])
 
 
 def create_distance_beaten_data(data: pd.DataFrame) -> pd.DataFrame:

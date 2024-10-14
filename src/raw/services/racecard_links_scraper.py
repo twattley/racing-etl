@@ -34,7 +34,7 @@ class RacecardsLinksScraperService:
         return data
 
     def _store_racecard_data(self, data: pd.DataFrame) -> None:
-        self.data_dao.store_data(self.schema, self.table_name, data)
+        self.data_dao.store_data(self.schema, self.table_name, data, truncate=True)
 
     def run_racecard_links_scraper(self):
         data = self.process_date()

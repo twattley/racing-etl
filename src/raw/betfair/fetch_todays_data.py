@@ -1,9 +1,11 @@
 import pandas as pd
-from api_helpers.clients.betfair_client import BetFairClient
+from api_helpers.clients.betfair_client import BetFairClient, BetfairCredentials
 from api_helpers.helpers.logging_config import I
 
 from src.config import Config
 from src.raw.interfaces.raw_data_dao import IRawDataDao
+from src.raw.daos.postgres_dao import PostgresDao
+from src.raw.daos.s3_dao import S3Dao
 
 
 class TodaysBetfairDataService:
@@ -60,4 +62,26 @@ class TodaysBetfairDataService:
             )
             .sort_values(by="race_time", ascending=True)
         )
-        self.data_dao.store_data("bf_raw", "todays_price_data", win_and_place)
+        self.data_dao.store_data(
+            "bf_raw", "todays_price_data", win_and_place, truncate=True
+        )
+
+
+if __name__ == "__main__":
+    dao_map = {
+        "LOCAL": PostgresDao(),
+        "CLOUD": S3Dao(),
+    }
+
+    config = Config()
+    betfair_client = BetFairClient(
+        BetfairCredentials(
+            username=config.bf_username,
+            password=config.bf_password,
+            app_key=config.bf_app_key,
+            certs_path=config.bf_certs_path,
+        )
+    )
+    data_dao = dao_map[config.runtime_environment]
+    service = TodaysBetfairDataService(config, betfair_client, data_dao)
+    service.run_data_ingestion()

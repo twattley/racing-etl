@@ -3,9 +3,9 @@ from api_helpers.helpers.logging_config import I, W
 from api_helpers.helpers.processing_utils import pt, ptr
 from fuzzywuzzy import fuzz, process
 
-from src.storage.storage_client import get_storage_client
+from src.storage.storage_client import get_storage_client, PostgresClient
 
-db = get_storage_client("postgres")
+db: PostgresClient = get_storage_client("postgres")
 
 
 def process_todays_betfair_entity_matching():

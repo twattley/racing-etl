@@ -10,9 +10,9 @@ from src.entity_matching.betfair_todays_matcher import (
 from src.entity_matching.post_matching_checks import post_matching_data_checks
 from src.entity_matching.racing_post_matcher import process_racing_post_entity_matching
 from src.entity_matching.timeform_matcher import process_timeform_entity_matching
-from src.storage.storage_client import get_storage_client
+from src.storage.storage_client import get_storage_client, PostgresClient
 
-db = get_storage_client("postgres")
+db: PostgresClient = get_storage_client("postgres")
 
 
 def run_matching_pipeline():

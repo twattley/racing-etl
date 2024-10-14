@@ -12,7 +12,17 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+from src.config import Config
+from src.raw.daos.postgres_dao import PostgresDao
+from src.raw.daos.s3_dao import S3Dao
 from src.raw.interfaces.data_scraper_interface import IDataScraper
+
+
+from src.raw.helpers.link_identifier import LinkIdentifier
+
+from src.raw.racing_post.course_ref_data import RP_UKE_IRE_COURSE_IDS
+from src.raw.services.results_scraper import ResultsDataScraperService
+from src.raw.webdriver.web_driver import WebDriver
 
 
 class RPResultsDataScraper(IDataScraper):
@@ -551,3 +561,17 @@ class RPResultsDataScraper(IDataScraper):
             return "Turf", matches[0], course_name
         else:
             return "Turf", "UK", course_name
+
+
+if __name__ == "__main__":
+    config = Config()
+    service = ResultsDataScraperService(
+        scraper=RPResultsDataScraper(),
+        data_dao=S3Dao(),
+        driver=WebDriver(config, headless_mode=False),
+        link_identifier=LinkIdentifier(source="rp", mapping=RP_UKE_IRE_COURSE_IDS),
+        schema="rp_raw",
+        table_name="performance_data_cloud",
+        view_name="days_results_links",
+    )
+    service.run_results_scraper()

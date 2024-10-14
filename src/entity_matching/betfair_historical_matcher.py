@@ -6,9 +6,9 @@ from api_helpers.helpers.logging_config import I
 from api_helpers.helpers.processing_utils import ptr
 from fuzzywuzzy import process
 
-from src.storage.storage_client import get_storage_client
+from src.storage.storage_client import get_storage_client, PostgresClient
 
-db = get_storage_client("postgres")
+db: PostgresClient = get_storage_client("postgres")
 
 
 def fetch_unmatched_data() -> tuple[pd.DataFrame, pd.DataFrame]:

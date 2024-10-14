@@ -1,9 +1,9 @@
 from api_helpers.helpers.logging_config import E, I
 from api_helpers.helpers.processing_utils import ptr
 
-from src.storage.storage_client import get_storage_client
+from src.storage.storage_client import get_storage_client, PostgresClient
 
-db = get_storage_client("postgres")
+db: PostgresClient = get_storage_client("postgres")
 
 
 def run_data_checks_pipeline():

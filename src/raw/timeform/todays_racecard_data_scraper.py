@@ -31,7 +31,7 @@ class TFRacecardsDataScraper(IDataScraper):
             prize=prize_money,
             unique_id=lambda x: x.apply(
                 lambda y: hashlib.sha512(
-                    f"timeform{y['horse_id']}{y['race_date']}".encode()
+                    f"{y['horse_id']}{y['debug_link']}".encode()
                 ).hexdigest(),
                 axis=1,
             ),
@@ -57,10 +57,6 @@ class TFRacecardsDataScraper(IDataScraper):
             race_time=None,
             created_at=datetime.now(),
         )
-
-    def _generate_unique_id(self, row: webdriver.Chrome) -> str:
-        unique_string = f"timeform{row['horse_id']}{row['race_date']}"
-        return hashlib.sha512(unique_string.encode()).hexdigest()
 
     def _format_entity(self, entity: str) -> str:
         return entity.replace("-", " ").title().strip()

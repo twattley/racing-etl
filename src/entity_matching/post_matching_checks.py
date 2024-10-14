@@ -1,9 +1,9 @@
 from api_helpers.helpers.logging_config import I, W
 from api_helpers.helpers.processing_utils import ptr
 
-from src.storage.storage_client import get_storage_client
+from src.storage.storage_client import get_storage_client, PostgresClient
 
-db = get_storage_client("postgres")
+db: PostgresClient = get_storage_client("postgres")
 
 
 def post_matching_data_checks():

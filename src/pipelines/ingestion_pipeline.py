@@ -37,6 +37,7 @@ from src.raw.timeform.todays_racecard_data_scraper import TFRacecardsDataScraper
 from src.raw.timeform.todays_racecard_links_scraper import TFRacecardsLinkScraper
 from src.raw.webdriver.web_driver import WebDriver
 from src.storage.storage_client import get_storage_client
+from src.data_quality.raw.todays_data_quality import TodaysDataQuality
 
 
 @dataclass
@@ -60,10 +61,10 @@ def execute_raw_insert_procedures(environment: Literal["LOCAL", "CLOUD"]):
     )
     pt(
         lambda: postgres_client.execute_query(
-            "CALL rp_raw.insert_into_raw_performance_data_historical()"
+            "CALL rp_raw.insert_into_raw_performance_data()"
         ),
         lambda: postgres_client.execute_query(
-            "CALL rp_raw.insert_into_raw_non_uk_ire_performance_data_historical()"
+            "CALL rp_raw.insert_into_raw_non_uk_ire_performance_data()"
         ),
         lambda: postgres_client.execute_query(
             "CALL bf_raw.insert_into_historical_price_data()"
@@ -76,13 +77,17 @@ def ingest_data_from_s3(
 ):
     s3_client: S3Client = get_storage_client("s3")
     postgres_client: PostgresClient = get_storage_client("postgres")
-    data = s3_client.fetch_data(
-        f"{schema}.{table}.parquet",
-    )
+
+    data = s3_client.fetch_data(f"{schema}/{table}.parquet")
+    I(f"Ingested {len(data)} rows from {schema}.{table}")
+
+    # TRUNCATE
     if truncate:
         postgres_client.store_data(data, table, schema, truncate=True)
     else:
         postgres_client.store_data(data, table, schema)
+
+    # STORE PROCEDURE
     if stored_procedure:
         postgres_client.call_procedure(stored_procedure, schema)
 
@@ -91,33 +96,64 @@ def ingest_raw_performance_data_from_s3(environment: Literal["LOCAL", "CLOUD"]):
     if environment == "CLOUD":
         I("Skipping ingestion of raw performance data in cloud")
         return
+
+    # RACING POST
     pt(
         lambda: ingest_data_from_s3(
             schema="rp_raw",
-            table="performance_data",
+            table="performance_data_cloud",
             stored_procedure="insert_into_raw_performance_data",
         ),
         lambda: ingest_data_from_s3(
             schema="rp_raw",
-            table="non_uk_ire_performance_data",
+            table="non_uk_ire_performance_data_cloud",
             stored_procedure="insert_into_raw_non_uk_ire_performance_data",
+        ),
+    )
+    pt(
+        lambda: ingest_data_from_s3(
+            schema="rp_raw",
+            table="todays_performance_data",
+            truncate=True,
+        ),
+        lambda: ingest_data_from_s3(
+            schema="rp_raw",
+            table="days_racecards_links",
+            truncate=True,
+        ),
+    )
+
+    # TIMEFORM
+    pt(
+        lambda: ingest_data_from_s3(
+            schema="tf_raw",
+            table="performance_data_cloud",
+            stored_procedure="insert_into_raw_performance_data",
         ),
         lambda: ingest_data_from_s3(
             schema="tf_raw",
-            table="performance_data",
-            stored_procedure="insert_into_raw_performance_data",
+            table="non_uk_ire_performance_data_cloud",
+            stored_procedure="insert_into_raw_non_uk_ire_performance_data",
         ),
     )
     pt(
         lambda: ingest_data_from_s3(
             schema="tf_raw",
-            table="non_uk_ire_performance_data",
-            stored_procedure="insert_into_raw_non_uk_ire_performance_data",
+            table="todays_performance_data",
+            truncate=True,
         ),
+        lambda: ingest_data_from_s3(
+            schema="tf_raw",
+            table="days_racecards_links",
+            truncate=True,
+        ),
+    )
+    # BETFAIR
+    pt(
         lambda: ingest_data_from_s3(
             schema="bf_raw",
             table="historical_price_data",
-            stored_procedure="insert_into_historical_market_data",
+            stored_procedure="insert_into_historical_price_data",
         ),
         lambda: ingest_data_from_s3(
             schema="bf_raw",
@@ -317,45 +353,47 @@ def run_ingestion_pipeline():
         missing_data_views=missing_data_views,
         betfair_client=betfair_client,
     )
+    rp_data_quality = TodaysDataQuality(
+        postgres_client=get_storage_client("postgres"),
+        schema="rp_raw",
+        runtime_environment=config.runtime_environment,
+    )
+    tf_data_quality = TodaysDataQuality(
+        postgres_client=get_storage_client("postgres"),
+        schema="tf_raw",
+        runtime_environment=config.runtime_environment,
+    )
 
     ingest_raw_performance_data_from_s3(environment=config.runtime_environment)
     execute_raw_insert_procedures(environment=config.runtime_environment)
 
-    # Results Links
-    pt(
-        ingestor.ingest_rp_results_links_data,
-        ingestor.ingest_tf_results_links_data,
-    )
+    ingestor.ingest_rp_results_links_data()
+    ingestor.ingest_tf_results_links_data()
 
-    # # Racecards Links
-    pt(
-        ingestor.ingest_rp_racecards_links_data,
-        ingestor.ingest_tf_racecards_links_data,
-    )
+    # Racecards Links
+    ingestor.ingest_rp_racecards_links_data()
+    ingestor.ingest_tf_racecards_links_data()
 
     # Racecards Data
-    pt(
-        ingestor.ingest_rp_racecards_data,
-        ingestor.ingest_tf_racecards_data,
-    )
+    ingestor.ingest_rp_racecards_data()
+    ingestor.ingest_tf_racecards_data()
 
     # UK/IRE Results Data
-    pt(
-        ingestor.ingest_uk_ire_rp_results_data,
-        ingestor.ingest_uk_ire_tf_results_data,
-    )
+    ingestor.ingest_uk_ire_rp_results_data()
+    ingestor.ingest_uk_ire_tf_results_data()
 
     # Non-UK/IRE Results Data
-    pt(
-        ingestor.ingest_non_uk_ire_rp_results_data,
-        ingestor.ingest_non_uk_ire_tf_results_data,
-    )
+    ingestor.ingest_non_uk_ire_rp_results_data()
+    ingestor.ingest_non_uk_ire_tf_results_data()
 
     # Betfair Data
     ingestor.ingest_todays_betfair_data()
     ingestor.ingest_historical_betfair_data()
 
     execute_raw_insert_procedures(environment=config.runtime_environment)
+
+    rp_data_quality.check_data_quality()
+    tf_data_quality.check_data_quality()
 
 
 if __name__ == "__main__":
