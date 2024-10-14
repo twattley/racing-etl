@@ -5,6 +5,7 @@ from api_helpers.clients.betfair_client import BetFairClient, BetfairCredentials
 from api_helpers.clients.postgres_client import PostgresClient
 from api_helpers.clients.s3_client import S3Client
 from api_helpers.helpers.processing_utils import pt
+from api_helpers.helpers.logging_config import I
 
 from src.config import Config
 from src.raw.betfair.fetch_historical_data import BetfairDataProcessor
@@ -44,7 +45,10 @@ class Views:
     non_uk_ire_performance_data: str
 
 
-def execute_raw_insert_procedures():
+def execute_raw_insert_procedures(environment: Literal["LOCAL", "CLOUD"]):
+    if environment == "CLOUD":
+        I("Skipping insert procedures in cloud")
+        return
     postgres_client: PostgresClient = get_storage_client("postgres")
     pt(
         lambda: postgres_client.execute_query(
@@ -84,7 +88,8 @@ def ingest_data_from_s3(
 
 
 def ingest_raw_performance_data_from_s3(environment: Literal["LOCAL", "CLOUD"]):
-    if environment == "LOCAL":
+    if environment == "CLOUD":
+        I("Skipping ingestion of raw performance data in cloud")
         return
     pt(
         lambda: ingest_data_from_s3(
@@ -314,7 +319,7 @@ def run_ingestion_pipeline():
     )
 
     ingest_raw_performance_data_from_s3(environment=config.runtime_environment)
-    execute_raw_insert_procedures()
+    execute_raw_insert_procedures(environment=config.runtime_environment)
 
     # Results Links
     pt(
@@ -350,7 +355,7 @@ def run_ingestion_pipeline():
     ingestor.ingest_todays_betfair_data()
     ingestor.ingest_historical_betfair_data()
 
-    execute_raw_insert_procedures()
+    execute_raw_insert_procedures(environment=config.runtime_environment)
 
 
 if __name__ == "__main__":
