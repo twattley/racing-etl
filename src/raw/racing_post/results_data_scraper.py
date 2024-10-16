@@ -98,7 +98,7 @@ class RPResultsDataScraper(IDataScraper):
             created_at=created_at,
             unique_id=lambda x: x.apply(
                 lambda y: hashlib.sha512(
-                    f"racing_post{y['horse_id']}{y['finishing_position']}{y['debug_link']}".encode()
+                    f"{y['horse_id']}{y['debug_link']}".encode()
                 ).hexdigest(),
                 axis=1,
             ),

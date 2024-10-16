@@ -35,3 +35,6 @@ class S3Dao(IRawDataDao):
     ) -> None:
         if truncate:
             self.s3_client.store_data(data, f"{schema}/{table_name}.parquet")
+
+    def upsert_data(self, schema: str, table_name: str, data: pd.DataFrame) -> None:
+        self.s3_client.store_data(data, f"{schema}/{table_name}.parquet")

@@ -184,4 +184,5 @@ TF_NON_UKE_IRE_COURSE_IDS = {
     "382": "doomben",
     "439": "eagle-farm",
     "389": "doha",
+    "171": "abu-dhabi",
 }

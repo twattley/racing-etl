@@ -24,3 +24,6 @@ class PostgresDao(IRawDataDao):
         self, schema: str, table_name: str, data: pd.DataFrame, truncate: bool = False
     ) -> None:
         self.postgres_client.store_data(data, table_name, schema, truncate)
+
+    def upsert_data(self, schema: str, table_name: str, data: pd.DataFrame) -> None:
+        self.postgres_client.upsert_data(data, table_name, schema, ["unique_id"])

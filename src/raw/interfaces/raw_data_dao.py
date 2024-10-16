@@ -23,3 +23,8 @@ class IRawDataDao(Protocol):
         """
         Store the results links.
         """
+
+    def upsert_data(self, schema: str, table_name: str, data: pd.DataFrame) -> None:
+        """
+        Upsert the results links.
+        """

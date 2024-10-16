@@ -173,4 +173,5 @@ RP_NON_UKE_IRE_COURSE_IDS = {
     "467": "doomben",
     "468": "eagle-farm",
     "1196": "doha",
+    "490": "abu-dhabi",
 }
