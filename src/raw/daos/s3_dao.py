@@ -5,7 +5,7 @@ from api_helpers.clients.s3_client import S3Client
 from api_helpers.helpers.logging_config import I
 
 from src.raw.interfaces.raw_data_dao import IRawDataDao
-from src.storage.storage_client import get_storage_client, PostgresClient
+from src.storage.storage_client import PostgresClient, get_storage_client
 
 
 class S3Dao(IRawDataDao):
@@ -35,3 +35,6 @@ class S3Dao(IRawDataDao):
     ) -> None:
         if truncate:
             self.s3_client.store_data(data, f"{schema}/{table_name}.parquet")
+
+    def upsert_data(self, schema: str, table_name: str, data: pd.DataFrame) -> None:
+        self.s3_client.store_data(data, f"{schema}/{table_name}.parquet")

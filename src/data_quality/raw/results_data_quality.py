@@ -1,5 +1,7 @@
 from typing import Literal
+
 from api_helpers.clients.betfair_client import I
+
 from src.data_quality.interfaces.data_quality_interface import IDataQualityInterface
 from src.storage.storage_client import PostgresClient
 
@@ -30,7 +32,7 @@ class ResultsDataQuality(IDataQualityInterface):
     def _check_todays_racecard_links(self) -> bool:
         I("Check todays data quality")
         todays_data = self.postgres_client.fetch_data(
-            f"SELECT * FROM {self.schema}.days_racecards_links WHERE date = CURRENT_DATE"
+            f"SELECT * FROM {self.schema}.todays_links WHERE date = CURRENT_DATE"
         )
         return len(todays_data) > 10
 
@@ -46,7 +48,7 @@ class ResultsDataQuality(IDataQualityInterface):
         todays_data = self.postgres_client.fetch_data(
             f"""
              SELECT link_url
-                FROM {self.schema}.days_racecards_links
+                FROM {self.schema}.todays_links
                 WHERE NOT (link_url IN (SELECT todays_performance_data.debug_link
                         FROM {self.schema}.todays_performance_data)
                     );

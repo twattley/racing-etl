@@ -1,4 +1,4 @@
-from src.storage.storage_client import get_storage_client, PostgresClient
+from src.storage.storage_client import PostgresClient, get_storage_client
 
 db: PostgresClient = get_storage_client("postgres")
 

@@ -3,9 +3,9 @@ from api_helpers.clients.betfair_client import BetFairClient, BetfairCredentials
 from api_helpers.helpers.logging_config import I
 
 from src.config import Config
-from src.raw.interfaces.raw_data_dao import IRawDataDao
 from src.raw.daos.postgres_dao import PostgresDao
 from src.raw.daos.s3_dao import S3Dao
+from src.raw.interfaces.raw_data_dao import IRawDataDao
 
 
 class TodaysBetfairDataService:

@@ -3,7 +3,7 @@ from api_helpers.helpers.logging_config import I, W
 from api_helpers.helpers.processing_utils import pt, ptr
 from fuzzywuzzy import fuzz
 
-from src.storage.storage_client import get_storage_client, PostgresClient
+from src.storage.storage_client import PostgresClient, get_storage_client
 
 db: PostgresClient = get_storage_client("postgres")
 

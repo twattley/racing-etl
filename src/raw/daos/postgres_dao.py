@@ -2,7 +2,7 @@ import pandas as pd
 from api_helpers.clients.postgres_client import PostgresClient
 
 from src.raw.interfaces.raw_data_dao import IRawDataDao
-from src.storage.storage_client import get_storage_client, PostgresClient
+from src.storage.storage_client import get_storage_client
 
 
 class PostgresDao(IRawDataDao):
@@ -24,3 +24,6 @@ class PostgresDao(IRawDataDao):
         self, schema: str, table_name: str, data: pd.DataFrame, truncate: bool = False
     ) -> None:
         self.postgres_client.store_data(data, table_name, schema, truncate)
+
+    def upsert_data(self, schema: str, table_name: str, data: pd.DataFrame) -> None:
+        self.postgres_client.upsert_data(data, schema, table_name, ["unique_id"])

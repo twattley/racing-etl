@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from src.storage.storage_client import get_storage_client, PostgresClient, S3Client
+from src.storage.storage_client import PostgresClient, S3Client, get_storage_client
 
 postgres_client: PostgresClient = get_storage_client("postgres")
 s3_client: S3Client = get_storage_client("s3")

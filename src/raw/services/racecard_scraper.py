@@ -40,6 +40,7 @@ class RacecardsDataScraperService:
                 I(f"Scraped {len(data)} rows")
                 dataframes_list.append(data)
             except Exception as e:
+                raise e
                 E(
                     f"Encountered an error: {e}. Attempting to continue with the next link."
                 )
@@ -54,7 +55,7 @@ class RacecardsDataScraperService:
         return combined_data
 
     def _stores_results_data(self, data: pd.DataFrame) -> None:
-        self.data_dao.store_data(self.schema, self.table_name, data)
+        self.data_dao.store_data(self.schema, self.table_name, data, truncate=True)
 
     def run_racecards_scraper(self):
         links = self._get_missing_links()

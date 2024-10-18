@@ -1,7 +1,7 @@
 from typing import Literal
 
-from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
+from pydantic_settings import BaseSettings
 
 load_dotenv(override=True)
 
@@ -31,3 +31,19 @@ class Config(BaseSettings):
     s3_region_name: str
     s3_endpoint_url: str
     s3_bucket_name: str
+
+    # Ingestion
+    results_links_table_name: str
+    results_links_view_name: str
+
+    racecards_links_table_name: str
+    racecards_links_view_name: str
+
+    results_data_table_name: str
+    results_data_view_name: str
+
+    racecards_data_table_name: str
+    racecards_data_view_name: str
+
+    ingestion_base_table_name: str
+    ingestion_base_view_name: str

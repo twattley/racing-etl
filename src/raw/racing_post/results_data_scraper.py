@@ -16,11 +16,6 @@ from src.config import Config
 from src.raw.daos.postgres_dao import PostgresDao
 from src.raw.daos.s3_dao import S3Dao
 from src.raw.interfaces.data_scraper_interface import IDataScraper
-
-
-from src.raw.helpers.link_identifier import LinkIdentifier
-
-from src.raw.racing_post.course_ref_data import RP_UKE_IRE_COURSE_IDS
 from src.raw.services.results_scraper import ResultsDataScraperService
 from src.raw.webdriver.web_driver import WebDriver
 
@@ -98,7 +93,7 @@ class RPResultsDataScraper(IDataScraper):
             created_at=created_at,
             unique_id=lambda x: x.apply(
                 lambda y: hashlib.sha512(
-                    f"racing_post{y['horse_id']}{y['finishing_position']}{y['debug_link']}".encode()
+                    f"{y['horse_id']}{y['debug_link']}".encode()
                 ).hexdigest(),
                 axis=1,
             ),
@@ -569,7 +564,6 @@ if __name__ == "__main__":
         scraper=RPResultsDataScraper(),
         data_dao=S3Dao(),
         driver=WebDriver(config, headless_mode=False),
-        link_identifier=LinkIdentifier(source="rp", mapping=RP_UKE_IRE_COURSE_IDS),
         schema="rp_raw",
         table_name="performance_data_cloud",
         view_name="days_results_links",
