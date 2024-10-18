@@ -1,13 +1,30 @@
-from typing import Literal
-
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 
-load_dotenv(override=True)
+load_dotenv(dotenv_path=".env", override=True)
+
+
+class RawSchema(BaseSettings):
+    results_links_table: str = "results_links"
+    results_links_view: str = "missing_results_links"
+
+    racecards_links_table: str = "todays_links"
+    racecards_links_view: str = "missing_todays_links"
+
+    results_data_table: str = "results_data"
+    results_data_view: str = "results_data_view"
+
+    results_data_table_world: str = "results_data_world"
+    results_data_view_world: str = "results_data_view_world"
+
+    todays_data_table: str = "todays_data"
+
+
+class DB(BaseSettings):
+    raw: RawSchema = RawSchema()
 
 
 class Config(BaseSettings):
-    runtime_environment: Literal["CLOUD", "LOCAL"] = "LOCAL"
     chromedriver_path: str
 
     bf_username: str
@@ -32,18 +49,4 @@ class Config(BaseSettings):
     s3_endpoint_url: str
     s3_bucket_name: str
 
-    # Ingestion
-    results_links_table_name: str
-    results_links_view_name: str
-
-    racecards_links_table_name: str
-    racecards_links_view_name: str
-
-    results_data_table_name: str
-    results_data_view_name: str
-
-    racecards_data_table_name: str
-    racecards_data_view_name: str
-
-    ingestion_base_table_name: str
-    ingestion_base_view_name: str
+    db: DB = DB()

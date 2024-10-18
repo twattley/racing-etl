@@ -2,31 +2,28 @@ import pandas as pd
 from api_helpers.helpers.logging_config import E, I
 
 from src.raw.interfaces.data_scraper_interface import IDataScraper
-from src.raw.interfaces.raw_data_dao import IRawDataDao
 from src.raw.interfaces.webriver_interface import IWebDriver
+from api_helpers.interfaces.storage_client_interface import IStorageClient
 
 
 class ResultsDataScraperService:
     def __init__(
         self,
         scraper: IDataScraper,
-        data_dao: IRawDataDao,
+        storage_client: IStorageClient,
         driver: IWebDriver,
         schema: str,
-        table_name: str,
-        view_name: str,
         login: bool = False,
     ):
         self.scraper = scraper
-        self.data_dao = data_dao
+        self.storage_client = storage_client
         self.driver = driver
-        self.schema = schema
-        self.table_name = table_name
-        self.view_name = view_name
         self.login = login
 
     def _get_missing_links(self) -> list[str]:
-        links = self.data_dao.fetch_links(self.schema, self.view_name)
+        links: pd.DataFrame = self.storage_client.fetch_data(
+            f"SELECT link_url FROM {self.schema}.{self.view_name}"
+        )
         return links.to_dict(orient="records")
 
     def process_links(self, links: list[str]) -> pd.DataFrame:
@@ -56,7 +53,7 @@ class ResultsDataScraperService:
         return combined_data
 
     def _stores_results_data(self, data: pd.DataFrame) -> None:
-        self.data_dao.upsert_data(
+        self.storage_client.upsert_data(
             self.schema,
             self.table_name,
             data,
