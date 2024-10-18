@@ -40,6 +40,7 @@ class RacecardsDataScraperService:
                 I(f"Scraped {len(data)} rows")
                 dataframes_list.append(data)
             except Exception as e:
+                raise e
                 E(
                     f"Encountered an error: {e}. Attempting to continue with the next link."
                 )

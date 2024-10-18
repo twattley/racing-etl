@@ -1,9 +1,21 @@
 from api_helpers.helpers.logging_config import E, I
 from api_helpers.helpers.processing_utils import ptr
+from src.data_quality.raw.todays_data_quality import TodaysDataQuality
 
 from src.storage.storage_client import get_storage_client, PostgresClient
 
 db: PostgresClient = get_storage_client("postgres")
+
+rp_data_quality = TodaysDataQuality(
+    postgres_client=get_storage_client("postgres"),
+    schema="rp_raw",
+    runtime_environment=config.runtime_environment,
+)
+tf_data_quality = TodaysDataQuality(
+    postgres_client=get_storage_client("postgres"),
+    schema="tf_raw",
+    runtime_environment=config.runtime_environment,
+)
 
 
 def run_data_checks_pipeline():

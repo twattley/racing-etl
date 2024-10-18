@@ -4,10 +4,10 @@ import time
 import pandas as pd
 from api_helpers.helpers.logging_config import I, W
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import StaleElementReferenceException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from src.raw.interfaces.link_scraper_interface import ILinkScraper
 from src.raw.racing_post.course_ref_data import RP_UKE_IRE_COURSE_IDS

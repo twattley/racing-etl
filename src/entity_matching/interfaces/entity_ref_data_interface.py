@@ -1,6 +1,7 @@
 from typing import Protocol
-from api_helpers.interfaces.storage_client_interface import IStorageClient
+
 import pandas as pd
+from api_helpers.interfaces.storage_client_interface import IStorageClient
 
 
 class IEntityRefData(Protocol):

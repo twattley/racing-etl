@@ -1,5 +1,5 @@
-from calendar import monthrange
 import os
+from calendar import monthrange
 from datetime import date
 
 import pandas as pd
@@ -19,7 +19,9 @@ from src.raw.interfaces.raw_data_dao import IRawDataDao
 class HistoricalBetfairDataService:
     CACHE_PATH = "cache/betfair/historical"
     ERROR_FILES_PATH = "cache/betfair/historical/errors/error_files.parquet"
-    PROCESSED_FILES_PATH = f"cache/betfair/historical/{{year}}/processed_files.parquet"  # noqa: F541
+    PROCESSED_FILES_PATH = (
+        f"cache/betfair/historical/{{year}}/processed_files.parquet"  # noqa: F541
+    )
 
     def __init__(
         self,

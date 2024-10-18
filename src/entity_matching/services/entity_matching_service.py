@@ -1,5 +1,7 @@
 import re
+
 import pandas as pd
+
 from entity_matching.interfaces.entity_matcher_interface import IEntityMatcher
 
 

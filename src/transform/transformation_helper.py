@@ -3,7 +3,7 @@ from api_helpers.helpers.processing_utils import pt, ptr
 
 from src.data_models.transform.race_model import RaceDataModel
 from src.data_models.transform.transformed_model import TransformedDataModel
-from src.storage.storage_client import get_storage_client, PostgresClient
+from src.storage.storage_client import PostgresClient, get_storage_client
 from src.transform.transform_data import transform_data
 
 db: PostgresClient = get_storage_client("postgres")
