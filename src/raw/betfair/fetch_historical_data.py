@@ -20,9 +20,7 @@ class BetfairDataProcessor:
     ):
         self.config = config
 
-    def process_data(
-        self, market_data: list[dict], filename: str, year: int
-    ) -> pd.DataFrame:
+    def process_data(self, market_data: list[dict], filename: str) -> pd.DataFrame:
         opening_data = BetfairDataProcessor.get_market_data(market_data)
         sp_dict = BetfairDataProcessor.get_sp_data(market_data, opening_data)
         market_def = market_data[0]["mc"][0]["marketDefinition"]
@@ -39,7 +37,6 @@ class BetfairDataProcessor:
             market_data, opening_data, sp_dict
         )
         df = BetfairDataProcessor.remove_early_nr(market, start_time)
-        df = BetfairDataProcessor.create_unique_ids(df)
         if "REMOVED" not in df.status.unique():
             df = BetfairDataProcessor.create_percentage_moves(df)
             df = BetfairDataProcessor.create_price_change_dataset(df)
@@ -47,7 +44,6 @@ class BetfairDataProcessor:
             df = BetfairDataProcessor.create_price_change_dataset_nrs(df)
         df = df.assign(
             filename=filename,
-            year=year,
             unique_id=lambda x: x.apply(
                 lambda y: hashlib.sha512(
                     f"{y['runner_id']}{y['filename']}".encode()

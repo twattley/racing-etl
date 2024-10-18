@@ -2,10 +2,10 @@ from datetime import datetime
 
 import pandas as pd
 from api_helpers.helpers.logging_config import I
+from api_helpers.interfaces.storage_client_interface import IStorageClient
 
 from src.raw.interfaces.link_scraper_interface import ILinkScraper
 from src.raw.interfaces.webriver_interface import IWebDriver
-from api_helpers.interfaces.storage_client_interface import IStorageClient
 
 
 class RacecardsLinksScraperService:
@@ -39,5 +39,13 @@ class RacecardsLinksScraperService:
         )
 
     def run_racecard_links_scraper(self):
+        if self._check_already_processed():
+            I("Already processed today's racecard links")
+            return
         data = self.process_date()
         self._store_racecard_data(data)
+
+    def _check_already_processed(self) -> bool:
+        return self.storage_client.fetch_data(
+            f"SELECT * FROM {self.schema}.{self.view_name}"
+        ).empty

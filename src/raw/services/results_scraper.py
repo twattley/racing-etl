@@ -1,9 +1,9 @@
 import pandas as pd
 from api_helpers.helpers.logging_config import E, I
+from api_helpers.interfaces.storage_client_interface import IStorageClient
 
 from src.raw.interfaces.data_scraper_interface import IDataScraper
 from src.raw.interfaces.webriver_interface import IWebDriver
-from api_helpers.interfaces.storage_client_interface import IStorageClient
 
 
 class ResultsDataScraperService:
@@ -13,11 +13,16 @@ class ResultsDataScraperService:
         storage_client: IStorageClient,
         driver: IWebDriver,
         schema: str,
+        table_name: str,
+        view_name: str,
         login: bool = False,
     ):
         self.scraper = scraper
         self.storage_client = storage_client
         self.driver = driver
+        self.schema = schema
+        self.table_name = table_name
+        self.view_name = view_name
         self.login = login
 
     def _get_missing_links(self) -> list[str]:
@@ -54,9 +59,10 @@ class ResultsDataScraperService:
 
     def _stores_results_data(self, data: pd.DataFrame) -> None:
         self.storage_client.upsert_data(
+            data,
             self.schema,
             self.table_name,
-            data,
+            ["unique_id"],
         )
 
     def run_results_scraper(self):

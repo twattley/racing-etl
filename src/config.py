@@ -4,20 +4,25 @@ from pydantic_settings import BaseSettings
 load_dotenv(dotenv_path=".env", override=True)
 
 
+class TodaysData(BaseSettings):
+    links_view: str = "missing_todays_dates"
+    links_table: str = "todays_links"
+    data_table: str = "todays_data"
+
+
+class ResultsData(BaseSettings):
+    links_view: str = "missing_dates"
+    links_table: str = "results_links"
+
+    data_view: str = "missing_results_links"
+    data_table: str = "results_data"
+    data_world_view: str = "missing_results_links_world"
+    data_world_table: str = "results_data_world"
+
+
 class RawSchema(BaseSettings):
-    results_links_table: str = "results_links"
-    results_links_view: str = "missing_results_links"
-
-    racecards_links_table: str = "todays_links"
-    racecards_links_view: str = "missing_todays_links"
-
-    results_data_table: str = "results_data"
-    results_data_view: str = "results_data_view"
-
-    results_data_table_world: str = "results_data_world"
-    results_data_view_world: str = "results_data_view_world"
-
-    todays_data_table: str = "todays_data"
+    todays_data: TodaysData = TodaysData()
+    results_data: ResultsData = ResultsData()
 
 
 class DB(BaseSettings):

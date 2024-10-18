@@ -1,9 +1,9 @@
 import pandas as pd
 from api_helpers.helpers.logging_config import E, I
+from api_helpers.interfaces.storage_client_interface import IStorageClient
 
 from src.raw.interfaces.link_scraper_interface import ILinkScraper
 from src.raw.interfaces.webriver_interface import IWebDriver
-from api_helpers.interfaces.storage_client_interface import IStorageClient
 
 
 class ResultLinksScraperService:
@@ -25,7 +25,10 @@ class ResultLinksScraperService:
 
     def _get_missing_dates(self) -> list[dict]:
         dates: pd.DataFrame = self.storage_client.fetch_data(
-            f"SELECT date FROM {self.schema}.{self.view_name}"
+            f"""
+            SELECT race_date FROM 
+            {self.schema}.{self.view_name}
+            """
         )
         return dates.to_dict(orient="records")
 
@@ -36,7 +39,7 @@ class ResultLinksScraperService:
         for date in dates:
             try:
                 data: pd.DataFrame = self.scraper.scrape_links(
-                    driver, date["date"].strftime("%Y-%m-%d")
+                    driver, date["race_date"].strftime("%Y-%m-%d")
                 )
                 I(f"Scraped {len(data)} links for {date}")
                 dataframes_list.append(data)

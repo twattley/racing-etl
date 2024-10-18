@@ -1,8 +1,10 @@
+from datetime import datetime
+
 import pandas as pd
 from api_helpers.helpers.logging_config import E, I
+from api_helpers.interfaces.storage_client_interface import IStorageClient
 
 from src.raw.interfaces.data_scraper_interface import IDataScraper
-from api_helpers.interfaces.storage_client_interface import IStorageClient
 from src.raw.interfaces.webriver_interface import IWebDriver
 
 
@@ -24,6 +26,8 @@ class RacecardsDataScraperService:
         self.table_name = table_name
         self.view_name = view_name
         self.login = login
+
+    TODAY = datetime.now().strftime("%Y-%m-%d")
 
     def _get_missing_links(self) -> list[str]:
         links: pd.DataFrame = self.storage_client.fetch_data(
@@ -61,7 +65,19 @@ class RacecardsDataScraperService:
             self.schema, self.table_name, data, truncate=True
         )
 
+    def _check_already_processed(self) -> bool:
+        return not self.storage_client.fetch_data(
+            f"""
+            SELECT * 
+            FROM {self.schema}.{self.view_name} 
+            WHERE race_date = '{self.TODAY}'
+            """
+        ).empty
+
     def run_racecards_scraper(self):
+        if self._check_already_processed():
+            I("Already processed today's racecard data")
+            return
         links = self._get_missing_links()
         if not links:
             I("No links to scrape. Ending the script.")

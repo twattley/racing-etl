@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 
 import pandas as pd
-from api_helpers.helpers.logging_config import E, I
+from api_helpers.helpers.logging_config import I
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
@@ -14,7 +14,7 @@ from src.raw.interfaces.data_scraper_interface import IDataScraper
 class TFResultsDataScraper(IDataScraper):
     def scrape_data(self, driver: webdriver.Chrome, url: str) -> pd.DataFrame:
         race_details_link = self._get_race_details_from_link(url)
-        I(f"Scraping data for {race_details_link} sleeping for 5 seconds")
+        I(f"Scraping data for {url} sleeping for 5 seconds")
         time.sleep(5)
         race_details_page = self._get_race_details_from_page(driver)
         return self._get_performance_data(

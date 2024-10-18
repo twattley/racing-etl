@@ -1,8 +1,8 @@
 from api_helpers.helpers.logging_config import E, I
 from api_helpers.helpers.processing_utils import ptr
-from src.data_quality.raw.todays_data_quality import TodaysDataQuality
 
-from src.storage.storage_client import get_storage_client, PostgresClient
+from src.data_quality.raw.todays_data_quality import TodaysDataQuality
+from src.storage.storage_client import PostgresClient, get_storage_client
 
 db: PostgresClient = get_storage_client("postgres")
 

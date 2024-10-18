@@ -1,9 +1,9 @@
 import pandas as pd
 from api_helpers.clients.betfair_client import BetFairClient, BetfairCredentials
 from api_helpers.helpers.logging_config import I
+from api_helpers.interfaces.storage_client_interface import IStorageClient
 
 from src.config import Config
-from api_helpers.interfaces.storage_client_interface import IStorageClient
 from src.storage.storage_client import get_storage_client
 
 
@@ -64,9 +64,9 @@ class TodaysBetfairDataService:
             .sort_values(by="race_time", ascending=True)
         )
         self.storage_client.store_data(
-            self.SCHEMA,
-            self.config.db.raw.todays_data_table,
             win_and_place,
+            self.config.db.raw.todays_data.data_table,
+            self.SCHEMA,
             truncate=True,
         )
 
