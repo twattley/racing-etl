@@ -2,9 +2,9 @@ from datetime import datetime
 
 import pandas as pd
 from api_helpers.helpers.logging_config import I
+from api_helpers.interfaces.storage_client_interface import IStorageClient
 
 from src.raw.interfaces.link_scraper_interface import ILinkScraper
-from src.raw.interfaces.raw_data_dao import IRawDataDao
 from src.raw.interfaces.webriver_interface import IWebDriver
 
 
@@ -14,14 +14,14 @@ class RacecardsLinksScraperService:
     def __init__(
         self,
         scraper: ILinkScraper,
-        data_dao: IRawDataDao,
+        storage_client: IStorageClient,
         driver: IWebDriver,
         schema: str,
         table_name: str,
         view_name: str,
     ):
         self.scraper = scraper
-        self.data_dao = data_dao
+        self.storage_client = storage_client
         self.driver = driver
         self.schema = schema
         self.table_name = table_name
@@ -34,8 +34,21 @@ class RacecardsLinksScraperService:
         return data
 
     def _store_racecard_data(self, data: pd.DataFrame) -> None:
-        self.data_dao.store_data(self.schema, self.table_name, data, truncate=True)
+        self.storage_client.store_data(
+            data=data,
+            schema=self.schema,
+            table=self.table_name,
+            truncate=True,
+        )
 
     def run_racecard_links_scraper(self):
+        if self._check_already_processed():
+            I("Already processed today's racecard links")
+            return
         data = self.process_date()
         self._store_racecard_data(data)
+
+    def _check_already_processed(self) -> bool:
+        return not self.storage_client.fetch_data(
+            f"SELECT * FROM {self.schema}.{self.view_name}"
+        ).empty

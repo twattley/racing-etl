@@ -1,11 +1,10 @@
 import pandas as pd
 from api_helpers.clients.betfair_client import BetFairClient, BetfairCredentials
 from api_helpers.helpers.logging_config import I
+from api_helpers.interfaces.storage_client_interface import IStorageClient
 
 from src.config import Config
-from src.raw.daos.postgres_dao import PostgresDao
-from src.raw.daos.s3_dao import S3Dao
-from src.raw.interfaces.raw_data_dao import IRawDataDao
+from src.storage.storage_client import get_storage_client
 
 
 class TodaysBetfairDataService:
@@ -13,11 +12,13 @@ class TodaysBetfairDataService:
         self,
         config: Config,
         betfair_client: BetFairClient,
-        data_dao: IRawDataDao,
+        storage_client: IStorageClient,
     ):
         self.config = config
         self.betfair_client = betfair_client
-        self.data_dao = data_dao
+        self.storage_client = storage_client
+
+    SCHEMA = "bf_raw"
 
     def run_data_ingestion(self):
         I("Fetching todays market data")
@@ -62,17 +63,15 @@ class TodaysBetfairDataService:
             )
             .sort_values(by="race_time", ascending=True)
         )
-        self.data_dao.store_data(
-            "bf_raw", "todays_price_data", win_and_place, truncate=True
+        self.storage_client.store_data(
+            data=win_and_place,
+            schema=self.SCHEMA,
+            table=self.config.db.raw.todays_data.data_table,
+            truncate=True,
         )
 
 
 if __name__ == "__main__":
-    dao_map = {
-        "LOCAL": PostgresDao(),
-        "CLOUD": S3Dao(),
-    }
-
     config = Config()
     betfair_client = BetFairClient(
         BetfairCredentials(
@@ -82,6 +81,6 @@ if __name__ == "__main__":
             certs_path=config.bf_certs_path,
         )
     )
-    data_dao = dao_map[config.runtime_environment]
-    service = TodaysBetfairDataService(config, betfair_client, data_dao)
+    postgres_client = get_storage_client("postgres")
+    service = TodaysBetfairDataService(config, betfair_client, postgres_client)
     service.run_data_ingestion()

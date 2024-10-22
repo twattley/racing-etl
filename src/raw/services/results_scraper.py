@@ -1,8 +1,7 @@
 import pandas as pd
 from api_helpers.helpers.logging_config import E, I
-
+from api_helpers.interfaces.storage_client_interface import IStorageClient
 from src.raw.interfaces.data_scraper_interface import IDataScraper
-from src.raw.interfaces.raw_data_dao import IRawDataDao
 from src.raw.interfaces.webriver_interface import IWebDriver
 
 
@@ -10,23 +9,27 @@ class ResultsDataScraperService:
     def __init__(
         self,
         scraper: IDataScraper,
-        data_dao: IRawDataDao,
+        storage_client: IStorageClient,
         driver: IWebDriver,
         schema: str,
         table_name: str,
         view_name: str,
+        upsert_procedure: str,
         login: bool = False,
     ):
         self.scraper = scraper
-        self.data_dao = data_dao
+        self.storage_client = storage_client
         self.driver = driver
         self.schema = schema
         self.table_name = table_name
         self.view_name = view_name
+        self.upsert_procedure = upsert_procedure
         self.login = login
 
     def _get_missing_links(self) -> list[str]:
-        links = self.data_dao.fetch_links(self.schema, self.view_name)
+        links: pd.DataFrame = self.storage_client.fetch_data(
+            f"SELECT link_url FROM {self.schema}.{self.view_name}"
+        )
         return links.to_dict(orient="records")
 
     def process_links(self, links: list[str]) -> pd.DataFrame:
@@ -49,17 +52,20 @@ class ResultsDataScraperService:
 
         if not dataframes_list:
             I("No data scraped. Ending the script.")
-            return
+            return pd.DataFrame()
 
         combined_data = pd.concat(dataframes_list)
 
         return combined_data
 
     def _stores_results_data(self, data: pd.DataFrame) -> None:
-        self.data_dao.upsert_data(
-            self.schema,
-            self.table_name,
-            data,
+        self.storage_client.upsert_data(
+            data=data,
+            schema=self.schema,
+            table_name=self.table_name,
+            unique_columns=["unique_id"],
+            use_base_table=True,
+            upsert_procedure=self.upsert_procedure,
         )
 
     def run_results_scraper(self):
@@ -68,4 +74,7 @@ class ResultsDataScraperService:
             I("No links to scrape. Ending the script.")
             return
         data = self.process_links(links)
+        if data.empty:
+            I("No data processed. Ending the script.")
+            return
         self._stores_results_data(data)

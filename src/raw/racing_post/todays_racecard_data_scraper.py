@@ -19,14 +19,14 @@ class RPRacecardsDataScraper(IDataScraper):
     def scrape_data(self, driver: webdriver.Chrome, url: str) -> pd.DataFrame:
         self._toggle_buttons(driver)
         race_data = self._get_data_from_url(url)
-        race_time = self._get_race_time(driver, race_data["race_date"])
+        race_time = self._get_race_time(driver)
         header_data = self._get_race_details(driver)
         horse_data = self._get_horse_data(driver)
         horse_data = horse_data.assign(
             **race_data,
             **race_time,
             **header_data,
-            race_time=None,
+            race_time_debug=None,
             horse_price=None,
             finishing_position=None,
             rpr_value=None,
@@ -100,17 +100,17 @@ class RPRacecardsDataScraper(IDataScraper):
     def _get_data_from_url(self, url: str) -> dict:
         if url.endswith("/"):
             url = url[:-1]
-        *_, course_id, course, date, race_id = url.split("/")
+        *_, course_id, course, race_date, race_id = url.split("/")
         course = course.replace("-", " ").title().strip()
         return {
             "course_id": course_id,
             "course_name": course,
             "course": course,
-            "race_date": date,
+            "race_date": datetime.strptime(race_date, "%Y-%m-%d"),
             "race_id": race_id,
         }
 
-    def _get_race_time(self, driver: webdriver.Chrome, date: str) -> datetime:
+    def _get_race_time(self, driver: webdriver.Chrome) -> datetime:
         element = driver.find_element(
             By.XPATH,
             "//span[@class='RC-courseHeader__time'][@data-test-selector='RC-courseHeader__time']",
@@ -121,8 +121,9 @@ class RPRacecardsDataScraper(IDataScraper):
         if hours < 10:
             hours += 12
         return {
-            "race_timestamp": datetime.strptime(
-                f"{date} {hours}:{minutes}", "%Y-%m-%d %H:%M"
+            "race_time": datetime.strptime(
+                f"{datetime.now().strftime('%Y-%m-%d')} {hours}:{minutes}",
+                "%Y-%m-%d %H:%M",
             )
         }
 

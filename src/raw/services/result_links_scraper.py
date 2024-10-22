@@ -1,8 +1,8 @@
 import pandas as pd
 from api_helpers.helpers.logging_config import E, I
+from api_helpers.interfaces.storage_client_interface import IStorageClient
 
 from src.raw.interfaces.link_scraper_interface import ILinkScraper
-from src.raw.interfaces.raw_data_dao import IRawDataDao
 from src.raw.interfaces.webriver_interface import IWebDriver
 
 
@@ -10,21 +10,26 @@ class ResultLinksScraperService:
     def __init__(
         self,
         scraper: ILinkScraper,
-        data_dao: IRawDataDao,
+        storage_client: IStorageClient,
         driver: IWebDriver,
         schema: str,
         table_name: str,
         view_name: str,
     ):
         self.scraper = scraper
-        self.data_dao = data_dao
+        self.storage_client = storage_client
         self.driver = driver
         self.schema = schema
         self.table_name = table_name
         self.view_name = view_name
 
     def _get_missing_dates(self) -> list[dict]:
-        dates: pd.DataFrame = self.data_dao.fetch_dates(self.schema, self.view_name)
+        dates: pd.DataFrame = self.storage_client.fetch_data(
+            f"""
+            SELECT race_date FROM 
+            {self.schema}.{self.view_name}
+            """
+        )
         return dates.to_dict(orient="records")
 
     def process_dates(self, dates: list[str]) -> pd.DataFrame:
@@ -34,7 +39,7 @@ class ResultLinksScraperService:
         for date in dates:
             try:
                 data: pd.DataFrame = self.scraper.scrape_links(
-                    driver, date["date"].strftime("%Y-%m-%d")
+                    driver, date["race_date"].strftime("%Y-%m-%d")
                 )
                 I(f"Scraped {len(data)} links for {date}")
                 dataframes_list.append(data)
@@ -51,7 +56,11 @@ class ResultLinksScraperService:
         return pd.concat(dataframes_list)
 
     def _store_data(self, data: pd.DataFrame) -> None:
-        self.data_dao.store_links(self.schema, self.table_name, data)
+        self.storage_client.store_data(
+            data=data,
+            schema=self.schema,
+            table=self.table_name,
+        )
 
     def run_results_links_scraper(self):
         dates = self._get_missing_dates()

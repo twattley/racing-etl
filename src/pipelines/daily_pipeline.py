@@ -1,23 +1,18 @@
 from api_helpers.helpers.logging_config import I
-
+from src.storage.storage_client import get_storage_client
 from src.pipelines.data_checks_pipeline import run_data_checks_pipeline
 from src.pipelines.ingestion_pipeline import run_ingestion_pipeline
-from src.pipelines.insert_pipeline import run_insert_pipeline
 from src.pipelines.matching_pipeline import run_matching_pipeline
 from src.pipelines.transformation_pipeline import run_transformation_pipeline
+from src.pipelines.load_pipeline import run_load_pipeline
 
 
 def run_daily_pipeline():
-    # I("***************** RUNNING INGESTION PIPELINE *****************")
-    # run_ingestion_pipeline()
-    I("***************** RUNNING MATCHING PIPELINE *****************")
-    run_matching_pipeline()
-    I("***************** RUNNING TRANSFORMATION PIPELINE *****************")
-    run_transformation_pipeline()
-    I("***************** RUNNING INSERT PIPELINE *****************")
-    run_insert_pipeline()
-    I("***************** RUNNING DATA CHECKS PIPELINE *****************")
-    run_data_checks_pipeline()
+    storage_client = get_storage_client("postgres")
+    run_ingestion_pipeline(storage_client)
+    run_matching_pipeline(storage_client)
+    run_transformation_pipeline(storage_client)
+    run_load_pipeline(storage_client)
 
 
 if __name__ == "__main__":

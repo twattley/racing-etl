@@ -12,49 +12,47 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from src.config import Config
-from src.raw.daos.postgres_dao import PostgresDao
-from src.raw.daos.s3_dao import S3Dao
 from src.raw.interfaces.data_scraper_interface import IDataScraper
-from src.raw.services.results_scraper import ResultsDataScraperService
-from src.raw.webdriver.web_driver import WebDriver
 
 
 class RPResultsDataScraper(IDataScraper):
-    def scrape_data(self, driver: webdriver.Chrome, url: str) -> pd.DataFrame:
-        self._wait_for_page_load(driver)
+    @staticmethod
+    def scrape_data(driver: webdriver.Chrome, url: str) -> pd.DataFrame:
+        RPResultsDataScraper._wait_for_page_load(driver)
         created_at = datetime.now(pytz.timezone("Europe/London")).strftime(
             "%Y-%m-%d %H:%M:%S"
         )
         *_, course_id, course, race_date, race_id = url.split("/")
-        surface, country, course_name = self._get_course_country_data(driver)
-        race_time = self._return_element_text_from_css(
+        surface, country, course_name = RPResultsDataScraper._get_course_country_data(
+            driver
+        )
+        race_time = RPResultsDataScraper._return_element_text_from_css(
             driver,
             "span.rp-raceTimeCourseName__time[data-test-selector='text-raceTime']",
         )
-        race_title = self._return_element_text_from_css(
+        race_title = RPResultsDataScraper._return_element_text_from_css(
             driver, "h2.rp-raceTimeCourseName__title"
         )
-        conditions = self._get_optional_element_text(
+        conditions = RPResultsDataScraper._get_optional_element_text(
             driver, "span.rp-raceTimeCourseName_ratingBandAndAgesAllowed"
         )
-        race_class = self._get_optional_element_text(
+        race_class = RPResultsDataScraper._get_optional_element_text(
             driver, "span.rp-raceTimeCourseName_class"
         )
-        distance = self._return_element_text_from_css(
+        distance = RPResultsDataScraper._return_element_text_from_css(
             driver, "span.rp-raceTimeCourseName_distance"
         )
-        distance_full = self._get_optional_element_text(
+        distance_full = RPResultsDataScraper._get_optional_element_text(
             driver, "span.rp-raceTimeCourseName_distanceFull"
         )
-        going = self._return_element_text_from_css(
+        going = RPResultsDataScraper._return_element_text_from_css(
             driver, "span.rp-raceTimeCourseName_condition"
         )
-        winning_time = self._get_raw_winning_time(driver)
-        number_of_runners = self._get_number_of_runners(driver)
+        winning_time = RPResultsDataScraper._get_raw_winning_time(driver)
+        number_of_runners = RPResultsDataScraper._get_number_of_runners(driver)
         try:
             total_prize_money, first_place_prize_money, currency = (
-                self._get_prize_money(driver)
+                RPResultsDataScraper._get_prize_money(driver)
             )
         except Exception:
             total_prize_money, first_place_prize_money, currency = (
@@ -63,16 +61,21 @@ class RPResultsDataScraper(IDataScraper):
                 np.nan,
             )
 
-        performance_data, order = self._get_performance_data(driver)
-        performance_data = self._get_comment_data(driver, order, performance_data)
-        performance_data = self._get_pedigree_data(driver, order, performance_data)
-
-        race_timestamp = self._create_race_timestamp(race_date, race_time, country)
+        performance_data, order = RPResultsDataScraper._get_performance_data(driver)
+        performance_data = RPResultsDataScraper._get_comment_data(
+            driver, order, performance_data
+        )
+        performance_data = RPResultsDataScraper._get_pedigree_data(
+            driver, order, performance_data
+        )
+        race_timestamp = RPResultsDataScraper._create_race_time(
+            race_date, race_time, country
+        )
         performance_data = pd.DataFrame(performance_data).assign(
-            race_date=race_date,
+            race_date=datetime.strptime(race_date, "%Y-%m-%d"),
             race_title=race_title,
-            race_time=race_time,
-            race_timestamp=race_timestamp,
+            race_time_debug=race_time,
+            race_time=race_timestamp,
             conditions=conditions,
             race_class=race_class,
             distance=distance,
@@ -109,12 +112,12 @@ class RPResultsDataScraper(IDataScraper):
             lambda x: x.str.strip() if x.dtype == "object" else x
         )
 
-        performance_data = performance_data.dropna(subset=["race_timestamp"])
+        performance_data = performance_data.dropna(subset=["race_time"])
         if performance_data.empty:
             E(f"No data for {url} failure to scrape timestamp")
         return performance_data[
             [
-                "race_timestamp",
+                "race_time",
                 "race_date",
                 "course_name",
                 "race_class",
@@ -143,7 +146,7 @@ class RPResultsDataScraper(IDataScraper):
                 "rpr_value",
                 "extra_weight",
                 "comment",
-                "race_time",
+                "race_time_debug",
                 "currency",
                 "course",
                 "jockey_name",
@@ -169,7 +172,8 @@ class RPResultsDataScraper(IDataScraper):
             ]
         ]
 
-    def _wait_for_page_load(self, driver: webdriver.Chrome) -> None:
+    @staticmethod
+    def _wait_for_page_load(driver: webdriver.Chrome) -> None:
         """
         Logs which elements were not found on the page.
         """
@@ -208,7 +212,8 @@ class RPResultsDataScraper(IDataScraper):
 
         I("Page loaded")
 
-    def _convert_to_24_hour(self, time_str: str) -> str:
+    @staticmethod
+    def _convert_to_24_hour(time_str: str) -> str:
         """
         Converts a time string from 12-hour format to 24-hour format.
         """
@@ -217,32 +222,31 @@ class RPResultsDataScraper(IDataScraper):
             hours += 12
         return f"{hours:02d}:{minutes:02d}"
 
-    def _create_race_timestamp(
-        self, race_date: str, race_time: str, country: str
-    ) -> datetime:
+    @staticmethod
+    def _create_race_time(race_date: str, race_time: str, country: str) -> datetime:
         if country in {"IRE", "UK", "FR"}:
-            race_time = self._convert_to_24_hour(race_time)
-            return datetime.strptime(f"{race_date} {race_time}", "%Y-%m-%d %H:%M")
-        else:
-            return datetime.strptime(f"{race_date} {race_time}", "%Y-%m-%d %H:%M")
+            race_time = RPResultsDataScraper._convert_to_24_hour(race_time)
+        return datetime.strptime(f"{race_date} {race_time}", "%Y-%m-%d %H:%M")
 
-    def _get_entity_data_from_link(self, entity_link: str) -> tuple[str, str]:
+    @staticmethod
+    def _get_entity_data_from_link(entity_link: str) -> tuple[str, str]:
         entity_id, entity_name = entity_link.split("/")[-2:]
         entity_name = " ".join(i.title() for i in entity_name.split("-"))
         return entity_id, entity_name
 
-    def _return_element_text_from_css(
-        self, driver: webdriver.Chrome, element_id: str
-    ) -> str:
+    @staticmethod
+    def _return_element_text_from_css(driver: webdriver.Chrome, element_id: str) -> str:
         return driver.find_element(By.CSS_SELECTOR, element_id).text.strip()
 
-    def _get_optional_element_text(self, driver: webdriver.Chrome, css_selector: str):
+    @staticmethod
+    def _get_optional_element_text(driver: webdriver.Chrome, css_selector: str):
         try:
             return driver.find_element(By.CSS_SELECTOR, css_selector).text.strip()
         except Exception:
             return None
 
-    def _get_raw_winning_time(self, driver: webdriver.Chrome):
+    @staticmethod
+    def _get_raw_winning_time(driver: webdriver.Chrome):
         race_info = " ".join(
             element.text.strip()
             for element in driver.find_elements(By.CSS_SELECTOR, ".rp-raceInfo")
@@ -251,7 +255,8 @@ class RPResultsDataScraper(IDataScraper):
 
         return match[1] if match else np.nan
 
-    def _get_number_of_runners(self, driver: webdriver.Chrome) -> str:
+    @staticmethod
+    def _get_number_of_runners(driver: webdriver.Chrome) -> str:
         race_info = " ".join(
             element.text.strip()
             for element in driver.find_elements(By.CSS_SELECTOR, ".rp-raceInfo")
@@ -260,7 +265,8 @@ class RPResultsDataScraper(IDataScraper):
         if match:
             return match[1].lower().split("ran")[0].strip()
 
-    def _get_prize_money(self, driver: webdriver.Chrome) -> tuple[int, int, str]:
+    @staticmethod
+    def _get_prize_money(driver: webdriver.Chrome) -> tuple[int, int, str]:
         prize_money_container = driver.find_element(
             By.CSS_SELECTOR, "div[data-test-selector='text-prizeMoney']"
         )
@@ -293,8 +299,9 @@ class RPResultsDataScraper(IDataScraper):
             currency_name,
         )
 
+    @staticmethod
     def _get_performance_data(
-        self, driver: webdriver.Chrome
+        driver: webdriver.Chrome,
     ) -> tuple[list[dict[str, str]], list[tuple[int, str]]]:
         horse_data = []
 
@@ -320,7 +327,9 @@ class RPResultsDataScraper(IDataScraper):
                     By.CSS_SELECTOR, "a[href*='/profile/jockey']"
                 )
                 jockey_link = jockey_element.get_attribute("href")
-                jockey_id, jockey_name = self._get_entity_data_from_link(jockey_link)
+                jockey_id, jockey_name = (
+                    RPResultsDataScraper._get_entity_data_from_link(jockey_link)
+                )
             except Exception:
                 jockey_id, jockey_name = np.nan, np.nan
 
@@ -329,7 +338,9 @@ class RPResultsDataScraper(IDataScraper):
                     By.CSS_SELECTOR, "a[href*='/profile/owner']"
                 )
                 owner_link = owner_element.get_attribute("href")
-                owner_id, owner_name = self._get_entity_data_from_link(owner_link)
+                owner_id, owner_name = RPResultsDataScraper._get_entity_data_from_link(
+                    owner_link
+                )
             except Exception:
                 owner_id, owner_name = np.nan, np.nan
 
@@ -346,7 +357,9 @@ class RPResultsDataScraper(IDataScraper):
                     By.CSS_SELECTOR, "a[href*='/profile/trainer']"
                 )
                 trainer_link = trainer_element.get_attribute("href")
-                trainer_id, trainer_name = self._get_entity_data_from_link(trainer_link)
+                trainer_id, trainer_name = (
+                    RPResultsDataScraper._get_entity_data_from_link(trainer_link)
+                )
             except Exception:
                 trainer_id, trainer_name = np.nan, np.nan
 
@@ -354,7 +367,9 @@ class RPResultsDataScraper(IDataScraper):
                 By.CSS_SELECTOR, "a[href*='/profile/horse']"
             )
             horse_link = horse_element.get_attribute("href")
-            horse_id, horse_name = self._get_entity_data_from_link(horse_link)
+            horse_id, horse_name = RPResultsDataScraper._get_entity_data_from_link(
+                horse_link
+            )
 
             weight_st_element = row.find_element(
                 By.CSS_SELECTOR, "span[data-test-selector='horse-weight-st']"
@@ -442,8 +457,8 @@ class RPResultsDataScraper(IDataScraper):
 
         return horse_data, order
 
+    @staticmethod
     def _get_comment_data(
-        self,
         driver: webdriver.Chrome,
         order: list[tuple[int, str]],
         horse_data: list[dict[str, str]],
@@ -470,8 +485,8 @@ class RPResultsDataScraper(IDataScraper):
 
         return sorted_horse_data
 
+    @staticmethod
     def _get_pedigree_data(
-        self,
         driver: webdriver.Chrome,
         order: list[tuple[int, str]],
         horse_data: list[dict[str, str]],
@@ -507,17 +522,17 @@ class RPResultsDataScraper(IDataScraper):
             for i, v in enumerate(pedigree_hrefs):
                 if i == 0:
                     pedigree["sire_id"], pedigree["sire"] = (
-                        self._get_entity_data_from_link(v)
+                        RPResultsDataScraper._get_entity_data_from_link(v)
                     )
                 elif i == 1:
                     pedigree["dam_id"], pedigree["dam"] = (
-                        self._get_entity_data_from_link(v)
+                        RPResultsDataScraper._get_entity_data_from_link(v)
                     )
                 elif i == 2:
                     (
                         pedigree["dams_sire_id"],
                         pedigree["dams_sire"],
-                    ) = self._get_entity_data_from_link(v)
+                    ) = RPResultsDataScraper._get_entity_data_from_link(v)
                 else:
                     E(f"Error: Unknown pedigree link index: {i}")
             pedigrees.append(pedigree)
@@ -540,8 +555,9 @@ class RPResultsDataScraper(IDataScraper):
 
         return sorted_horse_data
 
-    def _get_course_country_data(self, driver: webdriver.Chrome):
-        course_name = self._return_element_text_from_css(
+    @staticmethod
+    def _get_course_country_data(driver: webdriver.Chrome):
+        course_name = RPResultsDataScraper._return_element_text_from_css(
             driver, "a.rp-raceTimeCourseName__name"
         )
         matches = re.findall(r"\((.*?)\)", course_name)
@@ -556,16 +572,3 @@ class RPResultsDataScraper(IDataScraper):
             return "Turf", matches[0], course_name
         else:
             return "Turf", "UK", course_name
-
-
-if __name__ == "__main__":
-    config = Config()
-    service = ResultsDataScraperService(
-        scraper=RPResultsDataScraper(),
-        data_dao=S3Dao(),
-        driver=WebDriver(config, headless_mode=False),
-        schema="rp_raw",
-        table_name="performance_data_cloud",
-        view_name="days_results_links",
-    )
-    service.run_results_scraper()
