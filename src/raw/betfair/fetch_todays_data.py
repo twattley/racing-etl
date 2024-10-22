@@ -64,9 +64,9 @@ class TodaysBetfairDataService:
             .sort_values(by="race_time", ascending=True)
         )
         self.storage_client.store_data(
-            win_and_place,
-            self.config.db.raw.todays_data.data_table,
-            self.SCHEMA,
+            data=win_and_place,
+            schema=self.SCHEMA,
+            table=self.config.db.raw.todays_data.data_table,
             truncate=True,
         )
 

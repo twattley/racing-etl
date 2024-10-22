@@ -10,9 +10,14 @@ from src.raw.timeform.results_link_scraper import TFResultsLinkScraper
 from src.raw.timeform.todays_racecard_data_scraper import TFRacecardsDataScraper
 from src.raw.timeform.todays_racecard_links_scraper import TFRacecardsLinkScraper
 from src.raw.webdriver.web_driver import WebDriver
+from src.raw.helpers.course_ref_data import CourseRefData
+from src.raw.timeform.generate_query import RawSQLGenerator
 
 
 class TFIngestor:
+    SOURCE = "tf"
+    SCHEMA = f"{SOURCE}_raw"
+
     def __init__(
         self,
         config: Config,
@@ -21,11 +26,13 @@ class TFIngestor:
         self.config = config
         self.storage_client = storage_client
 
-    SCHEMA = "tf_raw"
-
     def ingest_todays_links(self):
         service = RacecardsLinksScraperService(
-            scraper=TFRacecardsLinkScraper(),
+            scraper=TFRacecardsLinkScraper(
+                ref_data=CourseRefData(
+                    source=self.SOURCE, storage_client=self.storage_client
+                )
+            ),
             storage_client=self.storage_client,
             driver=WebDriver(self.config),
             schema=self.SCHEMA,
@@ -48,7 +55,11 @@ class TFIngestor:
 
     def ingest_results_links(self):
         service = ResultLinksScraperService(
-            scraper=TFResultsLinkScraper(),
+            scraper=TFResultsLinkScraper(
+                ref_data=CourseRefData(
+                    source=self.SOURCE, storage_client=self.storage_client
+                )
+            ),
             storage_client=self.storage_client,
             driver=WebDriver(self.config),
             schema=self.SCHEMA,
@@ -65,6 +76,7 @@ class TFIngestor:
             schema=self.SCHEMA,
             view_name=self.config.db.raw.results_data.data_view,
             table_name=self.config.db.raw.results_data.data_table,
+            upsert_procedure=RawSQLGenerator.get_results_data_upsert_sql(),
             login=True,
         )
         service.run_results_scraper()
@@ -77,6 +89,7 @@ class TFIngestor:
             schema=self.SCHEMA,
             table_name=self.config.db.raw.results_data.data_world_table,
             view_name=self.config.db.raw.results_data.data_world_view,
+            upsert_procedure=RawSQLGenerator.get_results_data_world_upsert_sql(),
             login=True,
         )
         service.run_results_scraper()

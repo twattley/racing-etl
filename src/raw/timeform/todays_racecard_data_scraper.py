@@ -54,7 +54,7 @@ class TFRacecardsDataScraper(IDataScraper):
             race_type=None,
             tf_comment=None,
             horse_age=None,
-            race_time=None,
+            race_time_debug=None,
             created_at=datetime.now(),
         )
 
@@ -78,8 +78,8 @@ class TFRacecardsDataScraper(IDataScraper):
         return {
             "course_id": course_id,
             "course": course,
-            "race_date": race_date,
-            "race_timestamp": race_timestamp,
+            "race_date": datetime.strptime(race_date, "%Y-%m-%d"),
+            "race_time": race_timestamp,
             "race": race,
         }
 

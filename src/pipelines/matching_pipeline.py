@@ -1,36 +1,17 @@
-from api_helpers.helpers.logging_config import W
-from api_helpers.helpers.processing_utils import ptr
-
-from src.entity_matching.betfair_historical_matcher import (
-    process_historical_betfair_entity_matching,
-)
-from src.entity_matching.betfair_todays_matcher import (
-    process_todays_betfair_entity_matching,
-)
-from src.entity_matching.post_matching_checks import post_matching_data_checks
-from src.entity_matching.racing_post_matcher import process_racing_post_entity_matching
-from src.entity_matching.timeform_matcher import process_timeform_entity_matching
-from src.storage.storage_client import PostgresClient, get_storage_client
-
-db: PostgresClient = get_storage_client("postgres")
+from api_helpers.interfaces.storage_client_interface import IStorageClient
+from src.entity_matching.timeform.entity_matcher import TimeformEntityMatcher
+from src.entity_matching.betfair.entity_matcher import BetfairEntityMatcher
+from src.storage.storage_client import get_storage_client
 
 
-def run_matching_pipeline():
-    rp_matching_data, missing_dates = process_racing_post_entity_matching()
-    if missing_dates:
-        process_timeform_entity_matching(rp_matching_data, missing_dates)
-    else:
-        W("No missing data to match")
-    process_todays_betfair_entity_matching()
-    process_historical_betfair_entity_matching()
-    ptr(
-        lambda: db.call_procedure("insert_into_joined_performance_data", "staging"),
-        lambda: db.call_procedure(
-            "insert_into_todays_joined_performance_data", "staging"
-        ),
-    )
-    post_matching_data_checks()
+def run_matching_pipeline(storage_client: IStorageClient):
+    tf_entity_matcher = TimeformEntityMatcher(storage_client)
+    betfair_entity_matcher = BetfairEntityMatcher(storage_client)
+
+    tf_entity_matcher.run_matching()
+    betfair_entity_matcher.run_matching()
 
 
 if __name__ == "__main__":
-    run_matching_pipeline()
+    storage_client = get_storage_client("postgres")
+    run_matching_pipeline(storage_client)

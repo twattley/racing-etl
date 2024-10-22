@@ -62,14 +62,17 @@ class RacecardsDataScraperService:
 
     def _stores_results_data(self, data: pd.DataFrame) -> None:
         self.storage_client.store_data(
-            self.schema, self.table_name, data, truncate=True
+            data=data,
+            schema=self.schema,
+            table=self.table_name,
+            truncate=True,
         )
 
     def _check_already_processed(self) -> bool:
         return not self.storage_client.fetch_data(
             f"""
             SELECT * 
-            FROM {self.schema}.{self.view_name} 
+            FROM {self.schema}.todays_data 
             WHERE race_date = '{self.TODAY}'
             """
         ).empty

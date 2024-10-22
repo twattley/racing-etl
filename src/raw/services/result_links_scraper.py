@@ -56,7 +56,11 @@ class ResultLinksScraperService:
         return pd.concat(dataframes_list)
 
     def _store_data(self, data: pd.DataFrame) -> None:
-        self.storage_client.store_data(data, self.table_name, self.schema)
+        self.storage_client.store_data(
+            data=data,
+            schema=self.schema,
+            table=self.table_name,
+        )
 
     def run_results_links_scraper(self):
         dates = self._get_missing_dates()

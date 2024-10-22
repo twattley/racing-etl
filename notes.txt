@@ -1,3 +1,0 @@
-Graded UK races 
-- pulled all group or listed races in the title afteer 2015
-- ran through all the horses and found urls unseen based on the course id not being in IRE/UK

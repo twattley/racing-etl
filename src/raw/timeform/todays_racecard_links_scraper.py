@@ -10,11 +10,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from src.raw.interfaces.link_scraper_interface import ILinkScraper
-from src.raw.timeform.course_ref_data import TF_UKE_IRE_COURSE_IDS
+from src.raw.interfaces.course_ref_data_interface import ICourseRefData
 
 
 class TFRacecardsLinkScraper(ILinkScraper):
     BASE_URL = "https://www.timeform.com/horse-racing/racecards"
+
+    def __init__(self, ref_data: ICourseRefData):
+        self.ref_data = ref_data
 
     def scrape_links(self, driver: webdriver.Chrome, date: str) -> pd.DataFrame:
         max_attempts = 3
@@ -28,7 +31,7 @@ class TFRacecardsLinkScraper(ILinkScraper):
                 return pd.DataFrame(
                     {
                         "link_url": links,
-                        "date": [date] * len(links),
+                        "race_date": [date] * len(links),
                     }
                 )
             except Exception as e:
@@ -53,6 +56,7 @@ class TFRacecardsLinkScraper(ILinkScraper):
         time.sleep(10)
 
     def _get_racecard_links(self, driver: webdriver.Chrome, date: str) -> list[str]:
+        uk_ire_course_ids = self.ref_data.get_uk_ire_course_ids()
         max_attempts = 3
         for attempt in range(max_attempts):
             try:
@@ -77,7 +81,7 @@ class TFRacecardsLinkScraper(ILinkScraper):
 
                 patterns = [
                     rf"{self.BASE_URL}/{course_name}/{date}/([01]\d|2[0-3])[0-5]\d\/{course_id}/(10|[1-9])/(.*)"
-                    for course_id, course_name in TF_UKE_IRE_COURSE_IDS.items()
+                    for course_id, course_name in uk_ire_course_ids.items()
                 ]
 
                 if not patterns:

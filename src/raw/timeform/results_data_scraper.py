@@ -12,15 +12,17 @@ from src.raw.interfaces.data_scraper_interface import IDataScraper
 
 
 class TFResultsDataScraper(IDataScraper):
-    def scrape_data(self, driver: webdriver.Chrome, url: str) -> pd.DataFrame:
-        race_details_link = self._get_race_details_from_link(url)
+    @staticmethod
+    def scrape_data(driver: webdriver.Chrome, url: str) -> pd.DataFrame:
+        race_details_link = TFResultsDataScraper._get_race_details_from_link(url)
         I(f"Scraping data for {url} sleeping for 5 seconds")
         time.sleep(5)
-        race_details_page = self._get_race_details_from_page(driver)
-        return self._get_performance_data(
+        race_details_page = TFResultsDataScraper._get_race_details_from_page(driver)
+        return TFResultsDataScraper._get_performance_data(
             driver, race_details_link, race_details_page, url
         )
 
+    @staticmethod
     def _get_element_text_by_selector(row, css_selector):
         elements = row.find_elements(By.CSS_SELECTOR, css_selector)
         return next(
@@ -28,8 +30,8 @@ class TFResultsDataScraper(IDataScraper):
             None,
         )
 
+    @staticmethod
     def _return_element_from_css_selector(
-        self,
         table_row: webdriver.Chrome,
         css_selector: str,
         multiple_elements: bool = False,
@@ -42,11 +44,12 @@ class TFResultsDataScraper(IDataScraper):
         except Exception:
             return None
 
-    def _find_element_text_by_xpath(self, row: webdriver.Chrome, xpath: str) -> str:
+    @staticmethod
+    def _find_element_text_by_xpath(row: webdriver.Chrome, xpath: str) -> str:
         return row.find_element(By.XPATH, xpath).text
 
+    @staticmethod
     def _find_element_text_by_selector(
-        self,
         row: webdriver.Chrome,
         selector: str,
         default: str = "Information not found for this row",
@@ -54,8 +57,8 @@ class TFResultsDataScraper(IDataScraper):
         elements = row.find_elements(By.CSS_SELECTOR, selector)
         return elements[0].text if elements else default
 
+    @staticmethod
     def _find_element_text_by_selector_strip(
-        self,
         row: webdriver.Chrome,
         selector: str,
         chars_to_strip: str,
@@ -64,7 +67,8 @@ class TFResultsDataScraper(IDataScraper):
         elements = row.find_elements(By.CSS_SELECTOR, selector)
         return elements[0].text.strip(chars_to_strip) if elements else default
 
-    def _title_except_brackets(self, text: str) -> str:
+    @staticmethod
+    def _title_except_brackets(text: str) -> str:
         text = text.title()
 
         def uppercase_match(match):
@@ -72,7 +76,8 @@ class TFResultsDataScraper(IDataScraper):
 
         return re.sub(r"\([^)]*\)", uppercase_match, text)
 
-    def _get_main_race_comment(self, driver: webdriver.Chrome) -> str:
+    @staticmethod
+    def _get_main_race_comment(driver: webdriver.Chrome) -> str:
         premium_comment_elements = driver.find_elements(
             By.CSS_SELECTOR, "td[title='Premium Race Comment']"
         )
@@ -92,15 +97,14 @@ class TFResultsDataScraper(IDataScraper):
                 return full_comment
         return "No Comment Found"
 
-    def _get_race_details_from_link(self, link: str) -> dict:
+    @staticmethod
+    def _get_race_details_from_link(link: str) -> dict:
         *_, course, race_date, race_time, course_id, race = link.split("/")
         return {
             "course": course,
-            "race_date": race_date,
-            "race_time": race_time,
-            "race_timestamp": datetime.strptime(
-                f"{race_date} {race_time}", "%Y-%m-%d %H%M"
-            ),
+            "race_date": datetime.strptime(race_date, "%Y-%m-%d"),
+            "race_time_debug": race_time,
+            "race_time": datetime.strptime(f"{race_date} {race_time}", "%Y-%m-%d %H%M"),
             "course_id": course_id,
             "race": race,
             "race_id": hashlib.sha256(
@@ -108,7 +112,8 @@ class TFResultsDataScraper(IDataScraper):
             ).hexdigest(),
         }
 
-    def _get_race_details_from_page(self, driver: webdriver.Chrome) -> dict:
+    @staticmethod
+    def _get_race_details_from_page(driver: webdriver.Chrome) -> dict:
         titles = [
             # (variable name, title attribute of the span element)
             ("distance", "Distance expressed in miles, furlongs and yards"),
@@ -127,23 +132,27 @@ class TFResultsDataScraper(IDataScraper):
                     values[var] = element.text
                     break
 
-        values["main_race_comment"] = self._get_main_race_comment(driver)
+        values["main_race_comment"] = TFResultsDataScraper._get_main_race_comment(
+            driver
+        )
 
         return values
 
+    @staticmethod
     def _get_entity_info_from_row(
-        self, row: webdriver.Chrome, selector: str, index: int
+        row: webdriver.Chrome, selector: str, index: int
     ) -> tuple[str, str]:
         elements = row.find_elements(By.CSS_SELECTOR, selector)
         if elements:
             element = elements[0]
             entity_name = element.text
             if "Sire" in selector or "Dam" in selector:
-                entity_name = self._title_except_brackets(entity_name)
+                entity_name = TFResultsDataScraper._title_except_brackets(entity_name)
             entity_id = element.get_attribute("href").split("/")[index]
             return entity_name, entity_id
 
-    def _get_entity_names(self, row: webdriver.Chrome):
+    @staticmethod
+    def _get_entity_names(row: webdriver.Chrome):
         tf_horse_name = tf_horse_id = tf_horse_name_link = ""
         tf_clean_sire_name = tf_sire_name_id = ""
         tf_clean_dam_name = tf_dam_name_id = ""
@@ -162,7 +171,7 @@ class TFResultsDataScraper(IDataScraper):
             for horse_link in horse_links:
                 horse_name = horse_link.text
                 if horse_name.strip():
-                    tf_horse_name = self._title_except_brackets(
+                    tf_horse_name = TFResultsDataScraper._title_except_brackets(
                         re.sub(r"^\d+\.\s+", "", horse_link.text)
                     )
         for link in all_links:
@@ -197,30 +206,35 @@ class TFResultsDataScraper(IDataScraper):
             tf_jockey_id,
         )
 
+    @staticmethod
     def _get_performance_data(
-        self,
         driver: webdriver.Chrome,
         race_details_link: dict,
         race_details_page: dict,
         link: str,
     ) -> pd.DataFrame:
-        # sourcery skip: merge-dict-assign
         table_rows = driver.find_elements(By.CLASS_NAME, "rp-table-row")
 
         data = []
         for row in table_rows:
             performance_data = {}
-            performance_data["tf_rating"] = self._return_element_from_css_selector(
-                row, "div.rp-circle.rp-rating.res-rating"
+            performance_data["tf_rating"] = (
+                TFResultsDataScraper._return_element_from_css_selector(
+                    row, "div.rp-circle.rp-rating.res-rating"
+                )
             )
             performance_data["tf_speed_figure"] = (
-                self._return_element_from_css_selector(row, "td.al-center.rp-tfig")
+                TFResultsDataScraper._return_element_from_css_selector(
+                    row, "td.al-center.rp-tfig"
+                )
             )
-            performance_data["draw"] = self._return_element_from_css_selector(
-                row, "span.rp-draw"
+            performance_data["draw"] = (
+                TFResultsDataScraper._return_element_from_css_selector(
+                    row, "span.rp-draw"
+                )
             )
             performance_data["finishing_position"] = (
-                self._find_element_text_by_selector(
+                TFResultsDataScraper._find_element_text_by_selector(
                     row, 'span.rp-entry-number[title="Finishing Position"]'
                 )
             )
@@ -236,11 +250,13 @@ class TFResultsDataScraper(IDataScraper):
                 performance_data["trainer_id"],
                 performance_data["jockey_name"],
                 performance_data["jockey_id"],
-            ) = self._get_entity_names(row)
-            performance_data["horse_age"] = self._find_element_text_by_selector(
-                row,
-                "td.al-center.rp-body-text.rp-ageequip-hide[title='Horse age']",
-                "Horse Age information not found for this row",
+            ) = TFResultsDataScraper._get_entity_names(row)
+            performance_data["horse_age"] = (
+                TFResultsDataScraper._find_element_text_by_selector(
+                    row,
+                    "td.al-center.rp-body-text.rp-ageequip-hide[title='Horse age']",
+                    "Horse Age information not found for this row",
+                )
             )
             equipment = [
                 element.text
@@ -250,36 +266,44 @@ class TFResultsDataScraper(IDataScraper):
             ]
             performance_data["equipment"] = equipment[0] if equipment else None
             performance_data["official_rating"] = (
-                self._find_element_text_by_selector_strip(
+                TFResultsDataScraper._find_element_text_by_selector_strip(
                     row,
                     "td.al-center.rp-body-text.rp-ageequip-hide[title='Official rating given to this horse']",
                     "()",
                     "Official rating information not found for this row",
                 )
             )
-            performance_data["fractional_price"] = self._find_element_text_by_selector(
-                row, ".price-fractional", "Price information not found for this row"
+            performance_data["fractional_price"] = (
+                TFResultsDataScraper._find_element_text_by_selector(
+                    row, ".price-fractional", "Price information not found for this row"
+                )
             )
-            performance_data["betfair_win_sp"] = self._find_element_text_by_selector(
-                row,
-                "td.al-center.rp-result-sp.rp-result-bsp-hide[title='Betfair Win SP']",
-                "Betfair Win SP information not found for this row",
+            performance_data["betfair_win_sp"] = (
+                TFResultsDataScraper._find_element_text_by_selector(
+                    row,
+                    "td.al-center.rp-result-sp.rp-result-bsp-hide[title='Betfair Win SP']",
+                    "Betfair Win SP information not found for this row",
+                )
             )
             performance_data["betfair_place_sp"] = (
-                self._find_element_text_by_selector_strip(
+                TFResultsDataScraper._find_element_text_by_selector_strip(
                     row,
                     "td.al-center.rp-result-sp.rp-result-bsp-hide[title='Betfair Place SP']",
                     "()",
                     "Betfair Place SP information not found for this row",
                 )
             )
-            performance_data["in_play_prices"] = self._find_element_text_by_selector(
-                row,
-                "td.al-center.rp-body-text.rp-ipprices[title='The hi/lo Betfair In-Play prices with a payout of more than GBP100']",
-                "Betfair In-Play prices information not found for this row",
+            performance_data["in_play_prices"] = (
+                TFResultsDataScraper._find_element_text_by_selector(
+                    row,
+                    "td.al-center.rp-body-text.rp-ipprices[title='The hi/lo Betfair In-Play prices with a payout of more than GBP100']",
+                    "Betfair In-Play prices information not found for this row",
+                )
             )
-            performance_data["tf_comment"] = self._find_element_text_by_selector(
-                row, "tr.rp-entry-comment.rp-comments.rp-body-text"
+            performance_data["tf_comment"] = (
+                TFResultsDataScraper._find_element_text_by_selector(
+                    row, "tr.rp-entry-comment.rp-comments.rp-body-text"
+                )
             )
 
             performance_data.update(race_details_link)

@@ -7,197 +7,28 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 
 from src.raw.interfaces.link_scraper_interface import ILinkScraper
+from src.raw.interfaces.course_ref_data_interface import ICourseRefData
+
+from src.config import Config
+from src.raw.services.result_links_scraper import ResultLinksScraperService
+from src.raw.webdriver.web_driver import WebDriver
+from src.raw.helpers.course_ref_data import CourseRefData
+from src.storage.storage_client import get_storage_client
 
 
 class RPResultsLinkScraper(ILinkScraper):
-    WORLD_COURSES = [
-        "saratoga",
-        "tokyo",
-        "ellis-park",
-        "aqueduct",
-        "deauville",
-        "prairie-meadows",
-        "monmouth-park",
-        "happy-valley",
-        "doomben",
-        "morphettville",
-        "bendigo",
-        "hastings",
-        "san-siro",
-        "sha-tin",
-        "meydan",
-        "turfway-park",
-        "belmont-park",
-        "del-mar",
-        "tampa-bay-downs",
-        "jebel-ali",
-        "krefeld",
-        "delaware-park",
-        "mountaineer-park",
-        "hanover",
-        "gold-coast",
-        "charles-town",
-        "ascot-aus",
-        "lone-star-park",
-        "flemington",
-        "fontainebleau",
-        "cagnes-sur-mer",
-        "santa-anita",
-        "caulfield",
-        "pimlico",
-        "colonial-downs",
-        "munich",
-        "gosford",
-        "geelong",
-        "eagle-farm",
-        "kentucky-downs",
-        "northam",
-        "oaklawn-park",
-        "golden-gate-fields",
-        "maisons-laffitte",
-        "clairefontaine",
-        "sandown-aus",
-        "hamburg",
-        "hastings-racecourse",
-        "baden-baden",
-        "kembla-grange",
-        "gulfstream-park",
-        "angers",
-        "kyoto",
-        "parx",
-        "hanshin",
-        "saint-cloud",
-        "churchill-downs",
-        "vichy",
-        "abu-dhabi",
-        "los-alamitos",
-        "presque-isle-downs",
-        "capannelle",
-        "longchamp",
-        "fair-grounds",
-        "woodbine",
-        "penn-national",
-        "laurel-park",
-        "hoppegarten",
-        "frankfurt",
-        "chantilly",
-        "warwick-farm",
-        "dusseldorf",
-        "sam-houston",
-        "doha",
-        "moonee-valley",
-        "dortmund",
-        "thistledown",
-        "canberra",
-        "arlington-park",
-        "newcastle-aus",
-        "rosehill",
-        "randwick",
-        "toulouse",
-        "nakayama",
-        "auteuil",
-        "keeneland",
-        "cologne",
-    ]
+    def __init__(self, ref_data: ICourseRefData):
+        self.ref_data = ref_data
 
-    UK_IRE_COURSES = [
-        "kempton-aw",
-        "chepstow",
-        "tramore",
-        "pontefract",
-        "windsor",
-        "musselburgh",
-        "punchestown",
-        "newmarket",
-        "tipperary",
-        "downpatrick",
-        "towcester",
-        "leopardstown",
-        "doncaster",
-        "catterick",
-        "wolverhampton-aw",
-        "carlisle",
-        "ffos-las",
-        "warwick",
-        "wexford",
-        "thirsk",
-        "fakenham",
-        "wexford-rh",
-        "naas",
-        "ludlow",
-        "epsom",
-        "bellewstown",
-        "cartmel",
-        "exeter",
-        "bangor-on-dee",
-        "newcastle",
-        "uttoxeter",
-        "newton-abbot",
-        "ballinrobe",
-        "southwell-aw",
-        "roscommon",
-        "limerick",
-        "leicester",
-        "galway",
-        "fairyhouse",
-        "chelmsford-aw",
-        "southwell",
-        "haydock",
-        "wetherby",
-        "sandown",
-        "bath",
-        "gowran-park",
-        "cheltenham",
-        "newmarket-july",
-        "york",
-        "ripon",
-        "killarney",
-        "hexham",
-        "down-royal",
-        "listowel",
-        "hereford",
-        "ascot",
-        "stratford",
-        "worcester",
-        "fontwell",
-        "curragh",
-        "aintree",
-        "market-rasen",
-        "cork",
-        "kempton",
-        "salisbury",
-        "ayr",
-        "taunton",
-        "yarmouth",
-        "lingfield-aw",
-        "sligo",
-        "redcar",
-        "kilbeggan",
-        "newcastle-aw",
-        "laytown",
-        "hamilton",
-        "kelso",
-        "clonmel",
-        "sedgefield",
-        "nottingham",
-        "huntingdon",
-        "dundalk-aw",
-        "chester",
-        "plumpton",
-        "lingfield",
-        "thurles",
-        "beverley",
-        "newbury",
-        "goodwood",
-        "wincanton",
-        "navan",
-        "brighton",
-        "perth",
-    ]
-
-    def scrape_links(self, driver: webdriver.Chrome, date: str) -> pd.DataFrame:
+    def scrape_links(
+        self,
+        driver: webdriver.Chrome,
+        date: str,
+    ) -> pd.DataFrame:
         driver.get(f"https://www.racingpost.com/results/{date}")
-        time.sleep(5)
+        time.sleep(1)
+        ire_course_names = self.ref_data.get_uk_ire_course_names()
+        world_course_names = self.ref_data.get_world_course_names()
         days_results_links = self._get_results_links(driver)
         I(f"Found {len(days_results_links)} valid links for date {date}.")
         data = pd.DataFrame(
@@ -213,8 +44,8 @@ class RPResultsLinkScraper(ILinkScraper):
         data = data.assign(
             country_category=np.select(
                 [
-                    data["course_id"].isin(self.UK_IRE_COURSES),
-                    data["course_id"].isin(self.WORLD_COURSES),
+                    data["course_name"].isin(ire_course_names),
+                    data["course_name"].isin(world_course_names),
                 ],
                 [1, 2],
                 default=0,
@@ -234,3 +65,20 @@ class RPResultsLinkScraper(ILinkScraper):
                 and "winning-times" not in i
             }
         )
+
+
+if __name__ == "__main__":
+    config = Config()
+    storage_client = get_storage_client("postgres")
+
+    service = ResultLinksScraperService(
+        scraper=RPResultsLinkScraper(
+            ref_data=CourseRefData(source="rp", storage_client=storage_client)
+        ),
+        storage_client=storage_client,
+        driver=WebDriver(config),
+        schema="rp_raw",
+        view_name=config.db.raw.results_data.links_view,
+        table_name=config.db.raw.results_data.links_table,
+    )
+    service.run_results_links_scraper()

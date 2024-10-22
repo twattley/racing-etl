@@ -35,7 +35,10 @@ class RacecardsLinksScraperService:
 
     def _store_racecard_data(self, data: pd.DataFrame) -> None:
         self.storage_client.store_data(
-            self.schema, self.table_name, data, truncate=True
+            data=data,
+            schema=self.schema,
+            table=self.table_name,
+            truncate=True,
         )
 
     def run_racecard_links_scraper(self):
@@ -46,6 +49,6 @@ class RacecardsLinksScraperService:
         self._store_racecard_data(data)
 
     def _check_already_processed(self) -> bool:
-        return self.storage_client.fetch_data(
+        return not self.storage_client.fetch_data(
             f"SELECT * FROM {self.schema}.{self.view_name}"
         ).empty
