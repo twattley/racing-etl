@@ -108,6 +108,10 @@ class RPResultsDataScraper(IDataScraper):
             ),
         )
 
+        performance_data = performance_data.pipe(
+            RPResultsDataScraper._get_adj_total_distance_beaten
+        )
+
         performance_data = performance_data.apply(
             lambda x: x.str.strip() if x.dtype == "object" else x
         )
@@ -572,3 +576,136 @@ class RPResultsDataScraper(IDataScraper):
             return "Turf", matches[0], course_name
         else:
             return "Turf", "UK", course_name
+
+    @staticmethod
+    def _convert_distance_to_float(distance_str):
+        text_code_to_numeric = {
+            "dht": 0,
+            "nse": 0.01,
+            "shd": 0.1,
+            "sht-hd": 0.1,
+            "hd": 0.2,
+            "sht-nk": 0.3,
+            "snk": 0.3,
+            "nk": 0.5,
+            "dist": 999,
+        }
+        if pd.isna(distance_str) or not distance_str:
+            return 0.0
+        clean_str = distance_str.strip("[]")
+
+        if clean_str in text_code_to_numeric:
+            return text_code_to_numeric[clean_str]
+
+        if not clean_str:
+            return 0.0
+
+        match = re.match(r"(\d+)?(?:\s*)?([½¼¾⅓⅔⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞])?", clean_str)
+        whole_number, fraction = match[1], match[2]
+
+        whole_number_part = float(whole_number) if whole_number else 0.0
+
+        fraction_to_decimal = {
+            "½": 0.5,
+            "⅓": 0.33,
+            "⅔": 0.66,
+            "¼": 0.25,
+            "¾": 0.75,
+            "⅕": 0.2,
+            "⅖": 0.4,
+            "⅗": 0.6,
+            "⅘": 0.8,
+            "⅙": 0.167,
+            "⅚": 0.833,
+            "⅛": 0.125,
+            "⅜": 0.375,
+            "⅝": 0.625,
+            "⅞": 0.875,
+        }
+        fraction_part = fraction_to_decimal.get(fraction, 0.0)
+
+        return whole_number_part + fraction_part
+
+    @staticmethod
+    def _get_adj_total_distance_beaten(df):
+        # fmt: off
+        if len(df) == 1 and df["finishing_position"].iloc[0] == "1":
+            df["adj_total_distance_beaten"] = "WO"
+            return df
+
+        if df["total_distance_beaten"].unique().tolist() == [""]:
+            df["adj_total_distance_beaten"] = "FOG"
+            return df
+
+        if len(df) == 2 and df["finishing_position"].tolist() == ["1", "1"]:
+            df["adj_total_distance_beaten"] = "0"
+            return df
+
+        if len(df) == 2 and len(df[df["finishing_position"] == "1"]) == 1:
+            df["adj_total_distance_beaten"] = np.select(
+                [df["finishing_position"] == "1"],
+                ["0"],
+                df["finishing_position"].astype(str),
+            )
+            return df
+
+        df = df.assign(
+            float_total_distance_beaten=df["total_distance_beaten"].apply(
+                RPResultsDataScraper._convert_distance_to_float
+            ),
+        )
+        df = df.assign(
+            float_total_distance_beaten=df["float_total_distance_beaten"].round(2)
+        )
+
+        second_place = "2"
+
+        if len(df[df["finishing_position"] == "1"]) > 1:
+            finishing_positions = df["finishing_position"].unique()
+            numeric_finishing_positions = pd.to_numeric(
+                finishing_positions, errors="coerce"
+            )
+            second_place = str(
+                numeric_finishing_positions[numeric_finishing_positions > 1].min()
+            ).replace(".0", "")
+
+        dsq_df = df[
+            (pd.to_numeric(df["finishing_position"], errors="coerce") > 1)
+            & (df["total_distance_beaten"] == "")
+        ]
+        if not dsq_df.empty:
+            winning_distance = df[df["finishing_position"] == "1"][
+                "float_total_distance_beaten"
+            ].iloc[0]
+            df["float_total_distance_beaten"] = (
+                df["float_total_distance_beaten"] - winning_distance
+            )
+
+        df = df.assign(
+            adj_total_distance_beaten=np.select(
+                [
+                    df["finishing_position"].str.contains(r"[A-Za-z]", na=False),
+                    (df["finishing_position"] == "0") & (df["total_distance_beaten"] == ""),
+                    (df["finishing_position"] != "1") & (df["total_distance_beaten"] == ""),
+                    (df["finishing_position"] == "1"),
+                ],
+                [
+                    df["finishing_position"],
+                    "UND",
+                    "(DSQ)",
+                    -df[df["finishing_position"] == second_place]["float_total_distance_beaten"].iloc[0],
+                ],
+                df["float_total_distance_beaten"],
+            )
+        ).drop(columns=["float_total_distance_beaten"])
+        df = df.assign(
+            adj_total_distance_beaten=np.where(
+                df["adj_total_distance_beaten"] == "(DSQ)",
+                "(DSQ) " + df["finishing_position"],
+                df["adj_total_distance_beaten"],
+            )
+        )
+        df["adj_total_distance_beaten"] = df["adj_total_distance_beaten"].astype(str)
+        return df
+
+    # fmt: on

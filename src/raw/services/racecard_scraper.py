@@ -78,8 +78,12 @@ class RacecardsDataScraperService:
         ).empty
 
     def run_racecards_scraper(self):
+        source_map = {
+            "rp_raw": "Racing Post",
+            "tf_raw": "Timeform",
+        }
         if self._check_already_processed():
-            I("Already processed today's racecard data")
+            I(f"Already processed today's {source_map[self.schema]} racecard data")
             return
         links = self._get_missing_links()
         if not links:

@@ -67,6 +67,7 @@ class TransformSQLGenerator:
             rp.unique_id as unique_id,
             ROW_NUMBER() OVER(PARTITION BY rp.unique_id ORDER BY rp.created_at) AS rn,
             rp.debug_link as debug_link,
+            rp.adj_total_distance_beaten,
             '{data_type}' as data_type
         FROM rp_raw.{data_table} rp
         LEFT JOIN results_data pr ON rp.unique_id::text = pr.unique_id::text
@@ -163,6 +164,7 @@ class TransformSQLGenerator:
             rp.unique_id as unique_id,
             ROW_NUMBER() OVER(PARTITION BY rp.unique_id ORDER BY rp.created_at) AS rn,
             rp.debug_link as debug_link,
+            rp.adj_total_distance_beaten,
             '{data_type}' as data_type
         FROM rp_raw.{data_table} rp
         LEFT JOIN results_data pr ON rp.unique_id::text = pr.unique_id::text
@@ -196,9 +198,86 @@ class TransformSQLGenerator:
 
     @staticmethod
     def get_joined_todays_data_sql():
-        return TransformSQLGenerator.define_results_data_join_sql(
-            "todays_data", "2 days", "today"
-        )
+        return """
+        WITH joined_data AS (
+            SELECT 
+                    rp.horse_name as horse_name,
+                    rp.horse_age as horse_age,
+                    rp.jockey_name as jockey,
+                    rp.jockey_claim as jockey_claim,
+                    rp.trainer_name as trainer,
+                    rp.owner_name as owner,
+                    rp.horse_weight as weight_carried,
+                    rp.draw,
+                    COALESCE(rp.finishing_position, tf.finishing_position) AS finishing_position,
+                    rp.total_distance_beaten,
+                    COALESCE(rp.horse_age, tf.horse_age) AS age,
+                    COALESCE(rp.official_rating, tf.official_rating) AS official_rating,
+                    rp.ts_value as ts,
+                    rp.rpr_value as rpr,
+                    rp.horse_price as industry_sp,
+                    rp.extra_weight as extra_weight,
+                    rp.headgear,
+                    rp.comment as in_race_comment,
+                    rp.sire_name as sire,
+                    rp.dam_name as dam,
+                    rp.race_date as race_date,
+                    rp.race_title as race_title,
+                    rp.race_time as race_time,
+                    rp.race_class as race_class,
+                    rp.conditions as conditions,
+                    rp.distance as distance,
+                    rp.distance_full as distance_full,
+                    rp.going as going,
+                    rp.winning_time as winning_time,
+                    rp.horse_type as horse_type,
+                    rp.number_of_runners as number_of_runners,
+                    rp.total_prize_money as total_prize_money,
+                    rp.first_place_prize_money,
+                    rp.currency,
+                    rp.course_name as course,
+                    rp.country as country,
+                    rp.surface as surface,
+                    tf.tf_rating as tfr,
+                    tf.tf_speed_figure as tfig,
+                    tf.betfair_win_sp as betfair_win_sp,
+                    tf.betfair_place_sp as betfair_place_sp,
+                    tf.in_play_prices as in_play_prices,
+                    tf.tf_comment as tf_comment,
+                    tf.hcap_range as hcap_range,
+                    tf.age_range as age_range,
+                    tf.race_type as race_type,
+                    tf.main_race_comment as main_race_comment,
+                    rp.meeting_id as meeting_id,
+                    c.id as course_id,
+                    h.id as horse_id,
+                    s.id as sire_id,
+                    d.id as dam_id,
+                    t.id as trainer_id,
+                    j.id as jockey_id,
+                    o.id as owner_id,
+                    rp.race_id as race_id,
+                    rp.unique_id as unique_id,
+                    ROW_NUMBER() OVER(PARTITION BY rp.unique_id ORDER BY rp.created_at) AS rn,
+                    rp.debug_link as debug_link,
+                    rp.adj_total_distance_beaten,
+                    'today' as data_type
+                FROM rp_raw.todays_data rp
+                LEFT JOIN entities.course c ON rp.course_id = c.rp_id
+                LEFT JOIN entities.horse h ON rp.horse_id = h.rp_id
+                LEFT JOIN entities.sire s ON rp.sire_id = s.rp_id
+                LEFT JOIN entities.dam d ON rp.dam_id = d.rp_id
+                LEFT JOIN entities.trainer t ON rp.trainer_id = t.rp_id
+                LEFT JOIN entities.jockey j ON rp.jockey_id = j.rp_id
+                LEFT JOIN entities.owner o ON rp.owner_id = o.rp_id
+                LEFT JOIN tf_raw.todays_data tf ON tf.horse_id = h.tf_id
+                    AND tf.course_id = c.tf_id
+                    AND tf.race_date = rp.race_date
+                AND tf.unique_id IS NOT NULL 
+            )
+        SELECT * FROM joined_data WHERE rn = 1
+
+        """
 
 
 class ResultsDataSQLGenerator:

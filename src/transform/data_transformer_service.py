@@ -42,7 +42,6 @@ class DataTransformationService:
         self, data: pd.DataFrame
     ) -> tuple[pd.DataFrame, pd.DataFrame]:
         self.schema_model.get_schema_details()
-
         transformed_data = self.data_transformer.transform_data(data)
 
         validated_data, rejected_data = self.validate_data(
@@ -170,8 +169,8 @@ class DataTransformation:
 
         self.storage_client.store_data(
             accepted_data,
-            "public",
             "todays_data",
+            "public",
             truncate=True,
         )
         self.storage_client.store_data(
@@ -185,8 +184,8 @@ def run_transformation_pipeline():
     transformation_service = DataTransformation(
         storage_client=get_storage_client("postgres")
     )
-    transformation_service.transform_results_data()
-    # transformation_service.transform_todays_data()
+    # transformation_service.transform_results_data()
+    transformation_service.transform_todays_data()
 
 
 if __name__ == "__main__":

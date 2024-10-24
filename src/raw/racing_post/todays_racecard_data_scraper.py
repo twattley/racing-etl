@@ -42,6 +42,7 @@ class RPRacecardsDataScraper(IDataScraper):
             comment=None,
             country="UK",
             created_at=datetime.now(),
+            adj_total_distance_beaten=None,
         )
 
         horse_data = horse_data.assign(

@@ -30,9 +30,7 @@ class TFRacecardsDataScraper(IDataScraper):
             hcap_range=bha_rating_range,
             prize=prize_money,
             unique_id=lambda x: x.apply(
-                lambda y: hashlib.sha512(
-                    f"{y['horse_id']}{y['debug_link']}".encode()
-                ).hexdigest(),
+                lambda y: hashlib.sha512(f"{y['horse_id']}{url}".encode()).hexdigest(),
                 axis=1,
             ),
             finishing_position=None,

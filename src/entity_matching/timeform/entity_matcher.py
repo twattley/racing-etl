@@ -4,12 +4,18 @@ from api_helpers.helpers.logging_config import W, I
 from api_helpers.helpers.processing_utils import ptr
 from src.storage.storage_client import get_storage_client
 from src.entity_matching.helpers.string_formatting import format_horse_name
+from src.entity_matching.timeform.generate_query import MatchingTimeformSQLGenerator
 from src.entity_matching.interfaces.entity_matching_interface import IEntityMatching
 
 
 class TimeformEntityMatcher(IEntityMatching):
-    def __init__(self, storage_client: IStorageClient):
+    def __init__(
+        self,
+        storage_client: IStorageClient,
+        sql_generator: MatchingTimeformSQLGenerator,
+    ):
         self.storage_client = storage_client
+        self.sql_generator = sql_generator
 
     def run_matching(self):
         rp_data, tf_data = self.fetch_data()
@@ -35,11 +41,13 @@ class TimeformEntityMatcher(IEntityMatching):
 
     def store_data(self, entity_data: list[dict[str, pd.DataFrame]]):
         for entity in entity_data:
+            upsert_sql = self.sql_generator.get_upsert_sql(entity["entity"])
             self.storage_client.upsert_data(
-                entity["data"],
-                "entities",
-                entity["entity"],
-                ["rp_id"],
+                data=entity["data"],
+                schema="entities",
+                table_name=entity["entity"],
+                unique_columns=["rp_id"],
+                upsert_procedure=upsert_sql,
             )
 
     def create_entity_data(self, data: pd.DataFrame) -> list[dict[str, list[dict]]]:
@@ -105,5 +113,7 @@ class TimeformEntityMatcher(IEntityMatching):
 
 
 if __name__ == "__main__":
-    service = TimeformEntityMatcher(get_storage_client("postgres"))
+    service = TimeformEntityMatcher(
+        get_storage_client("postgres"), MatchingTimeformSQLGenerator
+    )
     service.run_matching()

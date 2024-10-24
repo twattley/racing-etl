@@ -58,14 +58,17 @@ def assert_df_data_equal(
 
     if test_columns:
         print(received_df[test_columns])
+        print(received_df.info())
     else:
         print(received_df)
+        print(received_df.info())
     print("[ Tests ] - Expected data:")
     if test_columns:
         print(expected_df[test_columns])
+        print(expected_df.info())
     else:
         print(expected_df)
-
+        print(expected_df.info())
     pd.testing.assert_frame_equal(
         received_df.sort_index(axis=1).reset_index(drop=True),
         expected_df.sort_index(axis=1).reset_index(drop=True),

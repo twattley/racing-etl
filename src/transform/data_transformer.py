@@ -250,55 +250,6 @@ class DataTransformer:
         return ", ".join(headgear)
 
     @staticmethod
-    def convert_distance_to_float(distance_str):
-        text_code_to_numeric = {
-            "dht": 0,
-            "nse": 0.01,
-            "shd": 0.1,
-            "sht-hd": 0.1,
-            "hd": 0.2,
-            "sht-nk": 0.3,
-            "snk": 0.3,
-            "nk": 0.6,
-            "dist": 999,
-        }
-        if pd.isna(distance_str) or not distance_str:
-            return 0.0
-        clean_str = distance_str.strip("[]")
-
-        if clean_str in text_code_to_numeric:
-            return text_code_to_numeric[clean_str]
-
-        if not clean_str:
-            return 0.0
-
-        match = re.match(r"(\d+)?(?:\s*)?([½¼¾⅓⅔⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞])?", clean_str)
-        whole_number, fraction = match[1], match[2]
-
-        whole_number_part = float(whole_number) if whole_number else 0.0
-
-        fraction_to_decimal = {
-            "½": 0.5,
-            "⅓": 0.33,
-            "⅔": 0.66,
-            "¼": 0.25,
-            "¾": 0.75,
-            "⅕": 0.2,
-            "⅖": 0.4,
-            "⅗": 0.6,
-            "⅘": 0.8,
-            "⅙": 0.167,
-            "⅚": 0.833,
-            "⅛": 0.125,
-            "⅜": 0.375,
-            "⅝": 0.625,
-            "⅞": 0.875,
-        }
-        fraction_part = fraction_to_decimal.get(fraction, 0.0)
-
-        return whole_number_part + fraction_part
-
-    @staticmethod
     def convert_horse_type_to_colour_sex(data: pd.DataFrame) -> pd.DataFrame:
         I("Converting horse type to colour and sex")
         data["horse_colour"] = "UNAVAILABLE"
@@ -339,11 +290,8 @@ class DataTransformer:
                 total_distance_beaten=np.nan,
             )
         I("Creating distance beaten data")
-        data = data.assign(
-            total_distance_beaten_str=data["total_distance_beaten"],
-            total_distance_beaten=data["total_distance_beaten"].apply(
-                DataTransformer.convert_distance_to_float
-            ),
+        data = data.drop(columns=["total_distance_beaten"]).rename(
+            columns={"adj_total_distance_beaten": "total_distance_beaten"}
         )
         return data
 
@@ -439,5 +387,4 @@ class DataTransformer:
             .pipe(DataTransformer.create_distance_beaten_data)
             .pipe(DataTransformer.create_artificial_sp)
         )
-        print(data.head())
         return data

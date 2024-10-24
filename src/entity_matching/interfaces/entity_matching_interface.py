@@ -1,4 +1,4 @@
-from typing import Protocol, Literal
+from typing import Protocol
 
 from api_helpers.interfaces.storage_client_interface import IStorageClient
 

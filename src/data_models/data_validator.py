@@ -24,6 +24,10 @@ class DataValidator(IDataValidator):
         for column, max_length in schema_model.character_lengths.items():
             if column == "unique_id":
                 continue
+            if data[column].isnull().all():
+                continue
+            if not [i for i in data[column] if i]:
+                continue
             if column in data.columns:
                 sub_data = data.copy()
                 sub_data[f"{column}_string_length"] = (
